@@ -157,7 +157,7 @@ async function runRender(args: ParsedArguments): Promise<number> {
     await writeOutput(validation.diagnostics.map(formatDiagnostic).join('\n'), undefined);
     return 1;
   }
-  const result = renderSvgDocument(input as VisualDocument);
+  const result = renderSvgDocument(input);
   await writeOutput(result.svg, args.output);
   return result.diagnostics.some((diagnostic) => diagnostic.severity === 'error') ? 1 : 0;
 }
