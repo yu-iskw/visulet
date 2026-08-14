@@ -1,5 +1,6 @@
-import type { VisualDocument } from './types';
 import { validateVisualDocument } from './validate';
+
+import type { VisualDocument } from './types';
 
 export interface AuthoringExpectation {
   readonly kind: VisualDocument['views'][number]['kind'];
@@ -24,7 +25,7 @@ const STRUCTURAL_CODES = new Set([
 ]);
 
 function firstVisualType(document: VisualDocument): string | undefined {
-  const view = document.views[0];
+  const view = document.views.at(0);
   if (view === undefined) {
     return undefined;
   }
@@ -65,7 +66,7 @@ export function scoreAuthoringCandidate(
   ).length;
   const semanticValidity = errorCount <= (expected.maxErrors ?? 0) ? 35 : 0;
   const document = isDocumentShape(candidate) ? candidate : undefined;
-  const first = document?.views[0];
+  const first = document?.views.at(0);
   const kindMatches = first?.kind === expected.kind;
   const typeMatches =
     expected.visualType === undefined ||
