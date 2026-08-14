@@ -6,6 +6,7 @@ import type { Diagnostic, ValidationResult } from './types';
 
 const validator = new Ajv2020({
   allErrors: true,
+  allowUnionTypes: true,
   strict: true,
   validateFormats: false,
 }).compile(visualDocumentV0Schema);
