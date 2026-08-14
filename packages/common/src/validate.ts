@@ -303,17 +303,8 @@ function parseView(value: unknown): VisualView | undefined {
 export function validateVisualDocument(input: unknown): ValidationResult {
   const diagnostics: Diagnostic[] = [];
   if (!isRecord(input)) {
-    return {
-      valid: false,
-      diagnostics: [
-        {
-          code: 'document.type',
-          severity: 'error',
-          path: '$',
-          message: 'Document must be an object',
-        },
-      ],
-    };
+    addDiagnostic(diagnostics, 'document.type', 'error', '$', 'Document must be an object');
+    return { valid: false, diagnostics };
   }
   if (input.version !== '0') {
     addDiagnostic(diagnostics, 'document.version', 'error', '$.version', 'version must equal "0"');

@@ -147,10 +147,8 @@ function ordinalLinePoints(document: VisualDocument, view: ChartView): readonly 
     return [];
   }
   const rows = inlineRows(document, view.data);
-  const values = rows
-    .map((row) => numeric(readRowValue(row, yField)))
-    .filter((value): value is number => value !== undefined);
-  const extent = numericExtent(values);
+  const ys = rows.map((row) => numeric(readRowValue(row, yField)));
+  const extent = numericExtent(ys.filter((value): value is number => value !== undefined));
   if (extent === undefined) {
     return [];
   }
@@ -158,8 +156,7 @@ function ordinalLinePoints(document: VisualDocument, view: ChartView): readonly 
   const availableWidth = WIDTH - PADDING * 2;
   const step = rows.length <= 1 ? 0 : availableWidth / (rows.length - 1);
   const points: [number, number][] = [];
-  for (const [index, row] of rows.entries()) {
-    const y = numeric(readRowValue(row, yField));
+  for (const [index, y] of ys.entries()) {
     if (y !== undefined) {
       points.push([PADDING + index * step, scale(y, minY, maxY, 245, 55)]);
     }
