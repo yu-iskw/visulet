@@ -9,7 +9,12 @@ export {
   isSupportedInfographic,
 } from './catalog';
 export type { SupportedChart, SupportedDiagram, SupportedInfographic } from './catalog';
+export {
+  validateVisualDocument,
+  validateVisualDocumentSemantics,
+} from './document-validation';
 export { renderSvgDocument } from './render-svg';
+export { validateVisualDocumentStructure } from './schema-validation';
 export type {
   Accessibility,
   BaseView,
@@ -39,4 +44,3 @@ export type {
   VisualDocument,
   VisualView,
 } from './types';
-export { validateVisualDocument } from './validate';
