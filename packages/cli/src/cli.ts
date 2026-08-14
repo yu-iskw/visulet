@@ -29,22 +29,32 @@ interface InspectResult {
   readonly diagnostics: readonly Diagnostic[];
 }
 
+function takeOptionValue(values: string[], option: string): string {
+  const value = values.shift();
+  if (value === undefined) {
+    throw new Error(`${option} requires a value`);
+  }
+  return value;
+}
+
 function parseArguments(argv: readonly string[]): ParsedArguments {
+  const values = [...argv];
   const positional: string[] = [];
   let json = false;
   let output: string | undefined;
   let format: string | undefined;
-  for (let index = 0; index < argv.length; index += 1) {
-    const value = argv[index];
+  while (values.length > 0) {
+    const value = values.shift();
+    if (value === undefined) {
+      break;
+    }
     if (value === '--json') {
       json = true;
     } else if (value === '--output' || value === '-o') {
-      output = argv[index + 1];
-      index += 1;
+      output = takeOptionValue(values, value);
     } else if (value === '--format') {
-      format = argv[index + 1];
-      index += 1;
-    } else if (value !== undefined) {
+      format = takeOptionValue(values, value);
+    } else {
       positional.push(value);
     }
   }
@@ -93,16 +103,16 @@ function inspectDocument(
 ): InspectResult {
   const views: VisualView[] = [];
   collectViews(document.views, views);
-  const kinds: Record<string, number> = {};
+  const kinds = new Map<string, number>();
   for (const view of views) {
-    kinds[view.kind] = (kinds[view.kind] ?? 0) + 1;
+    kinds.set(view.kind, (kinds.get(view.kind) ?? 0) + 1);
   }
   return {
     version: document.version,
     title: document.title,
     datasets: Object.keys(document.data ?? {}),
     viewCount: views.length,
-    viewKinds: kinds,
+    viewKinds: Object.fromEntries(kinds),
     diagnostics,
   };
 }
