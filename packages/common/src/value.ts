@@ -1,5 +1,9 @@
 import type { DataRow } from './types';
 
+export function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 export function readMapValue<T>(
   record: Readonly<Record<string, T>> | undefined,
   key: string,
@@ -11,14 +15,14 @@ export function readMapValue<T>(
 }
 
 export function readRowValue(row: DataRow, field: string): unknown {
-  return Object.hasOwn(row, field) ? Reflect.get(row, field) : undefined;
+  return readMapValue(row, field);
 }
 
 export function readUnknownProperty(
   record: Readonly<Record<string, unknown>> | undefined,
   key: string,
 ): unknown {
-  return record !== undefined && Object.hasOwn(record, key) ? Reflect.get(record, key) : undefined;
+  return readMapValue(record, key);
 }
 
 export function displayValue(value: unknown): string {

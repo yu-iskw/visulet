@@ -1,6 +1,6 @@
 import { isSupportedChart, isSupportedDiagram, isSupportedInfographic } from './catalog';
 import { validateVisualDocument } from './validate';
-import { displayValue, readMapValue, readRowValue, readUnknownProperty } from './value';
+import { displayValue, isRecord, readMapValue, readRowValue, readUnknownProperty } from './value';
 
 import type {
   ChartView,
@@ -30,12 +30,46 @@ function escapeXml(value: string): string {
     .replaceAll("'", '&apos;');
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 function recordArray(value: unknown): readonly Record<string, unknown>[] {
   return Array.isArray(value) ? value.filter(isRecord) : [];
+}
+
+function maxAtLeast(values: readonly number[], floor: number): number {
+  let max = floor;
+  for (const value of values) {
+    if (value > max) {
+      max = value;
+    }
+  }
+  return max;
+}
+
+function numericExtent(values: readonly number[]): { min: number; max: number } | undefined {
+  const first = values.at(0);
+  if (first === undefined) {
+    return undefined;
+  }
+  let min = first;
+  let max = first;
+  for (const value of values) {
+    if (value < min) {
+      min = value;
+    }
+    if (value > max) {
+      max = value;
+    }
+  }
+  return { min, max };
+}
+
+function firstSeenIndex(indexes: Map<string, number>, value: string): number {
+  const existing = indexes.get(value);
+  if (existing !== undefined) {
+    return existing;
+  }
+  const index = indexes.size;
+  indexes.set(value, index);
+  return index;
 }
 
 function inlineRows(document: VisualDocument, dataName: string): readonly DataRow[] {
@@ -67,12 +101,12 @@ function renderBar(document: VisualDocument, view: ChartView): string {
   }
   const rows = inlineRows(document, view.data);
   const values = rows.map((row) => numeric(readRowValue(row, yField)) ?? 0);
-  const max = Math.max(1, ...values);
+  const max = maxAtLeast(values, 1);
   const chartWidth = WIDTH - PADDING * 2;
   const barWidth = rows.length === 0 ? chartWidth : chartWidth / rows.length;
   return rows
     .map((row, index) => {
-      const value = numeric(readRowValue(row, yField)) ?? 0;
+      const value = values.at(index) ?? 0;
       const height = (value / max) * 190;
       const x = PADDING + index * barWidth + 4;
       const y = 245 - height;
@@ -96,18 +130,14 @@ function numericPoints(document: VisualDocument, view: ChartView): readonly [num
       raw.push([x, y]);
     }
   }
-  if (raw.length === 0) {
+  const xExtent = numericExtent(raw.map(([x]) => x));
+  const yExtent = numericExtent(raw.map(([, y]) => y));
+  if (xExtent === undefined || yExtent === undefined) {
     return [];
   }
-  const xs = raw.map(([x]) => x);
-  const ys = raw.map(([, y]) => y);
-  const minX = Math.min(...xs);
-  const maxX = Math.max(...xs);
-  const minY = Math.min(...ys);
-  const maxY = Math.max(...ys);
   return raw.map(([x, y]) => [
-    scale(x, minX, maxX, PADDING, WIDTH - PADDING),
-    scale(y, minY, maxY, 245, 55),
+    scale(x, xExtent.min, xExtent.max, PADDING, WIDTH - PADDING),
+    scale(y, yExtent.min, yExtent.max, 245, 55),
   ]);
 }
 
@@ -117,19 +147,16 @@ function ordinalLinePoints(document: VisualDocument, view: ChartView): readonly 
     return [];
   }
   const rows = inlineRows(document, view.data);
-  const values = rows
-    .map((row) => numeric(readRowValue(row, yField)))
-    .filter((value): value is number => value !== undefined);
-  if (values.length === 0) {
+  const ys = rows.map((row) => numeric(readRowValue(row, yField)));
+  const extent = numericExtent(ys.filter((value): value is number => value !== undefined));
+  if (extent === undefined) {
     return [];
   }
-  const minY = Math.min(...values);
-  const maxY = Math.max(...values);
+  const { min: minY, max: maxY } = extent;
   const availableWidth = WIDTH - PADDING * 2;
   const step = rows.length <= 1 ? 0 : availableWidth / (rows.length - 1);
   const points: [number, number][] = [];
-  for (const [index, row] of rows.entries()) {
-    const y = numeric(readRowValue(row, yField));
+  for (const [index, y] of ys.entries()) {
     if (y !== undefined) {
       points.push([PADDING + index * step, scale(y, minY, maxY, 245, 55)]);
     }
@@ -138,8 +165,8 @@ function ordinalLinePoints(document: VisualDocument, view: ChartView): readonly 
 }
 
 function renderLine(document: VisualDocument, view: ChartView): string {
-  const numeric = numericPoints(document, view);
-  const points = numeric.length > 0 ? numeric : ordinalLinePoints(document, view);
+  const scaledPoints = numericPoints(document, view);
+  const points = scaledPoints.length > 0 ? scaledPoints : ordinalLinePoints(document, view);
   if (points.length === 0) {
     return '';
   }
@@ -161,19 +188,24 @@ function renderHeatmap(document: VisualDocument, view: ChartView): string {
     return '';
   }
   const rows = inlineRows(document, view.data);
-  const xValues = [...new Set(rows.map((row) => displayValue(readRowValue(row, xField))))];
-  const yValues = [...new Set(rows.map((row) => displayValue(readRowValue(row, yField))))];
-  const colorValues = rows.map((row) => numeric(readRowValue(row, colorField)) ?? 0);
-  const max = Math.max(1, ...colorValues);
-  const cellWidth = (WIDTH - PADDING * 2) / Math.max(1, xValues.length);
-  const cellHeight = 190 / Math.max(1, yValues.length);
-  return rows
-    .map((row) => {
-      const xIndex = xValues.indexOf(displayValue(readRowValue(row, xField)));
-      const yIndex = yValues.indexOf(displayValue(readRowValue(row, yField)));
-      const value = numeric(readRowValue(row, colorField)) ?? 0;
-      return `<rect x="${PADDING + xIndex * cellWidth}" y="${55 + yIndex * cellHeight}" width="${cellWidth - 2}" height="${cellHeight - 2}" fill="currentColor" opacity="${Math.max(0.1, value / max)}"/>`;
-    })
+  const xIndexes = new Map<string, number>();
+  const yIndexes = new Map<string, number>();
+  const cells = rows.map((row) => ({
+    xIndex: firstSeenIndex(xIndexes, displayValue(readRowValue(row, xField))),
+    yIndex: firstSeenIndex(yIndexes, displayValue(readRowValue(row, yField))),
+    value: numeric(readRowValue(row, colorField)) ?? 0,
+  }));
+  const max = maxAtLeast(
+    cells.map((cell) => cell.value),
+    1,
+  );
+  const cellWidth = (WIDTH - PADDING * 2) / Math.max(1, xIndexes.size);
+  const cellHeight = 190 / Math.max(1, yIndexes.size);
+  return cells
+    .map(
+      (cell) =>
+        `<rect x="${PADDING + cell.xIndex * cellWidth}" y="${55 + cell.yIndex * cellHeight}" width="${cellWidth - 2}" height="${cellHeight - 2}" fill="currentColor" opacity="${Math.max(0.1, cell.value / max)}"/>`,
+    )
     .join('');
 }
 
@@ -190,6 +222,10 @@ function renderChartBody(document: VisualDocument, view: ChartView): string {
       return renderScatter(document, view);
     case 'heatmap':
       return renderHeatmap(document, view);
+    default: {
+      const exhaustive: never = view.chart;
+      return exhaustive;
+    }
   }
 }
 
@@ -262,8 +298,17 @@ function renderDiagram(view: DiagramView): string {
   if (!isSupportedDiagram(view.diagram)) {
     return renderTitle(view);
   }
-  const body = view.diagram === 'sequence' ? renderSequence(view) : renderNodeDiagram(view);
-  return `${renderTitle(view)}${body}`;
+  switch (view.diagram) {
+    case 'sequence':
+      return `${renderTitle(view)}${renderSequence(view)}`;
+    case 'flowchart':
+    case 'architecture':
+      return `${renderTitle(view)}${renderNodeDiagram(view)}`;
+    default: {
+      const exhaustive: never = view.diagram;
+      return exhaustive;
+    }
+  }
 }
 
 function renderInfographic(view: InfographicView): string {
@@ -329,18 +374,28 @@ function viewHeight(view: VisualView): number {
   return Math.max(VIEW_HEIGHT, 32 + view.views.reduce((sum, child) => sum + viewHeight(child), 0));
 }
 
+function stackedViewGroups(
+  document: VisualDocument,
+  views: readonly VisualView[],
+  diagnostics: Diagnostic[],
+): { groups: string[]; height: number } {
+  let offset = 0;
+  const groups: string[] = [];
+  for (const view of views) {
+    groups.push(
+      `<g transform="translate(0 ${offset})">${renderView(document, view, diagnostics)}</g>`,
+    );
+    offset += viewHeight(view);
+  }
+  return { groups, height: offset };
+}
+
 function renderContainer(
   document: VisualDocument,
   view: ContainerView,
   diagnostics: Diagnostic[],
 ): string {
-  let offset = 0;
-  const groups: string[] = [];
-  for (const child of view.views) {
-    const body = renderView(document, child, diagnostics);
-    groups.push(`<g transform="translate(0 ${offset})">${body}</g>`);
-    offset += viewHeight(child);
-  }
+  const { groups } = stackedViewGroups(document, view.views, diagnostics);
   return `${renderTitle(view)}<g transform="translate(0 32)">${groups.join('')}</g>`;
 }
 
@@ -370,6 +425,10 @@ function renderView(document: VisualDocument, view: VisualView, diagnostics: Dia
       return renderContainer(document, view, diagnostics);
     case 'native':
       return renderTitle(view);
+    default: {
+      const exhaustive: never = view;
+      return exhaustive;
+    }
   }
 }
 
@@ -388,14 +447,12 @@ export function renderSvgDocument(input: unknown): RenderResult {
       message: 'Static SVG output preserves no interactive behavior in v0',
     });
   }
-  let offset = 0;
-  const groups: string[] = [];
-  for (const view of document.views) {
-    const body = renderView(document, view, diagnostics);
-    groups.push(`<g transform="translate(0 ${offset})">${body}</g>`);
-    offset += viewHeight(view);
-  }
-  const height = Math.max(VIEW_HEIGHT, offset);
+  const { groups, height: stackedHeight } = stackedViewGroups(
+    document,
+    document.views,
+    diagnostics,
+  );
+  const height = Math.max(VIEW_HEIGHT, stackedHeight);
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${WIDTH} ${height}" role="img"><style>text{font-family:system-ui,sans-serif}svg{color:#334155}</style>${groups.join('')}</svg>`;
   return { svg, diagnostics };
 }

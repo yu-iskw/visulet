@@ -136,6 +136,35 @@ describe('renderSvgDocument', () => {
     expect(result.svg).toContain('<line');
   });
 
+  it('places heatmap cells by first-seen category index', () => {
+    const result = renderSvgDocument({
+      version: '0',
+      data: {
+        cells: {
+          values: [
+            { x: 'B', y: 'top', heat: 10 },
+            { x: 'A', y: 'top', heat: 5 },
+          ],
+        },
+      },
+      views: [
+        {
+          id: 'heat',
+          kind: 'chart',
+          chart: 'heatmap',
+          data: 'cells',
+          encoding: {
+            x: { field: 'x' },
+            y: { field: 'y' },
+            color: { field: 'heat' },
+          },
+        },
+      ],
+    });
+    expect(result.svg).toMatch(/<rect x="32"[^>]*opacity="1"/);
+    expect(result.svg).toMatch(/<rect x="480"[^>]*opacity="0.5"/);
+  });
+
   it('warns instead of pretending to execute interactions', () => {
     const result = renderSvgDocument({ ...document, interactions: [{ type: 'select' }] });
     expect(

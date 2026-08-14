@@ -1,10 +1,11 @@
 import { isSupportedChart, isSupportedDiagram, isSupportedInfographic } from './catalog';
-import { readMapValue } from './value';
+import { isRecord, readMapValue } from './value';
 
 import type {
   ChartView,
   DataSource,
   Diagnostic,
+  DiagnosticSeverity,
   DiagramView,
   MetricView,
   ValidationResult,
@@ -12,14 +13,10 @@ import type {
   VisualView,
 } from './types';
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 function addDiagnostic(
   diagnostics: Diagnostic[],
   code: string,
-  severity: 'error' | 'warning',
+  severity: DiagnosticSeverity,
   path: string,
   message: string,
 ): void {
@@ -143,12 +140,12 @@ function validateMetric(
       'Metric requires either value or both data and field',
     );
   }
-  if (view.data !== undefined && view.field !== undefined) {
+  if (hasReference) {
     validateDataReference(document, view.data, view.field, path, diagnostics);
   }
 }
 
-function validateContainerChildren(
+function validateViews(
   document: VisualDocument,
   rawChildren: readonly unknown[],
   path: string,
@@ -223,7 +220,7 @@ function validateView(
       validateMetric(document, view, path, diagnostics);
       break;
     case 'container':
-      validateContainerChildren(document, view.views, path, ids, diagnostics);
+      validateViews(document, view.views, path, ids, diagnostics);
       break;
     case 'native':
       addDiagnostic(
@@ -236,6 +233,10 @@ function validateView(
       break;
     case 'text':
       break;
+    default: {
+      const exhaustive: never = view;
+      return exhaustive;
+    }
   }
 }
 
@@ -302,17 +303,8 @@ function parseView(value: unknown): VisualView | undefined {
 export function validateVisualDocument(input: unknown): ValidationResult {
   const diagnostics: Diagnostic[] = [];
   if (!isRecord(input)) {
-    return {
-      valid: false,
-      diagnostics: [
-        {
-          code: 'document.type',
-          severity: 'error',
-          path: '$',
-          message: 'Document must be an object',
-        },
-      ],
-    };
+    addDiagnostic(diagnostics, 'document.type', 'error', '$', 'Document must be an object');
+    return { valid: false, diagnostics };
   }
   if (input.version !== '0') {
     addDiagnostic(diagnostics, 'document.version', 'error', '$.version', 'version must equal "0"');
@@ -323,21 +315,7 @@ export function validateVisualDocument(input: unknown): ValidationResult {
   }
 
   const document = input as unknown as VisualDocument;
-  const ids = new Set<string>();
-  for (const [index, rawView] of input.views.entries()) {
-    const view = parseView(rawView);
-    if (view === undefined) {
-      addDiagnostic(
-        diagnostics,
-        'view.shape',
-        'error',
-        `$.views[${index}]`,
-        'View does not satisfy the required shape for its kind',
-      );
-      continue;
-    }
-    validateView(document, view, `$.views[${index}]`, ids, diagnostics);
-  }
+  validateViews(document, input.views, '$', new Set<string>(), diagnostics);
   return {
     valid: !diagnostics.some((diagnostic) => diagnostic.severity === 'error'),
     diagnostics,
