@@ -1,12 +1,17 @@
 {
-  "name": "@typescript-template/common",
-  "version": "1.0.0",
-  "description": "Common utilities and types for the TypeScript template project.",
-  "keywords": [],
+  "name": "@visually/core",
+  "version": "0.1.0",
+  "description": "Dependency-free Phase 0 compiler, CLI, and MCP surface for Visually VisualDocument.",
+  "keywords": ["visualization", "mcp", "charts", "diagrams", "infographics"],
   "license": "Apache-2.0",
   "author": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "visually": "bin/visually.cjs",
+    "visually-mcp": "bin/visually-mcp.cjs"
+  },
+  "files": ["dist", "bin", "app"],
   "scripts": {
     "build": "tsc"
   }
