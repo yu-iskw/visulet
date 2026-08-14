@@ -70,7 +70,7 @@ describe('Vega-Lite compiler', () => {
     );
   });
 
-  it('does not pass unknown canonical transforms through to the backend', () => {
+  it('does not pass canonical transforms through until portable semantics are defined', () => {
     const document = chartDocument('bar');
     const chart = document.views[0];
     if (chart?.kind !== 'chart') {
@@ -78,7 +78,12 @@ describe('Vega-Lite compiler', () => {
     }
     const result = compileVegaLiteDocument({
       ...document,
-      views: [{ ...chart, transforms: [{ calculate: 'dangerous-backend-expression' }] }],
+      views: [
+        {
+          ...chart,
+          transforms: [{ type: 'calculate', expression: 'datum.value * 2', as: 'doubleValue' }],
+        },
+      ],
     });
     expect(result.spec).toBeUndefined();
     expect(result.diagnostics).toEqual(
