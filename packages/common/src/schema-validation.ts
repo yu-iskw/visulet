@@ -8,6 +8,7 @@ const validator = new Ajv2020({
   allErrors: true,
   allowUnionTypes: true,
   strict: true,
+  strictRequired: false,
   validateFormats: false,
 }).compile(visualDocumentV0Schema);
 
