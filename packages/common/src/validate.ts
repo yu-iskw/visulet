@@ -145,7 +145,7 @@ function validateMetric(
   }
 }
 
-function validateContainerChildren(
+function validateViews(
   document: VisualDocument,
   rawChildren: readonly unknown[],
   path: string,
@@ -220,7 +220,7 @@ function validateView(
       validateMetric(document, view, path, diagnostics);
       break;
     case 'container':
-      validateContainerChildren(document, view.views, path, ids, diagnostics);
+      validateViews(document, view.views, path, ids, diagnostics);
       break;
     case 'native':
       addDiagnostic(
@@ -324,7 +324,7 @@ export function validateVisualDocument(input: unknown): ValidationResult {
   }
 
   const document = input as unknown as VisualDocument;
-  validateContainerChildren(document, input.views, '$', new Set<string>(), diagnostics);
+  validateViews(document, input.views, '$', new Set<string>(), diagnostics);
   return {
     valid: !diagnostics.some((diagnostic) => diagnostic.severity === 'error'),
     diagnostics,

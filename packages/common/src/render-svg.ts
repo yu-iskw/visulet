@@ -62,14 +62,14 @@ function numericExtent(values: readonly number[]): { min: number; max: number } 
   return { min, max };
 }
 
-function firstSeenIndexes(values: readonly string[]): ReadonlyMap<string, number> {
-  const indexes = new Map<string, number>();
-  for (const value of values) {
-    if (!indexes.has(value)) {
-      indexes.set(value, indexes.size);
-    }
+function firstSeenIndex(indexes: Map<string, number>, value: string): number {
+  const existing = indexes.get(value);
+  if (existing !== undefined) {
+    return existing;
   }
-  return indexes;
+  const index = indexes.size;
+  indexes.set(value, index);
+  return index;
 }
 
 function inlineRows(document: VisualDocument, dataName: string): readonly DataRow[] {
@@ -123,35 +123,21 @@ function numericPoints(document: VisualDocument, view: ChartView): readonly [num
     return [];
   }
   const raw: [number, number][] = [];
-  let minX = Infinity;
-  let maxX = -Infinity;
-  let minY = Infinity;
-  let maxY = -Infinity;
   for (const row of inlineRows(document, view.data)) {
     const x = numeric(readRowValue(row, xField));
     const y = numeric(readRowValue(row, yField));
     if (x !== undefined && y !== undefined) {
       raw.push([x, y]);
-      if (x < minX) {
-        minX = x;
-      }
-      if (x > maxX) {
-        maxX = x;
-      }
-      if (y < minY) {
-        minY = y;
-      }
-      if (y > maxY) {
-        maxY = y;
-      }
     }
   }
-  if (raw.length === 0) {
+  const xExtent = numericExtent(raw.map(([x]) => x));
+  const yExtent = numericExtent(raw.map(([, y]) => y));
+  if (xExtent === undefined || yExtent === undefined) {
     return [];
   }
   return raw.map(([x, y]) => [
-    scale(x, minX, maxX, PADDING, WIDTH - PADDING),
-    scale(y, minY, maxY, 245, 55),
+    scale(x, xExtent.min, xExtent.max, PADDING, WIDTH - PADDING),
+    scale(y, yExtent.min, yExtent.max, 245, 55),
   ]);
 }
 
@@ -205,19 +191,24 @@ function renderHeatmap(document: VisualDocument, view: ChartView): string {
     return '';
   }
   const rows = inlineRows(document, view.data);
-  const xIndexes = firstSeenIndexes(rows.map((row) => displayValue(readRowValue(row, xField))));
-  const yIndexes = firstSeenIndexes(rows.map((row) => displayValue(readRowValue(row, yField))));
-  const colorValues = rows.map((row) => numeric(readRowValue(row, colorField)) ?? 0);
-  const max = maxAtLeast(colorValues, 1);
+  const xIndexes = new Map<string, number>();
+  const yIndexes = new Map<string, number>();
+  const cells = rows.map((row) => ({
+    xIndex: firstSeenIndex(xIndexes, displayValue(readRowValue(row, xField))),
+    yIndex: firstSeenIndex(yIndexes, displayValue(readRowValue(row, yField))),
+    value: numeric(readRowValue(row, colorField)) ?? 0,
+  }));
+  const max = maxAtLeast(
+    cells.map((cell) => cell.value),
+    1,
+  );
   const cellWidth = (WIDTH - PADDING * 2) / Math.max(1, xIndexes.size);
   const cellHeight = 190 / Math.max(1, yIndexes.size);
-  return rows
-    .map((row, index) => {
-      const xIndex = xIndexes.get(displayValue(readRowValue(row, xField))) ?? -1;
-      const yIndex = yIndexes.get(displayValue(readRowValue(row, yField))) ?? -1;
-      const value = colorValues.at(index) ?? 0;
-      return `<rect x="${PADDING + xIndex * cellWidth}" y="${55 + yIndex * cellHeight}" width="${cellWidth - 2}" height="${cellHeight - 2}" fill="currentColor" opacity="${Math.max(0.1, value / max)}"/>`;
-    })
+  return cells
+    .map(
+      (cell) =>
+        `<rect x="${PADDING + cell.xIndex * cellWidth}" y="${55 + cell.yIndex * cellHeight}" width="${cellWidth - 2}" height="${cellHeight - 2}" fill="currentColor" opacity="${Math.max(0.1, cell.value / max)}"/>`,
+    )
     .join('');
 }
 
@@ -310,8 +301,17 @@ function renderDiagram(view: DiagramView): string {
   if (!isSupportedDiagram(view.diagram)) {
     return renderTitle(view);
   }
-  const body = view.diagram === 'sequence' ? renderSequence(view) : renderNodeDiagram(view);
-  return `${renderTitle(view)}${body}`;
+  switch (view.diagram) {
+    case 'sequence':
+      return `${renderTitle(view)}${renderSequence(view)}`;
+    case 'flowchart':
+    case 'architecture':
+      return `${renderTitle(view)}${renderNodeDiagram(view)}`;
+    default: {
+      const exhaustive: never = view.diagram;
+      return exhaustive;
+    }
+  }
 }
 
 function renderInfographic(view: InfographicView): string {

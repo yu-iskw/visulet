@@ -142,8 +142,8 @@ describe('renderSvgDocument', () => {
       data: {
         cells: {
           values: [
-            { x: 'A', y: 'top', heat: 10 },
-            { x: 'B', y: 'top', heat: 5 },
+            { x: 'B', y: 'top', heat: 10 },
+            { x: 'A', y: 'top', heat: 5 },
           ],
         },
       },
@@ -161,10 +161,8 @@ describe('renderSvgDocument', () => {
         },
       ],
     });
-    expect(result.svg).toContain('opacity="1"');
-    expect(result.svg).toContain('opacity="0.5"');
-    expect(result.svg).toContain('x="32"');
-    expect(result.svg).toContain('x="480"');
+    expect(result.svg).toMatch(/<rect x="32"[^>]*opacity="1"/);
+    expect(result.svg).toMatch(/<rect x="480"[^>]*opacity="0.5"/);
   });
 
   it('warns instead of pretending to execute interactions', () => {
