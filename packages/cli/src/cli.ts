@@ -31,26 +31,35 @@ interface InspectResult {
   readonly diagnostics: readonly Diagnostic[];
 }
 
+function takeOptionValue(values: string[], option: string): string {
+  const value = values.shift();
+  if (value === undefined) {
+    throw new Error(`${option} requires a value`);
+  }
+  return value;
+}
+
 function parseArguments(argv: readonly string[]): ParsedArguments {
+  const values = [...argv];
   const positional: string[] = [];
   let json = false;
   let output: string | undefined;
   let format: string | undefined;
   let backend: string | undefined;
-  for (let index = 0; index < argv.length; index += 1) {
-    const value = argv[index];
+  while (values.length > 0) {
+    const value = values.shift();
+    if (value === undefined) {
+      break;
+    }
     if (value === '--json') {
       json = true;
     } else if (value === '--output' || value === '-o') {
-      output = argv[index + 1];
-      index += 1;
+      output = takeOptionValue(values, value);
     } else if (value === '--format') {
-      format = argv[index + 1];
-      index += 1;
+      format = takeOptionValue(values, value);
     } else if (value === '--backend') {
-      backend = argv[index + 1];
-      index += 1;
-    } else if (value !== undefined) {
+      backend = takeOptionValue(values, value);
+    } else {
       positional.push(value);
     }
   }
@@ -77,6 +86,8 @@ async function readInput(path: string | undefined): Promise<unknown> {
   if (path === undefined) {
     throw new Error('An input file or - for stdin is required');
   }
+  // The CLI intentionally accepts a user-selected input path.
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   const text = path === '-' ? await readStdin() : await readFile(path, 'utf8');
   return JSON.parse(text) as unknown;
 }
@@ -100,16 +111,16 @@ function inspectDocument(
 ): InspectResult {
   const views: VisualView[] = [];
   collectViews(document.views, views);
-  const kinds: Record<string, number> = {};
+  const kinds = new Map<string, number>();
   for (const view of views) {
-    kinds[view.kind] = (kinds[view.kind] ?? 0) + 1;
+    kinds.set(view.kind, (kinds.get(view.kind) ?? 0) + 1);
   }
   return {
     version: document.version,
     title: document.title,
     datasets: Object.keys(document.data ?? {}),
     viewCount: views.length,
-    viewKinds: kinds,
+    viewKinds: Object.fromEntries(kinds),
     diagnostics,
   };
 }
@@ -131,6 +142,8 @@ async function writeOutput(text: string, output: string | undefined): Promise<vo
     process.stdout.write(text.endsWith('\n') ? text : `${text}\n`);
     return;
   }
+  // The CLI intentionally accepts a user-selected output path.
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   await writeFile(output, text, 'utf8');
 }
 
@@ -156,7 +169,7 @@ async function runRender(args: ParsedArguments): Promise<number> {
     await writeOutput(validation.diagnostics.map(formatDiagnostic).join('\n'), undefined);
     return 1;
   }
-  const result = renderSvgDocument(input as VisualDocument);
+  const result = renderSvgDocument(input);
   await writeOutput(result.svg, args.output);
   return result.diagnostics.some((diagnostic) => diagnostic.severity === 'error') ? 1 : 0;
 }
