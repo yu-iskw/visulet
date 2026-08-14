@@ -1,0 +1,9 @@
+{
+  "name": "@visulet/schema",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Normative JSON Schemas for Vizulet visual documents.",
+  "exports": {
+    "./v0": "./v0/visual-document.schema.json"
+  }
+}
