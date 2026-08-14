@@ -1,4 +1,6 @@
 import { isSupportedChart, isSupportedDiagram, isSupportedInfographic } from './catalog';
+import { readMapValue } from './value';
+
 import type {
   ChartView,
   DataSource,
@@ -39,7 +41,7 @@ function validateDataReference(
   if (dataName === undefined) {
     return;
   }
-  const source = document.data?.[dataName];
+  const source = readMapValue(document.data, dataName);
   if (source === undefined) {
     addDiagnostic(diagnostics, 'data.missing', 'error', path, `Unknown dataset: ${dataName}`);
     return;
@@ -67,13 +69,15 @@ function validateChart(
 ): void {
   validateDataReference(document, view.data, undefined, `${path}.data`, diagnostics);
   for (const [channel, field] of Object.entries(view.encoding)) {
-    validateDataReference(
-      document,
-      view.data,
-      field.field,
-      `${path}.encoding.${channel}.field`,
-      diagnostics,
-    );
+    if (field !== undefined) {
+      validateDataReference(
+        document,
+        view.data,
+        field.field,
+        `${path}.encoding.${channel}.field`,
+        diagnostics,
+      );
+    }
   }
   if (!isSupportedChart(view.chart)) {
     addDiagnostic(
@@ -139,7 +143,7 @@ function validateMetric(
       'Metric requires either value or both data and field',
     );
   }
-  if (hasReference) {
+  if (view.data !== undefined && view.field !== undefined) {
     validateDataReference(document, view.data, view.field, path, diagnostics);
   }
 }
@@ -239,7 +243,36 @@ function hasFieldEncoding(value: unknown): boolean {
   if (!isRecord(value)) {
     return false;
   }
-  return Object.values(value).every((field) => isRecord(field) && typeof field.field === 'string');
+  return Object.values(value).every(
+    (field) => isRecord(field) && typeof field.field === 'string',
+  );
+}
+
+function parseChart(value: Record<string, unknown>): VisualView | undefined {
+  return typeof value.chart === 'string' &&
+    typeof value.data === 'string' &&
+    hasFieldEncoding(value.encoding)
+    ? (value as unknown as VisualView)
+    : undefined;
+}
+
+function parseDiagram(value: Record<string, unknown>): VisualView | undefined {
+  const hasModel = isRecord(value.model);
+  return typeof value.diagram === 'string' && (Array.isArray(value.nodes) || hasModel)
+    ? (value as unknown as VisualView)
+    : undefined;
+}
+
+function parseInfographic(value: Record<string, unknown>): VisualView | undefined {
+  return typeof value.structure === 'string' && Array.isArray(value.items)
+    ? (value as unknown as VisualView)
+    : undefined;
+}
+
+function parseNative(value: Record<string, unknown>): VisualView | undefined {
+  return typeof value.renderer === 'string' && isRecord(value.spec)
+    ? (value as unknown as VisualView)
+    : undefined;
 }
 
 function parseView(value: unknown): VisualView | undefined {
@@ -248,20 +281,11 @@ function parseView(value: unknown): VisualView | undefined {
   }
   switch (value.kind) {
     case 'chart':
-      return typeof value.chart === 'string' &&
-        typeof value.data === 'string' &&
-        hasFieldEncoding(value.encoding)
-        ? (value as unknown as VisualView)
-        : undefined;
+      return parseChart(value);
     case 'diagram':
-      return typeof value.diagram === 'string' &&
-        (Array.isArray(value.nodes) || isRecord(value.model))
-        ? (value as unknown as VisualView)
-        : undefined;
+      return parseDiagram(value);
     case 'infographic':
-      return typeof value.structure === 'string' && Array.isArray(value.items)
-        ? (value as unknown as VisualView)
-        : undefined;
+      return parseInfographic(value);
     case 'table':
       return typeof value.data === 'string' ? (value as unknown as VisualView) : undefined;
     case 'text':
@@ -271,9 +295,7 @@ function parseView(value: unknown): VisualView | undefined {
     case 'container':
       return Array.isArray(value.views) ? (value as unknown as VisualView) : undefined;
     case 'native':
-      return typeof value.renderer === 'string' && isRecord(value.spec)
-        ? (value as unknown as VisualView)
-        : undefined;
+      return parseNative(value);
     default:
       return undefined;
   }
