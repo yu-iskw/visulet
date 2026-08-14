@@ -57,11 +57,20 @@ function parseArguments(argv: readonly string[]): ParsedArguments {
   };
 }
 
+async function readStdin(): Promise<string> {
+  process.stdin.setEncoding('utf8');
+  let text = '';
+  for await (const chunk of process.stdin) {
+    text += chunk;
+  }
+  return text;
+}
+
 async function readInput(path: string | undefined): Promise<unknown> {
   if (path === undefined) {
     throw new Error('An input file or - for stdin is required');
   }
-  const text = path === '-' ? await readFile(0, 'utf8') : await readFile(path, 'utf8');
+  const text = path === '-' ? await readStdin() : await readFile(path, 'utf8');
   return JSON.parse(text) as unknown;
 }
 
