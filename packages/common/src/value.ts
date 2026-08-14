@@ -22,20 +22,11 @@ export function readUnknownProperty(
 }
 
 export function displayValue(value: unknown): string {
-  if (value === null) {
-    return '';
+  if (typeof value === 'string') {
+    return value;
   }
-  switch (typeof value) {
-    case 'string':
-      return value;
-    case 'number':
-    case 'bigint':
-    case 'boolean':
-      return String(value);
-    case 'undefined':
-    case 'symbol':
-    case 'object':
-    case 'function':
-      return '';
+  if (typeof value === 'number' || typeof value === 'bigint' || typeof value === 'boolean') {
+    return String(value);
   }
+  return '';
 }
