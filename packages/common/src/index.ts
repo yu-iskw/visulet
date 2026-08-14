@@ -8,10 +8,12 @@ export {
   isSupportedDiagram,
   isSupportedInfographic,
 } from './catalog';
+export type { SupportedChart, SupportedDiagram, SupportedInfographic } from './catalog';
 export { renderSvgDocument } from './render-svg';
 export type {
   Accessibility,
   BaseView,
+  ChartEncoding,
   ChartView,
   ContainerView,
   DataFieldSchema,
