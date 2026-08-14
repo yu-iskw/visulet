@@ -1,0 +1,14 @@
+{
+  "name": "@visulet/renderer-vegalite",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Compile portable Vizulet chart documents to Vega-Lite JSON.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@visulet/core": "workspace:*"
+  }
+}
