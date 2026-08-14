@@ -14,8 +14,11 @@ export function readRowValue(row: DataRow, field: string): unknown {
   return Object.hasOwn(row, field) ? Reflect.get(row, field) : undefined;
 }
 
-export function readUnknownProperty(record: Readonly<Record<string, unknown>>, key: string): unknown {
-  return Object.hasOwn(record, key) ? Reflect.get(record, key) : undefined;
+export function readUnknownProperty(
+  record: Readonly<Record<string, unknown>> | undefined,
+  key: string,
+): unknown {
+  return record !== undefined && Object.hasOwn(record, key) ? Reflect.get(record, key) : undefined;
 }
 
 export function displayValue(value: unknown): string {
