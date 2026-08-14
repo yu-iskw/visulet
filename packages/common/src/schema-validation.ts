@@ -1,10 +1,10 @@
-import Ajv2020 from 'ajv/dist/2020';
 import visualDocumentV0Schema from '@visulet/schema';
+import Ajv2020Validator from 'ajv/dist/2020';
 
-import type { ErrorObject } from 'ajv';
 import type { Diagnostic, ValidationResult } from './types';
+import type { ErrorObject } from 'ajv';
 
-const validator = new Ajv2020({
+const validator = new Ajv2020Validator({
   allErrors: true,
   allowUnionTypes: true,
   strict: true,
