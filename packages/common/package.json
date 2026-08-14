@@ -1,13 +1,11 @@
 {
-  "name": "@typescript-template/common",
-  "version": "1.0.0",
-  "description": "Common utilities and types for the TypeScript template project.",
-  "keywords": [],
-  "license": "Apache-2.0",
-  "author": "",
+  "name": "@visulet/core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Vizulet VisualDocument v0 validation, diagnostics, catalog, rendering, and benchmark primitives.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc -p tsconfig.build.json"
   }
 }

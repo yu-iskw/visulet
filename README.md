@@ -1,62 +1,89 @@
-# {PROJECT_NAME}
+# Vizulet
 
-{PROJECT_DESCRIPTION}
+Vizulet is an AI-native visual compiler project for authoring charts, diagrams,
+infographics, tables, text, and composed visual documents from a compact semantic
+representation.
 
-## Getting Started
+The project is intentionally renderer-independent at the document boundary. AI agents
+produce or edit a `VisualDocument`; deterministic Vizulet code validates, diagnoses,
+compiles, and renders it.
 
-### Prerequisites
+> Status: pre-v1 proof of concept. The v0 schema and implementation are intentionally
+> small and are expected to change based on agent-authoring benchmarks.
 
-- [pnpm](https://pnpm.io/) **11.x** (see `packageManager` in `package.json`; use [Corepack](https://nodejs.org/api/corepack.html): `corepack enable`)
-- Node.js **22+** (see `engines` in `package.json`; `.node-version` pins the version used for local dev and CI)
+## v0 vertical slice
 
-Dependency installs follow pnpm 11 supply-chain settings in [`pnpm-workspace.yaml`](pnpm-workspace.yaml): **minimum release age** (this template uses a **7-day** quarantine, stricter than pnpm’s built-in 24-hour default), **blocking exotic transitive dependencies**, and an **`allowBuilds`** allowlist for packages that run install scripts. See [pnpm 11 release notes](https://pnpm.io/blog/releases/11.0) and [Supply-chain defaults (Socket)](https://socket.dev/blog/pnpm-11-adds-new-supply-chain-protection-defaults).
+The first implementation in `@visulet/core` provides:
 
-Linting and formatting use [Trunk](https://trunk.io/) (ESLint, Prettier, and more). The Trunk **launcher** is installed with project dependencies—you do not need a separate Trunk install for the default workflow.
+- semantic validation of cross-document references and IDs;
+- runtime catalog discovery for the currently supported visual types;
+- static, self-contained SVG rendering;
+- deterministic authoring benchmark scoring;
+- warnings for valid-but-unsupported visual types rather than closing the schema over
+  the first renderer's catalog.
 
-### Installation
+Currently rendered chart types are `bar`, `line`, `scatter`, and `heatmap`.
+Currently rendered diagram types are `flowchart`, `sequence`, and `architecture`.
+Currently rendered infographic structures are `list`, `steps`, and `process`.
 
-```bash
+The canonical schema remains more general than this renderer support matrix. That is
+intentional: a type may be schema-valid while producing a capability diagnostic for a
+particular renderer.
+
+## Example
+
+```ts
+import { renderSvgDocument, validateVisualDocument } from '@visulet/core';
+
+const document = {
+  version: '0',
+  data: {
+    sales: {
+      values: [
+        { quarter: 'Q1', revenue: 120 },
+        { quarter: 'Q2', revenue: 145 },
+      ],
+    },
+  },
+  views: [
+    {
+      id: 'revenue',
+      kind: 'chart',
+      chart: 'bar',
+      data: 'sales',
+      encoding: {
+        x: { field: 'quarter', type: 'ordinal' },
+        y: { field: 'revenue', type: 'quantitative' },
+      },
+    },
+  ],
+};
+
+const validation = validateVisualDocument(document);
+if (validation.valid) {
+  const { svg } = renderSvgDocument(document);
+  console.log(svg);
+}
+```
+
+## Contracts
+
+- RFC: `docs/rfcs/0001-visual-document-v0.md`
+- Adversarial review: `docs/rfcs/0001-adversarial-review.md`
+- JSON Schema: `schemas/v0/visual-document.schema.json`
+- Example document: `examples/v0/quarterly-revenue.json`
+- Agent benchmark corpus: `benchmarks/agent-authoring/v0/`
+
+## Development
+
+```sh
 pnpm install
-```
-
-Optional: prefetch Trunk’s hermetic tools (helpful for offline work or CI images):
-
-```bash
-pnpm exec trunk install
-```
-
-If you prefer a global `trunk` on your PATH, see the [Trunk installation guide](https://docs.trunk.io/references/cli/getting-started/install) (e.g. `brew install trunk-io` on macOS).
-
-### Supply-chain protections
-
-The template uses **pnpm 11** with settings in [`pnpm-workspace.yaml`](pnpm-workspace.yaml): a **7-day** [`minimumReleaseAge`](https://pnpm.io/settings#minimumreleaseage) (10080 minutes, stricter than pnpm’s default 1 day), [`blockExoticSubdeps`](https://pnpm.io/settings#blockexoticsubdeps) enabled, and an [`allowBuilds`](https://pnpm.io/settings#allowbuilds) map for dependencies that must run install scripts (pnpm 11 requires this for native toolchain packages such as esbuild). See the [pnpm 11 release notes](https://pnpm.io/blog/releases/11.0).
-
-CI: pull requests and `main` run `pnpm lint:security` then generate/scan an SPDX SBOM (`.github/workflows/sbom.yml`). Publish re-checks `pnpm lint:security` before npm publish.
-
-### Development
-
-```bash
-pnpm dev
-```
-
-### Build
-
-```bash
 pnpm build
-```
-
-### Linting & Formatting
-
-```bash
+pnpm test
 pnpm lint
-pnpm format
+pnpm lint:security
 ```
 
-## Project Structure
-
-- `packages/`: Monorepo packages
-  - `common/`: Shared utilities and types
-
-## License
-
-{LICENSE}
+The POC deliberately keeps the core free of UI, MCP, browser, and renderer-framework
+dependencies. Those integration packages should depend on the core rather than the core
+depending on them.

@@ -1,9 +1,15 @@
 {
-  "name": "typescript-template",
-  "version": "1.0.0",
+  "name": "visulet",
+  "version": "0.0.0",
   "private": true,
-  "description": "",
-  "keywords": [],
+  "description": "AI-native semantic visual compiler for charts, diagrams, infographics, and composed visual documents.",
+  "keywords": [
+    "visualization",
+    "charts",
+    "diagrams",
+    "mcp",
+    "ai"
+  ],
   "license": "Apache-2.0",
   "author": "",
   "scripts": {
@@ -46,9 +52,9 @@
     "vite": "^8.0.16",
     "vitest": "^4.1.3"
   },
-  "packageManager": "pnpm@11.0.5",
+  "packageManager": "pnpm@11.7.0",
   "engines": {
     "node": ">=22",
-    "pnpm": ">=11.0.5"
+    "pnpm": ">=11.7.0"
   }
 }
