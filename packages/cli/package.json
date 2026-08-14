@@ -2,7 +2,7 @@
   "name": "@visulet/cli",
   "version": "0.0.0",
   "private": true,
-  "description": "Command-line interface for validating, inspecting, and rendering Vizulet visual documents.",
+  "description": "Command-line interface for validating, inspecting, compiling, and rendering Vizulet visual documents.",
   "bin": {
     "visulet": "dist/cli.js"
   },
@@ -10,7 +10,8 @@
     "build": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@visulet/core": "workspace:*"
+    "@visulet/core": "workspace:*",
+    "@visulet/renderer-vegalite": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "24.13.3"
