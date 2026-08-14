@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Visually Renderer</title>
+    <style>
+      :root {
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        color-scheme: light dark;
+      }
+      body {
+        margin: 0;
+        padding: 12px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 1rem;
+      }
+      #status {
+        opacity: 0.7;
+        font-size: 0.85rem;
+      }
+      #diagnostics {
+        margin: 0 0 10px;
+        padding: 8px 10px;
+        border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+        border-radius: 8px;
+        white-space: pre-wrap;
+        font: 12px ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      #preview {
+        min-height: 120px;
+      }
+    </style>
+    <style id="compiled-style"></style>
+  </head>
+  <body>
+    <header>
+      <h1>Visually</h1>
+      <span id="status">Connecting…</span>
+    </header>
+    <pre id="diagnostics" hidden></pre>
+    <div id="preview">Waiting for a visual document…</div>
+    <script>
+      (() => {
+        const APP_PROTOCOL_VERSION = '2026-01-26';
+        const pending = new Map();
+        let nextId = 1;
+        const status = document.getElementById('status');
+        const diagnostics = document.getElementById('diagnostics');
+        const preview = document.getElementById('preview');
+        const compiledStyle = document.getElementById('compiled-style');
+
+        function post(message) {
+          window.parent.postMessage(message, '*');
+        }
+
+        function request(method, params) {
+          const id = `visually-${nextId++}`;
+          post({ jsonrpc: '2.0', id, method, params });
+          return new Promise((resolve, reject) => pending.set(id, { resolve, reject }));
+        }
+
+        function notify(method, params) {
+          post({ jsonrpc: '2.0', method, params });
+        }
+
+        function attachColumnControls() {
+          for (const input of preview.querySelectorAll('[data-column-toggle]')) {
+            input.addEventListener('change', () => {
+              const column = input.getAttribute('data-column-toggle');
+              for (const cell of preview.querySelectorAll(`[data-column="${column}"]`)) {
+                cell.style.display = input.checked ? '' : 'none';
+              }
+            });
+          }
+        }
+
+        function showResult(result) {
+          const structured = result?.structuredContent;
+          const html = structured?.html;
+          const items = structured?.diagnostics ?? [];
+          diagnostics.hidden = items.length === 0;
+          diagnostics.textContent = items.length === 0 ? '' : JSON.stringify(items, null, 2);
+          if (typeof html !== 'string') {
+            preview.textContent = 'No HTML artifact was returned.';
+            return;
+          }
+          const parsed = new DOMParser().parseFromString(html, 'text/html');
+          compiledStyle.textContent = parsed.querySelector('style')?.textContent ?? '';
+          preview.replaceChildren(...Array.from(parsed.body.childNodes).filter((node) => node.nodeName !== 'SCRIPT'));
+          attachColumnControls();
+          status.textContent = structured.valid === false ? 'Invalid document' : 'Rendered';
+          notify('ui/notifications/size-changed', { height: document.documentElement.scrollHeight });
+        }
+
+        window.addEventListener('message', (event) => {
+          if (event.source !== window.parent || event.data?.jsonrpc !== '2.0') return;
+          const message = event.data;
+          if (message.id !== undefined && pending.has(message.id)) {
+            const waiter = pending.get(message.id);
+            pending.delete(message.id);
+            if (message.error) waiter.reject(new Error(message.error.message ?? 'Host request failed'));
+            else waiter.resolve(message.result);
+            return;
+          }
+          if (message.method === 'ui/notifications/tool-result') {
+            showResult(message.params);
+          } else if (message.method === 'ui/notifications/tool-input') {
+            status.textContent = 'Rendering…';
+          } else if (message.method === 'ui/resource-teardown' && message.id !== undefined) {
+            post({ jsonrpc: '2.0', id: message.id, result: {} });
+          }
+        });
+
+        request('ui/initialize', {
+          protocolVersion: APP_PROTOCOL_VERSION,
+          appInfo: { name: 'visually-renderer', version: '0.1.0', title: 'Visually Renderer' },
+          appCapabilities: { availableDisplayModes: ['inline', 'fullscreen'] },
+        })
+          .then(() => {
+            status.textContent = 'Ready';
+            notify('ui/notifications/initialized', {});
+          })
+          .catch((error) => {
+            status.textContent = `Standalone preview (${error.message})`;
+          });
+      })();
+    </script>
+  </body>
+</html>
