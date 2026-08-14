@@ -149,10 +149,7 @@ function renderLine(document: VisualDocument, view: ChartView): string {
 
 function renderScatter(document: VisualDocument, view: ChartView): string {
   return numericPoints(document, view)
-    .map(
-      ([x, y]) =>
-        `<circle cx="${x}" cy="${y}" r="5" fill="currentColor" opacity="0.75"/>`,
-    )
+    .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="5" fill="currentColor" opacity="0.75"/>`)
     .join('');
 }
 
@@ -347,11 +344,7 @@ function renderContainer(
   return `${renderTitle(view)}<g transform="translate(0 32)">${groups.join('')}</g>`;
 }
 
-function renderView(
-  document: VisualDocument,
-  view: VisualView,
-  diagnostics: Diagnostic[],
-): string {
+function renderView(document: VisualDocument, view: VisualView, diagnostics: Diagnostic[]): string {
   switch (view.kind) {
     case 'chart':
       if ((view.transforms?.length ?? 0) > 0) {

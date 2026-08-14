@@ -3,7 +3,13 @@
   "version": "0.0.0",
   "private": true,
   "description": "AI-native semantic visual compiler for charts, diagrams, infographics, and composed visual documents.",
-  "keywords": ["visualization", "charts", "diagrams", "mcp", "ai"],
+  "keywords": [
+    "visualization",
+    "charts",
+    "diagrams",
+    "mcp",
+    "ai"
+  ],
   "license": "Apache-2.0",
   "author": "",
   "scripts": {

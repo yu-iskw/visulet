@@ -7,7 +7,7 @@ export function readMapValue<T>(
   if (record === undefined || !Object.hasOwn(record, key)) {
     return undefined;
   }
-  return Reflect.get(record, key) as T;
+  return Reflect.get(record, key);
 }
 
 export function readRowValue(row: DataRow, field: string): unknown {
