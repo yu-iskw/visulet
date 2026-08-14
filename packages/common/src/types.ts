@@ -48,6 +48,18 @@ export interface FieldRef {
   readonly sort?: 'ascending' | 'descending' | readonly unknown[];
 }
 
+export interface ChartEncoding {
+  readonly x?: FieldRef;
+  readonly y?: FieldRef;
+  readonly color?: FieldRef;
+  readonly size?: FieldRef;
+  readonly detail?: FieldRef;
+  readonly row?: FieldRef;
+  readonly column?: FieldRef;
+  readonly tooltip?: FieldRef;
+  readonly [channel: string]: FieldRef | undefined;
+}
+
 export interface Placement {
   readonly column?: number;
   readonly row?: number;
@@ -76,7 +88,7 @@ export interface ChartView extends BaseView {
   readonly kind: 'chart';
   readonly chart: string;
   readonly data: string;
-  readonly encoding: Readonly<Record<string, FieldRef>>;
+  readonly encoding: ChartEncoding;
   readonly transforms?: readonly Readonly<Record<string, unknown>>[];
   readonly options?: Readonly<Record<string, unknown>>;
 }
