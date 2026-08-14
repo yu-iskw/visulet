@@ -1,4 +1,7 @@
 import { isSupportedChart, isSupportedDiagram, isSupportedInfographic } from './catalog';
+import { validateVisualDocument } from './validate';
+import { displayValue, readMapValue, readRowValue, readUnknownProperty } from './value';
+
 import type {
   ChartView,
   ContainerView,
@@ -13,14 +16,13 @@ import type {
   VisualDocument,
   VisualView,
 } from './types';
-import { validateVisualDocument } from './validate';
 
 const WIDTH = 960;
 const VIEW_HEIGHT = 300;
 const PADDING = 32;
 
-function escapeXml(value: unknown): string {
-  return String(value ?? '')
+function escapeXml(value: string): string {
+  return value
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
@@ -28,8 +30,16 @@ function escapeXml(value: unknown): string {
     .replaceAll("'", '&apos;');
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function recordArray(value: unknown): readonly Record<string, unknown>[] {
+  return Array.isArray(value) ? value.filter(isRecord) : [];
+}
+
 function inlineRows(document: VisualDocument, dataName: string): readonly DataRow[] {
-  const source = document.data?.[dataName];
+  const source = readMapValue(document.data, dataName);
   return source !== undefined && 'values' in source ? source.values : [];
 }
 
@@ -56,17 +66,17 @@ function renderBar(document: VisualDocument, view: ChartView): string {
     return '';
   }
   const rows = inlineRows(document, view.data);
-  const values = rows.map((row) => numeric(row[yField]) ?? 0);
+  const values = rows.map((row) => numeric(readRowValue(row, yField)) ?? 0);
   const max = Math.max(1, ...values);
   const chartWidth = WIDTH - PADDING * 2;
   const barWidth = rows.length === 0 ? chartWidth : chartWidth / rows.length;
   return rows
     .map((row, index) => {
-      const value = numeric(row[yField]) ?? 0;
+      const value = numeric(readRowValue(row, yField)) ?? 0;
       const height = (value / max) * 190;
       const x = PADDING + index * barWidth + 4;
       const y = 245 - height;
-      const label = escapeXml(row[xField]);
+      const label = escapeXml(displayValue(readRowValue(row, xField)));
       return `<rect x="${x}" y="${y}" width="${Math.max(1, barWidth - 8)}" height="${height}" rx="3" fill="currentColor" opacity="0.75"/><text x="${x + barWidth / 2 - 4}" y="265" text-anchor="middle" font-size="11">${label}</text>`;
     })
     .join('');
@@ -78,12 +88,14 @@ function numericPoints(document: VisualDocument, view: ChartView): readonly [num
   if (xField === undefined || yField === undefined) {
     return [];
   }
-  const raw = inlineRows(document, view.data)
-    .map((row) => [numeric(row[xField]), numeric(row[yField])] as const)
-    .filter(
-      (point): point is readonly [number, number] =>
-        point[0] !== undefined && point[1] !== undefined,
-    );
+  const raw: [number, number][] = [];
+  for (const row of inlineRows(document, view.data)) {
+    const x = numeric(readRowValue(row, xField));
+    const y = numeric(readRowValue(row, yField));
+    if (x !== undefined && y !== undefined) {
+      raw.push([x, y]);
+    }
+  }
   if (raw.length === 0) {
     return [];
   }
@@ -99,38 +111,35 @@ function numericPoints(document: VisualDocument, view: ChartView): readonly [num
   ]);
 }
 
-function linePoints(document: VisualDocument, view: ChartView): readonly [number, number][] {
-  const xField = view.encoding.x?.field;
+function ordinalLinePoints(document: VisualDocument, view: ChartView): readonly [number, number][] {
   const yField = view.encoding.y?.field;
-  if (xField === undefined || yField === undefined) {
+  if (yField === undefined) {
     return [];
   }
   const rows = inlineRows(document, view.data);
-  const values = rows.map((row) => numeric(row[yField])).filter((value) => value !== undefined);
+  const values = rows
+    .map((row) => numeric(readRowValue(row, yField)))
+    .filter((value): value is number => value !== undefined);
   if (values.length === 0) {
     return [];
   }
   const minY = Math.min(...values);
   const maxY = Math.max(...values);
-  const left = PADDING;
-  const right = WIDTH - PADDING;
-  const step = rows.length <= 1 ? 0 : (right - left) / (rows.length - 1);
-  return rows.flatMap((row, index) => {
-    const y = numeric(row[yField]);
-    if (y === undefined) {
-      return [];
+  const availableWidth = WIDTH - PADDING * 2;
+  const step = rows.length <= 1 ? 0 : availableWidth / (rows.length - 1);
+  const points: [number, number][] = [];
+  for (const [index, row] of rows.entries()) {
+    const y = numeric(readRowValue(row, yField));
+    if (y !== undefined) {
+      points.push([PADDING + index * step, scale(y, minY, maxY, 245, 55)]);
     }
-    const xValue = numeric(row[xField]);
-    if (xValue !== undefined) {
-      return [];
-    }
-    return [[left + index * step, scale(y, minY, maxY, 245, 55)] as [number, number]];
-  });
+  }
+  return points;
 }
 
 function renderLine(document: VisualDocument, view: ChartView): string {
   const numeric = numericPoints(document, view);
-  const points = numeric.length > 0 ? numeric : linePoints(document, view);
+  const points = numeric.length > 0 ? numeric : ordinalLinePoints(document, view);
   if (points.length === 0) {
     return '';
   }
@@ -140,7 +149,10 @@ function renderLine(document: VisualDocument, view: ChartView): string {
 
 function renderScatter(document: VisualDocument, view: ChartView): string {
   return numericPoints(document, view)
-    .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="5" fill="currentColor" opacity="0.75"/>`)
+    .map(
+      ([x, y]) =>
+        `<circle cx="${x}" cy="${y}" r="5" fill="currentColor" opacity="0.75"/>`,
+    )
     .join('');
 }
 
@@ -152,35 +164,40 @@ function renderHeatmap(document: VisualDocument, view: ChartView): string {
     return '';
   }
   const rows = inlineRows(document, view.data);
-  const xValues = [...new Set(rows.map((row) => String(row[xField] ?? '')))];
-  const yValues = [...new Set(rows.map((row) => String(row[yField] ?? '')))];
-  const colorValues = rows.map((row) => numeric(row[colorField]) ?? 0);
+  const xValues = [...new Set(rows.map((row) => displayValue(readRowValue(row, xField))))];
+  const yValues = [...new Set(rows.map((row) => displayValue(readRowValue(row, yField))))];
+  const colorValues = rows.map((row) => numeric(readRowValue(row, colorField)) ?? 0);
   const max = Math.max(1, ...colorValues);
   const cellWidth = (WIDTH - PADDING * 2) / Math.max(1, xValues.length);
   const cellHeight = 190 / Math.max(1, yValues.length);
   return rows
     .map((row) => {
-      const xIndex = xValues.indexOf(String(row[xField] ?? ''));
-      const yIndex = yValues.indexOf(String(row[yField] ?? ''));
-      const value = numeric(row[colorField]) ?? 0;
+      const xIndex = xValues.indexOf(displayValue(readRowValue(row, xField)));
+      const yIndex = yValues.indexOf(displayValue(readRowValue(row, yField)));
+      const value = numeric(readRowValue(row, colorField)) ?? 0;
       return `<rect x="${PADDING + xIndex * cellWidth}" y="${55 + yIndex * cellHeight}" width="${cellWidth - 2}" height="${cellHeight - 2}" fill="currentColor" opacity="${Math.max(0.1, value / max)}"/>`;
     })
     .join('');
 }
 
-function renderChart(document: VisualDocument, view: ChartView): string {
+function renderChartBody(document: VisualDocument, view: ChartView): string {
   if (!isSupportedChart(view.chart)) {
-    return renderTitle(view);
+    return '';
   }
-  const content =
-    view.chart === 'bar'
-      ? renderBar(document, view)
-      : view.chart === 'line'
-        ? renderLine(document, view)
-        : view.chart === 'scatter'
-          ? renderScatter(document, view)
-          : renderHeatmap(document, view);
-  return `${renderTitle(view)}${content}`;
+  switch (view.chart) {
+    case 'bar':
+      return renderBar(document, view);
+    case 'line':
+      return renderLine(document, view);
+    case 'scatter':
+      return renderScatter(document, view);
+    case 'heatmap':
+      return renderHeatmap(document, view);
+  }
+}
+
+function renderChart(document: VisualDocument, view: ChartView): string {
+  return `${renderTitle(view)}${renderChartBody(document, view)}`;
 }
 
 function renderNodeDiagram(view: DiagramView): string {
@@ -208,38 +225,40 @@ function renderNodeDiagram(view: DiagramView): string {
   return `${lines}${boxes}`;
 }
 
+function sequenceParticipantId(participant: Record<string, unknown>, index: number): string {
+  return displayValue(readUnknownProperty(participant, 'id')) || String(index);
+}
+
 function renderSequence(view: DiagramView): string {
-  const participantsRaw = view.model?.participants;
-  const messagesRaw = view.model?.messages;
-  if (!Array.isArray(participantsRaw) || !Array.isArray(messagesRaw)) {
+  const participants = recordArray(readUnknownProperty(view.model, 'participants'));
+  const messages = recordArray(readUnknownProperty(view.model, 'messages'));
+  if (participants.length === 0) {
     return '';
   }
-  const participants = participantsRaw.filter(
-    (item): item is Record<string, unknown> => typeof item === 'object' && item !== null,
-  );
-  const gap = participants.length === 0 ? 0 : (WIDTH - PADDING * 2) / participants.length;
+  const gap = (WIDTH - PADDING * 2) / participants.length;
   const positions = new Map<string, number>();
   const lifelines = participants
     .map((participant, index) => {
-      const id = String(participant.id ?? index);
+      const id = sequenceParticipantId(participant, index);
+      const label = displayValue(readUnknownProperty(participant, 'label')) || id;
       const x = PADDING + index * gap + gap / 2;
       positions.set(id, x);
-      return `<text x="${x}" y="75" text-anchor="middle" font-size="13">${escapeXml(participant.label ?? id)}</text><line x1="${x}" y1="90" x2="${x}" y2="260" stroke="currentColor" stroke-dasharray="4 4"/>`;
+      return `<text x="${x}" y="75" text-anchor="middle" font-size="13">${escapeXml(label)}</text><line x1="${x}" y1="90" x2="${x}" y2="260" stroke="currentColor" stroke-dasharray="4 4"/>`;
     })
     .join('');
-  const messages = messagesRaw
-    .filter((item): item is Record<string, unknown> => typeof item === 'object' && item !== null)
+  const messageLines = messages
     .map((message, index) => {
-      const from = positions.get(String(message.from ?? ''));
-      const to = positions.get(String(message.to ?? ''));
+      const from = positions.get(displayValue(readUnknownProperty(message, 'from')));
+      const to = positions.get(displayValue(readUnknownProperty(message, 'to')));
       if (from === undefined || to === undefined) {
         return '';
       }
+      const label = displayValue(readUnknownProperty(message, 'label'));
       const y = 115 + index * 34;
-      return `<line x1="${from}" y1="${y}" x2="${to}" y2="${y}" stroke="currentColor"/><text x="${(from + to) / 2}" y="${y - 5}" text-anchor="middle" font-size="11">${escapeXml(message.label ?? '')}</text>`;
+      return `<line x1="${from}" y1="${y}" x2="${to}" y2="${y}" stroke="currentColor"/><text x="${(from + to) / 2}" y="${y - 5}" text-anchor="middle" font-size="11">${escapeXml(label)}</text>`;
     })
     .join('');
-  return `${lifelines}${messages}`;
+  return `${lifelines}${messageLines}`;
 }
 
 function renderDiagram(view: DiagramView): string {
@@ -258,9 +277,9 @@ function renderInfographic(view: InfographicView): string {
   const items = view.items
     .map((item, index) => {
       const x = PADDING + index * itemWidth;
-      const heading = escapeXml(item.title ?? item.label ?? item.id ?? index + 1);
-      const description = escapeXml(item.description ?? item.value ?? '');
-      return `<rect x="${x + 4}" y="75" width="${Math.max(40, itemWidth - 8)}" height="150" rx="10" fill="none" stroke="currentColor"/><text x="${x + itemWidth / 2}" y="115" text-anchor="middle" font-size="14" font-weight="600">${heading}</text><text x="${x + itemWidth / 2}" y="150" text-anchor="middle" font-size="11">${description}</text>`;
+      const heading = item.title ?? item.label ?? item.id ?? String(index + 1);
+      const description = item.description ?? displayValue(item.value);
+      return `<rect x="${x + 4}" y="75" width="${Math.max(40, itemWidth - 8)}" height="150" rx="10" fill="none" stroke="currentColor"/><text x="${x + itemWidth / 2}" y="115" text-anchor="middle" font-size="14" font-weight="600">${escapeXml(heading)}</text><text x="${x + itemWidth / 2}" y="150" text-anchor="middle" font-size="11">${escapeXml(description)}</text>`;
     })
     .join('');
   return `${renderTitle(view)}${items}`;
@@ -274,16 +293,18 @@ function renderText(view: TextView): string {
 function renderMetric(document: VisualDocument, view: MetricView): string {
   let value = view.value;
   if (value === undefined && view.data !== undefined && view.field !== undefined) {
-    value = inlineRows(document, view.data)[0]?.[view.field];
+    const firstRow = inlineRows(document, view.data).at(0);
+    value = firstRow === undefined ? undefined : readRowValue(firstRow, view.field);
   }
-  return `${renderTitle(view)}<text x="${PADDING}" y="145" font-size="48" font-weight="700">${escapeXml(value)}</text>`;
+  return `${renderTitle(view)}<text x="${PADDING}" y="145" font-size="48" font-weight="700">${escapeXml(displayValue(value))}</text>`;
 }
 
 function renderTable(document: VisualDocument, view: TableView): string {
   const rows = inlineRows(document, view.data).slice(0, view.pageSize ?? 5);
+  const firstRow = rows.at(0);
   const columns =
     view.columns?.filter((column) => column.hidden !== true).map((column) => column.field) ??
-    Object.keys(rows[0] ?? {});
+    (firstRow === undefined ? [] : Object.keys(firstRow));
   const colWidth = (WIDTH - PADDING * 2) / Math.max(1, columns.length);
   const header = columns
     .map(
@@ -294,14 +315,21 @@ function renderTable(document: VisualDocument, view: TableView): string {
   const body = rows
     .map((row, rowIndex) =>
       columns
-        .map(
-          (column, colIndex) =>
-            `<text x="${PADDING + colIndex * colWidth}" y="${102 + rowIndex * 30}" font-size="12">${escapeXml(row[column])}</text>`,
-        )
+        .map((column, colIndex) => {
+          const value = escapeXml(displayValue(readRowValue(row, column)));
+          return `<text x="${PADDING + colIndex * colWidth}" y="${102 + rowIndex * 30}" font-size="12">${value}</text>`;
+        })
         .join(''),
     )
     .join('');
   return `${renderTitle(view)}${header}${body}`;
+}
+
+function viewHeight(view: VisualView): number {
+  if (view.kind !== 'container') {
+    return VIEW_HEIGHT;
+  }
+  return Math.max(VIEW_HEIGHT, 32 + view.views.reduce((sum, child) => sum + viewHeight(child), 0));
 }
 
 function renderContainer(
@@ -309,16 +337,21 @@ function renderContainer(
   view: ContainerView,
   diagnostics: Diagnostic[],
 ): string {
-  const children = view.views
-    .map((child, index) => {
-      const body = renderView(document, child, diagnostics);
-      return `<g transform="translate(0 ${index * VIEW_HEIGHT})">${body}</g>`;
-    })
-    .join('');
-  return `${renderTitle(view)}<g transform="translate(0 32)">${children}</g>`;
+  let offset = 0;
+  const groups: string[] = [];
+  for (const child of view.views) {
+    const body = renderView(document, child, diagnostics);
+    groups.push(`<g transform="translate(0 ${offset})">${body}</g>`);
+    offset += viewHeight(child);
+  }
+  return `${renderTitle(view)}<g transform="translate(0 32)">${groups.join('')}</g>`;
 }
 
-function renderView(document: VisualDocument, view: VisualView, diagnostics: Diagnostic[]): string {
+function renderView(
+  document: VisualDocument,
+  view: VisualView,
+  diagnostics: Diagnostic[],
+): string {
   switch (view.kind) {
     case 'chart':
       if ((view.transforms?.length ?? 0) > 0) {
@@ -347,13 +380,6 @@ function renderView(document: VisualDocument, view: VisualView, diagnostics: Dia
   }
 }
 
-function viewHeight(view: VisualView): number {
-  if (view.kind !== 'container') {
-    return VIEW_HEIGHT;
-  }
-  return Math.max(VIEW_HEIGHT, 32 + view.views.reduce((sum, child) => sum + viewHeight(child), 0));
-}
-
 export function renderSvgDocument(input: unknown): RenderResult {
   const validation = validateVisualDocument(input);
   if (!validation.valid) {
@@ -370,15 +396,13 @@ export function renderSvgDocument(input: unknown): RenderResult {
     });
   }
   let offset = 0;
-  const views = document.views
-    .map((view) => {
-      const body = renderView(document, view, diagnostics);
-      const group = `<g transform="translate(0 ${offset})">${body}</g>`;
-      offset += viewHeight(view);
-      return group;
-    })
-    .join('');
+  const groups: string[] = [];
+  for (const view of document.views) {
+    const body = renderView(document, view, diagnostics);
+    groups.push(`<g transform="translate(0 ${offset})">${body}</g>`);
+    offset += viewHeight(view);
+  }
   const height = Math.max(VIEW_HEIGHT, offset);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${WIDTH} ${height}" role="img"><style>text{font-family:system-ui,sans-serif}svg{color:#334155}</style>${views}</svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${WIDTH} ${height}" role="img"><style>text{font-family:system-ui,sans-serif}svg{color:#334155}</style>${groups.join('')}</svg>`;
   return { svg, diagnostics };
 }
