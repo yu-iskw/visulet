@@ -1,12 +1,13 @@
-import { validateVisualDocument } from './validate';
+import { validateVisualDocument } from './document-validation';
 
-import type { VisualDocument } from './types';
+import type { VisualDocument, VisualView } from './types';
 
 export interface AuthoringExpectation {
   readonly kind: VisualDocument['views'][number]['kind'];
   readonly visualType?: string;
   readonly maxErrors?: number;
   readonly allowNative?: boolean;
+  readonly minViews?: number;
 }
 
 export interface AuthoringScore {
@@ -16,13 +17,6 @@ export interface AuthoringScore {
   readonly intentMatch: number;
   readonly portability: number;
 }
-
-const STRUCTURAL_CODES = new Set([
-  'document.type',
-  'document.version',
-  'document.views',
-  'view.shape',
-]);
 
 function firstVisualType(document: VisualDocument): string | undefined {
   const view = document.views.at(0);
@@ -52,13 +46,26 @@ function isDocumentShape(candidate: unknown): candidate is VisualDocument {
   );
 }
 
+function countViews(views: readonly VisualView[]): number {
+  return views.reduce(
+    (count, view) => count + 1 + (view.kind === 'container' ? countViews(view.views) : 0),
+    0,
+  );
+}
+
+function containsNative(views: readonly VisualView[]): boolean {
+  return views.some(
+    (view) => view.kind === 'native' || (view.kind === 'container' && containsNative(view.views)),
+  );
+}
+
 export function scoreAuthoringCandidate(
   candidate: unknown,
   expected: AuthoringExpectation,
 ): AuthoringScore {
   const validation = validateVisualDocument(candidate);
   const hasStructuralError = validation.diagnostics.some(
-    (diagnostic) => diagnostic.severity === 'error' && STRUCTURAL_CODES.has(diagnostic.code),
+    (diagnostic) => diagnostic.severity === 'error' && diagnostic.code === 'schema.invalid',
   );
   const structuralValidity = hasStructuralError ? 0 : 25;
   const errorCount = validation.diagnostics.filter(
@@ -71,8 +78,11 @@ export function scoreAuthoringCandidate(
   const typeMatches =
     expected.visualType === undefined ||
     (document !== undefined && firstVisualType(document) === expected.visualType);
-  const intentMatch = kindMatches && typeMatches ? 30 : kindMatches ? 15 : 0;
-  const usesNative = document?.views.some((view) => view.kind === 'native') ?? false;
+  const viewCountMatches =
+    expected.minViews === undefined ||
+    (document !== undefined && countViews(document.views) >= expected.minViews);
+  const intentMatch = kindMatches && typeMatches && viewCountMatches ? 30 : kindMatches ? 15 : 0;
+  const usesNative = document === undefined ? false : containsNative(document.views);
   const portability = usesNative && expected.allowNative !== true ? 0 : 10;
   return {
     score: structuralValidity + semanticValidity + intentMatch + portability,
