@@ -49,6 +49,7 @@ export interface FieldRef {
 }
 
 export interface ChartEncoding {
+  readonly [channel: string]: FieldRef | undefined;
   readonly x?: FieldRef;
   readonly y?: FieldRef;
   readonly color?: FieldRef;
@@ -57,7 +58,6 @@ export interface ChartEncoding {
   readonly row?: FieldRef;
   readonly column?: FieldRef;
   readonly tooltip?: FieldRef;
-  readonly [channel: string]: FieldRef | undefined;
 }
 
 export interface Placement {
