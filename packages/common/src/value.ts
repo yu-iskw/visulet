@@ -22,7 +22,7 @@ export function readUnknownProperty(
 }
 
 export function displayValue(value: unknown): string {
-  if (value === undefined || value === null) {
+  if (value === null) {
     return '';
   }
   switch (typeof value) {
@@ -32,7 +32,10 @@ export function displayValue(value: unknown): string {
     case 'bigint':
     case 'boolean':
       return String(value);
-    default:
+    case 'undefined':
+    case 'symbol':
+    case 'object':
+    case 'function':
       return '';
   }
 }
