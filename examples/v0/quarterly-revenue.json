@@ -1,0 +1,74 @@
+{
+  "$schema": "https://visulet.dev/schema/v0/visual-document.schema.json",
+  "version": "0",
+  "title": "Quarterly revenue",
+  "data": {
+    "sales": {
+      "values": [
+        {"month": "Jan", "revenue": 120, "region": "APAC"},
+        {"month": "Feb", "revenue": 151, "region": "APAC"}
+      ],
+      "schema": {
+        "fields": [
+          {"name": "month", "type": "string", "semanticType": "month"},
+          {
+            "name": "revenue",
+            "type": "number",
+            "semanticType": "currency",
+            "unit": "USD"
+          },
+          {"name": "region", "type": "string", "semanticType": "region"}
+        ]
+      }
+    }
+  },
+  "layout": {
+    "type": "grid",
+    "columns": 12,
+    "gap": 16
+  },
+  "views": [
+    {
+      "id": "intro",
+      "kind": "text",
+      "markdown": "# Quarterly revenue\nRevenue performance by month.",
+      "placement": {"span": 12}
+    },
+    {
+      "id": "revenue",
+      "kind": "chart",
+      "chart": "line",
+      "data": "sales",
+      "encoding": {
+        "x": {
+          "field": "month",
+          "type": "ordinal"
+        },
+        "y": {
+          "field": "revenue",
+          "type": "quantitative",
+          "semanticType": "currency",
+          "unit": "USD"
+        }
+      },
+      "placement": {"span": 8},
+      "renderer": {
+        "preferred": "vega-lite",
+        "fallbacks": ["svg"]
+      }
+    },
+    {
+      "id": "kpi",
+      "kind": "metric",
+      "label": "Latest revenue",
+      "value": 151,
+      "format": "$,.0f",
+      "placement": {"span": 4}
+    }
+  ],
+  "security": {
+    "externalAssets": false,
+    "unsafeHtml": false,
+    "scripts": false
+  }
+}
