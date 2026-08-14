@@ -90,7 +90,11 @@ function compileEncoding(
   const result: Record<string, unknown> = {};
   for (const [channel, field] of Object.entries(view.encoding)) {
     if (field !== undefined) {
-      result[channel] = compileField(field, `$.views.${view.id}.encoding.${channel}`, diagnostics);
+      Reflect.set(
+        result,
+        channel,
+        compileField(field, `$.views.${view.id}.encoding.${channel}`, diagnostics),
+      );
     }
   }
   return result;
