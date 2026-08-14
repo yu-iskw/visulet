@@ -123,7 +123,7 @@ Canonical wire and storage format:
 
 ```json
 {
-  "$schema": "https://visually.dev/schema/v0/visual-document.schema.json",
+  "$schema": "https://raw.githubusercontent.com/yu-iskw/visually/main/schemas/v0/visual-document.schema.json",
   "version": "0.1",
   "views": []
 }
@@ -149,17 +149,17 @@ A purpose-built DSL is deferred until benchmarking demonstrates a real advantage
 
 The root document has these primary concepts:
 
-| Field | Purpose |
-| --- | --- |
-| `version` | Schema/semantic version of the document |
-| `metadata` | Title, description, language, tags, provenance |
-| `data` | Named inline or referenced datasets |
-| `parameters` | Named user/runtime parameters |
-| `theme` | Shared visual identity |
-| `layout` | Top-level composition layout |
-| `views` | One or more visual/textual components |
-| `interactions` | Links between views or parameters |
-| `extensions` | Namespaced non-standard metadata |
+| Field          | Purpose                                        |
+| -------------- | ---------------------------------------------- |
+| `version`      | Schema/semantic version of the document        |
+| `metadata`     | Title, description, language, tags, provenance |
+| `data`         | Named inline or referenced datasets            |
+| `parameters`   | Named user/runtime parameters                  |
+| `theme`        | Shared visual identity                         |
+| `layout`       | Top-level composition layout                   |
+| `views`        | One or more visual/textual components          |
+| `interactions` | Links between views or parameters              |
+| `extensions`   | Namespaced non-standard metadata               |
 
 Top-level view IDs must be stable because interactions and host UI state refer to them.
 
@@ -422,14 +422,14 @@ This is the foundation for static dashboards and reports without creating a note
 Example:
 
 ```yaml
-version: "0.1"
+version: '0.1'
 layout:
   type: grid
   columns: 12
 views:
   - id: title
     kind: text
-    markdown: "# Quarterly revenue"
+    markdown: '# Quarterly revenue'
     placement:
       columnSpan: 12
   - id: revenue
@@ -601,14 +601,14 @@ The distinction prevents the core from becoming coupled to one upstream project.
 
 Target output classes:
 
-| Output | Role |
-| --- | --- |
-| JSON | canonical representation |
-| SVG | primary portable vector artifact |
-| PNG | chat/doc raster compatibility |
-| PDF | publishing |
-| HTML | standalone interactive artifact |
-| backend JSON | integration/debugging |
+| Output       | Role                             |
+| ------------ | -------------------------------- |
+| JSON         | canonical representation         |
+| SVG          | primary portable vector artifact |
+| PNG          | chat/doc raster compatibility    |
+| PDF          | publishing                       |
+| HTML         | standalone interactive artifact  |
+| backend JSON | integration/debugging            |
 
 SVG is a target artifact, not necessarily the only internal rendering implementation.
 
@@ -911,14 +911,14 @@ RFC 0001 can move from **Proposed** toward **Accepted** when:
 
 ## References
 
-- JSON Schema Draft 2020-12: https://json-schema.org/draft/2020-12
-- JSON Patch (RFC 6902): https://www.rfc-editor.org/rfc/rfc6902
-- JSON Text Sequences (RFC 7464): https://www.rfc-editor.org/rfc/rfc7464
-- Apache Arrow format: https://arrow.apache.org/docs/format/Columnar.html
-- Vega-Lite: https://vega.github.io/vega-lite/
-- Mermaid: https://mermaid.ai/open-source/
-- AntV Infographic: https://github.com/antvis/Infographic
-- Flint Chart: https://github.com/microsoft/flint-chart
-- MCP Apps: https://modelcontextprotocol.io/extensions/apps/overview
-- BPMN 2.0.2: https://www.omg.org/spec/BPMN/2.0.2/
-- UML: https://www.omg.org/spec/UML/
+- [JSON Schema Draft 2020-12](https://json-schema.org/draft/2020-12)
+- [JSON Patch (RFC 6902)](https://www.rfc-editor.org/rfc/rfc6902)
+- [JSON Text Sequences (RFC 7464)](https://www.rfc-editor.org/rfc/rfc7464)
+- [Apache Arrow format](https://arrow.apache.org/docs/format/Columnar.html)
+- [Vega-Lite](https://vega.github.io/vega-lite/)
+- [Mermaid](https://mermaid.ai/open-source/)
+- [AntV Infographic](https://github.com/antvis/Infographic)
+- [Flint Chart](https://github.com/microsoft/flint-chart)
+- [MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview)
+- [BPMN 2.0.2](https://www.omg.org/spec/BPMN/2.0.2/)
+- [UML](https://www.omg.org/spec/UML/)
