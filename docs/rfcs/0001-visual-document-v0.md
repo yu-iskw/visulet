@@ -185,20 +185,20 @@ The v0 line is experimental. Breaking changes are permitted until v1, but toolin
 
 The root object may contain:
 
-| Field | Purpose |
-|---|---|
-| `version` | schema version |
-| `title` | human-readable document title |
-| `description` | document purpose/context |
-| `metadata` | provenance and descriptive metadata |
-| `data` | named datasets |
-| `theme` | document-level theme |
-| `parameters` | values used by interaction/runtime hosts |
-| `layout` | root composition strategy |
-| `views` | visual units |
-| `interactions` | relationships between interactive views |
-| `security` | document-requested security constraints |
-| `extensions` | namespaced extension data |
+| Field          | Purpose                                  |
+| -------------- | ---------------------------------------- |
+| `version`      | schema version                           |
+| `title`        | human-readable document title            |
+| `description`  | document purpose/context                 |
+| `metadata`     | provenance and descriptive metadata      |
+| `data`         | named datasets                           |
+| `theme`        | document-level theme                     |
+| `parameters`   | values used by interaction/runtime hosts |
+| `layout`       | root composition strategy                |
+| `views`        | visual units                             |
+| `interactions` | relationships between interactive views  |
+| `security`     | document-requested security constraints  |
+| `extensions`   | namespaced extension data                |
 
 The host's security policy always takes precedence over document requests.
 
@@ -215,8 +215,8 @@ Example:
   "data": {
     "sales": {
       "values": [
-        {"month": "Jan", "revenue": 120},
-        {"month": "Feb", "revenue": 151}
+        { "month": "Jan", "revenue": 120 },
+        { "month": "Feb", "revenue": 151 }
       ]
     }
   }
@@ -338,12 +338,10 @@ Generic node/edge diagrams may use:
   "kind": "diagram",
   "diagram": "architecture",
   "nodes": [
-    {"id": "client", "label": "MCP Client"},
-    {"id": "server", "label": "Vizulet"}
+    { "id": "client", "label": "MCP Client" },
+    { "id": "server", "label": "Vizulet" }
   ],
-  "edges": [
-    {"from": "client", "to": "server", "label": "render"}
-  ]
+  "edges": [{ "from": "client", "to": "server", "label": "render" }]
 }
 ```
 
@@ -365,9 +363,9 @@ Example:
   "kind": "infographic",
   "structure": "steps",
   "items": [
-    {"title": "Collect", "description": "Acquire source data"},
-    {"title": "Validate", "description": "Check contracts"},
-    {"title": "Render", "description": "Produce the artifact"}
+    { "title": "Collect", "description": "Acquire source data" },
+    { "title": "Validate", "description": "Check contracts" },
+    { "title": "Render", "description": "Produce the artifact" }
   ]
 }
 ```
@@ -801,7 +799,7 @@ external assets            deny
 remote fonts               deny
 ```
 
-The schema contains a document-level `security` object so documents can request *stricter* behavior or declare expectations. It MUST NOT grant capabilities the host denies.
+The schema contains a document-level `security` object so documents can request _stricter_ behavior or declare expectations. It MUST NOT grant capabilities the host denies.
 
 Implementations SHOULD enforce:
 
@@ -875,19 +873,19 @@ Export SHOULD prefer semantic preservation over exact source formatting.
   "data": {
     "sales": {
       "values": [
-        {"month": "Jan", "revenue": 120, "region": "APAC"},
-        {"month": "Feb", "revenue": 151, "region": "APAC"}
+        { "month": "Jan", "revenue": 120, "region": "APAC" },
+        { "month": "Feb", "revenue": 151, "region": "APAC" }
       ],
       "schema": {
         "fields": [
-          {"name": "month", "type": "string", "semanticType": "month"},
+          { "name": "month", "type": "string", "semanticType": "month" },
           {
             "name": "revenue",
             "type": "number",
             "semanticType": "currency",
             "unit": "USD"
           },
-          {"name": "region", "type": "string", "semanticType": "region"}
+          { "name": "region", "type": "string", "semanticType": "region" }
         ]
       }
     }
@@ -902,7 +900,7 @@ Export SHOULD prefer semantic preservation over exact source formatting.
       "id": "intro",
       "kind": "text",
       "markdown": "# Quarterly revenue\nRevenue performance by month.",
-      "placement": {"span": 12}
+      "placement": { "span": 12 }
     },
     {
       "id": "revenue",
@@ -921,7 +919,7 @@ Export SHOULD prefer semantic preservation over exact source formatting.
           "unit": "USD"
         }
       },
-      "placement": {"span": 8},
+      "placement": { "span": 8 },
       "renderer": {
         "preferred": "vega-lite",
         "fallbacks": ["svg"]
@@ -933,7 +931,7 @@ Export SHOULD prefer semantic preservation over exact source formatting.
       "label": "Latest revenue",
       "value": 151,
       "format": "$,.0f",
-      "placement": {"span": 4}
+      "placement": { "span": 4 }
     }
   ],
   "security": {
@@ -1071,8 +1069,8 @@ Measure:
 
 Candidate thresholds:
 
-- >= 95% structural validity after one repair cycle;
-- >= 90% semantic validity after one repair cycle;
+- > = 95% structural validity after one repair cycle;
+- > = 90% semantic validity after one repair cycle;
 - native escape hatch required in < 25% of representative cases;
 - no material regression against direct external DSL authoring for common chart/diagram tasks;
 - stable diagnostics for all benchmark failures.

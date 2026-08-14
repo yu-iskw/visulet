@@ -76,7 +76,9 @@ describe('validateVisualDocument', () => {
       ],
     });
     expect(result.valid).toBe(false);
-    expect(result.diagnostics.some((diagnostic) => diagnostic.code === 'diagram.edge.to')).toBe(true);
+    expect(result.diagnostics.some((diagnostic) => diagnostic.code === 'diagram.edge.to')).toBe(
+      true,
+    );
   });
 
   it('keeps unknown catalog entries valid but diagnostic', () => {

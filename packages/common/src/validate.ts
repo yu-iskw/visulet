@@ -239,9 +239,7 @@ function hasFieldEncoding(value: unknown): boolean {
   if (!isRecord(value)) {
     return false;
   }
-  return Object.values(value).every(
-    (field) => isRecord(field) && typeof field.field === 'string',
-  );
+  return Object.values(value).every((field) => isRecord(field) && typeof field.field === 'string');
 }
 
 function parseView(value: unknown): VisualView | undefined {

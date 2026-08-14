@@ -6,31 +6,31 @@
   "required": ["version", "views"],
   "additionalProperties": false,
   "properties": {
-    "$schema": {"type": "string", "format": "uri-reference"},
-    "version": {"const": "0"},
-    "title": {"type": "string"},
-    "description": {"type": "string"},
-    "metadata": {"$ref": "#/$defs/metadata"},
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "version": { "const": "0" },
+    "title": { "type": "string" },
+    "description": { "type": "string" },
+    "metadata": { "$ref": "#/$defs/metadata" },
     "data": {
       "type": "object",
-      "additionalProperties": {"$ref": "#/$defs/dataSource"}
+      "additionalProperties": { "$ref": "#/$defs/dataSource" }
     },
-    "theme": {"$ref": "#/$defs/themeRef"},
+    "theme": { "$ref": "#/$defs/themeRef" },
     "parameters": {
       "type": "object",
-      "additionalProperties": {"$ref": "#/$defs/parameter"}
+      "additionalProperties": { "$ref": "#/$defs/parameter" }
     },
-    "layout": {"$ref": "#/$defs/layout"},
+    "layout": { "$ref": "#/$defs/layout" },
     "views": {
       "type": "array",
-      "items": {"$ref": "#/$defs/view"}
+      "items": { "$ref": "#/$defs/view" }
     },
     "interactions": {
       "type": "array",
-      "items": {"$ref": "#/$defs/interaction"}
+      "items": { "$ref": "#/$defs/interaction" }
     },
-    "security": {"$ref": "#/$defs/security"},
-    "extensions": {"$ref": "#/$defs/extensions"}
+    "security": { "$ref": "#/$defs/security" },
+    "extensions": { "$ref": "#/$defs/extensions" }
   },
   "$defs": {
     "extensions": {
@@ -42,11 +42,11 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "createdBy": {"type": "string"},
-        "createdAt": {"type": "string", "format": "date-time"},
-        "updatedAt": {"type": "string", "format": "date-time"},
-        "source": {"type": "string"},
-        "license": {"type": "string"},
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "source": { "type": "string" },
+        "license": { "type": "string" },
         "provenance": {
           "type": "array",
           "items": {
@@ -54,14 +54,14 @@
             "required": ["kind"],
             "additionalProperties": false,
             "properties": {
-              "kind": {"enum": ["user", "agent", "tool", "dataset", "import"]},
-              "name": {"type": "string"},
-              "uri": {"type": "string", "format": "uri-reference"},
-              "timestamp": {"type": "string", "format": "date-time"}
+              "kind": { "enum": ["user", "agent", "tool", "dataset", "import"] },
+              "name": { "type": "string" },
+              "uri": { "type": "string", "format": "uri-reference" },
+              "timestamp": { "type": "string", "format": "date-time" }
             }
           }
         },
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "extensions": { "$ref": "#/$defs/extensions" }
       }
     },
     "dataSource": {
@@ -73,10 +73,10 @@
           "properties": {
             "values": {
               "type": "array",
-              "items": {"type": "object", "additionalProperties": true}
+              "items": { "type": "object", "additionalProperties": true }
             },
-            "schema": {"$ref": "#/$defs/dataSchema"},
-            "extensions": {"$ref": "#/$defs/extensions"}
+            "schema": { "$ref": "#/$defs/dataSchema" },
+            "extensions": { "$ref": "#/$defs/extensions" }
           }
         },
         {
@@ -84,12 +84,12 @@
           "required": ["uri", "format"],
           "additionalProperties": false,
           "properties": {
-            "uri": {"type": "string", "format": "uri-reference"},
-            "format": {"enum": ["json", "jsonl", "csv", "tsv", "arrow", "parquet"]},
-            "schema": {"$ref": "#/$defs/dataSchema"},
-            "options": {"type": "object", "additionalProperties": true},
-            "integrity": {"type": "string"},
-            "extensions": {"$ref": "#/$defs/extensions"}
+            "uri": { "type": "string", "format": "uri-reference" },
+            "format": { "enum": ["json", "jsonl", "csv", "tsv", "arrow", "parquet"] },
+            "schema": { "$ref": "#/$defs/dataSchema" },
+            "options": { "type": "object", "additionalProperties": true },
+            "integrity": { "type": "string" },
+            "extensions": { "$ref": "#/$defs/extensions" }
           }
         }
       ]
@@ -105,46 +105,50 @@
             "required": ["name"],
             "additionalProperties": false,
             "properties": {
-              "name": {"type": "string"},
+              "name": { "type": "string" },
               "type": {
                 "enum": [
-                  "string", "integer", "number", "boolean",
-                  "date", "datetime", "duration", "object", "array"
+                  "string",
+                  "integer",
+                  "number",
+                  "boolean",
+                  "date",
+                  "datetime",
+                  "duration",
+                  "object",
+                  "array"
                 ]
               },
-              "semanticType": {"type": "string"},
-              "unit": {"type": "string"},
-              "nullable": {"type": "boolean", "default": true},
-              "description": {"type": "string"},
-              "extensions": {"$ref": "#/$defs/extensions"}
+              "semanticType": { "type": "string" },
+              "unit": { "type": "string" },
+              "nullable": { "type": "boolean", "default": true },
+              "description": { "type": "string" },
+              "extensions": { "$ref": "#/$defs/extensions" }
             }
           }
         },
         "primaryKey": {
           "type": "array",
-          "items": {"type": "string"},
+          "items": { "type": "string" },
           "uniqueItems": true
         },
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "extensions": { "$ref": "#/$defs/extensions" }
       }
     },
     "themeRef": {
-      "oneOf": [
-        {"type": "string"},
-        {"$ref": "#/$defs/theme"}
-      ]
+      "oneOf": [{ "type": "string" }, { "$ref": "#/$defs/theme" }]
     },
     "theme": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string"},
-        "extends": {"type": "string"},
-        "typography": {"type": "object", "additionalProperties": true},
-        "palette": {"type": "object", "additionalProperties": true},
-        "spacing": {"type": "object", "additionalProperties": true},
-        "surface": {"type": "object", "additionalProperties": true},
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "id": { "type": "string" },
+        "extends": { "type": "string" },
+        "typography": { "type": "object", "additionalProperties": true },
+        "palette": { "type": "object", "additionalProperties": true },
+        "spacing": { "type": "object", "additionalProperties": true },
+        "surface": { "type": "object", "additionalProperties": true },
+        "extensions": { "$ref": "#/$defs/extensions" }
       }
     },
     "parameter": {
@@ -157,10 +161,10 @@
         },
         "value": true,
         "default": true,
-        "enum": {"type": "array"},
-        "label": {"type": "string"},
-        "description": {"type": "string"},
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "enum": { "type": "array" },
+        "label": { "type": "string" },
+        "description": { "type": "string" },
+        "extensions": { "$ref": "#/$defs/extensions" }
       }
     },
     "layout": {
@@ -170,11 +174,11 @@
           "required": ["type"],
           "additionalProperties": false,
           "properties": {
-            "type": {"const": "grid"},
-            "columns": {"type": "integer", "minimum": 1, "maximum": 48, "default": 12},
-            "gap": {"type": ["number", "string"]},
-            "rowHeight": {"type": ["number", "string"]},
-            "extensions": {"$ref": "#/$defs/extensions"}
+            "type": { "const": "grid" },
+            "columns": { "type": "integer", "minimum": 1, "maximum": 48, "default": 12 },
+            "gap": { "type": ["number", "string"] },
+            "rowHeight": { "type": ["number", "string"] },
+            "extensions": { "$ref": "#/$defs/extensions" }
           }
         },
         {
@@ -182,10 +186,10 @@
           "required": ["type"],
           "additionalProperties": false,
           "properties": {
-            "type": {"enum": ["flow", "stack"]},
-            "direction": {"enum": ["row", "column"]},
-            "gap": {"type": ["number", "string"]},
-            "extensions": {"$ref": "#/$defs/extensions"}
+            "type": { "enum": ["flow", "stack"] },
+            "direction": { "enum": ["row", "column"] },
+            "gap": { "type": ["number", "string"] },
+            "extensions": { "$ref": "#/$defs/extensions" }
           }
         }
       ]
@@ -194,42 +198,42 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "column": {"type": "integer", "minimum": 1},
-        "row": {"type": "integer", "minimum": 1},
-        "span": {"type": "integer", "minimum": 1},
-        "rowSpan": {"type": "integer", "minimum": 1},
-        "width": {"type": ["number", "string"]},
-        "height": {"type": ["number", "string"]},
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "column": { "type": "integer", "minimum": 1 },
+        "row": { "type": "integer", "minimum": 1 },
+        "span": { "type": "integer", "minimum": 1 },
+        "rowSpan": { "type": "integer", "minimum": 1 },
+        "width": { "type": ["number", "string"] },
+        "height": { "type": ["number", "string"] },
+        "extensions": { "$ref": "#/$defs/extensions" }
       }
     },
     "accessibility": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "label": {"type": "string"},
-        "description": {"type": "string"},
-        "longDescription": {"type": "string"},
-        "decorative": {"type": "boolean"},
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "label": { "type": "string" },
+        "description": { "type": "string" },
+        "longDescription": { "type": "string" },
+        "decorative": { "type": "boolean" },
+        "extensions": { "$ref": "#/$defs/extensions" }
       }
     },
     "rendererPreference": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "preferred": {"type": "string"},
+        "preferred": { "type": "string" },
         "fallbacks": {
           "type": "array",
-          "items": {"type": "string"},
+          "items": { "type": "string" },
           "uniqueItems": true
         },
         "requireCapabilities": {
           "type": "array",
-          "items": {"type": "string"},
+          "items": { "type": "string" },
           "uniqueItems": true
         },
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "extensions": { "$ref": "#/$defs/extensions" }
       }
     },
     "fieldRef": {
@@ -237,31 +241,28 @@
       "required": ["field"],
       "additionalProperties": false,
       "properties": {
-        "field": {"type": "string"},
-        "type": {"enum": ["nominal", "ordinal", "quantitative", "temporal", "geographic"]},
-        "semanticType": {"type": "string"},
-        "unit": {"type": "string"},
-        "aggregate": {"type": "string"},
-        "format": {"type": "string"},
+        "field": { "type": "string" },
+        "type": { "enum": ["nominal", "ordinal", "quantitative", "temporal", "geographic"] },
+        "semanticType": { "type": "string" },
+        "unit": { "type": "string" },
+        "aggregate": { "type": "string" },
+        "format": { "type": "string" },
         "sort": {
-          "oneOf": [
-            {"enum": ["ascending", "descending"]},
-            {"type": "array"}
-          ]
+          "oneOf": [{ "enum": ["ascending", "descending"] }, { "type": "array" }]
         },
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "extensions": { "$ref": "#/$defs/extensions" }
       }
     },
     "view": {
       "oneOf": [
-        {"$ref": "#/$defs/chart"},
-        {"$ref": "#/$defs/diagram"},
-        {"$ref": "#/$defs/infographic"},
-        {"$ref": "#/$defs/table"},
-        {"$ref": "#/$defs/text"},
-        {"$ref": "#/$defs/metric"},
-        {"$ref": "#/$defs/container"},
-        {"$ref": "#/$defs/native"}
+        { "$ref": "#/$defs/chart" },
+        { "$ref": "#/$defs/diagram" },
+        { "$ref": "#/$defs/infographic" },
+        { "$ref": "#/$defs/table" },
+        { "$ref": "#/$defs/text" },
+        { "$ref": "#/$defs/metric" },
+        { "$ref": "#/$defs/container" },
+        { "$ref": "#/$defs/native" }
       ]
     },
     "chart": {
@@ -269,15 +270,15 @@
       "required": ["id", "kind", "chart", "data", "encoding"],
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string", "minLength": 1},
-        "kind": {"const": "chart"},
-        "title": {"type": "string"},
-        "description": {"type": "string"},
-        "chart": {"type": "string", "minLength": 1},
-        "data": {"type": "string", "minLength": 1},
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "const": "chart" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "chart": { "type": "string", "minLength": 1 },
+        "data": { "type": "string", "minLength": 1 },
         "encoding": {
           "type": "object",
-          "additionalProperties": {"$ref": "#/$defs/fieldRef"}
+          "additionalProperties": { "$ref": "#/$defs/fieldRef" }
         },
         "transforms": {
           "type": "array",
@@ -287,20 +288,28 @@
             "properties": {
               "type": {
                 "enum": [
-                  "filter", "calculate", "aggregate", "window", "bin",
-                  "fold", "pivot", "sample", "sort", "limit"
+                  "filter",
+                  "calculate",
+                  "aggregate",
+                  "window",
+                  "bin",
+                  "fold",
+                  "pivot",
+                  "sample",
+                  "sort",
+                  "limit"
                 ]
               }
             },
             "additionalProperties": true
           }
         },
-        "options": {"type": "object", "additionalProperties": true},
-        "renderer": {"$ref": "#/$defs/rendererPreference"},
-        "theme": {"$ref": "#/$defs/themeRef"},
-        "placement": {"$ref": "#/$defs/placement"},
-        "accessibility": {"$ref": "#/$defs/accessibility"},
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "options": { "type": "object", "additionalProperties": true },
+        "renderer": { "$ref": "#/$defs/rendererPreference" },
+        "theme": { "$ref": "#/$defs/themeRef" },
+        "placement": { "$ref": "#/$defs/placement" },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "extensions": { "$ref": "#/$defs/extensions" }
       }
     },
     "node": {
@@ -308,12 +317,12 @@
       "required": ["id"],
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string"},
-        "label": {"type": "string"},
-        "type": {"type": "string"},
-        "group": {"type": "string"},
-        "data": {"type": "object", "additionalProperties": true},
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "type": { "type": "string" },
+        "group": { "type": "string" },
+        "data": { "type": "object", "additionalProperties": true },
+        "extensions": { "$ref": "#/$defs/extensions" }
       }
     },
     "edge": {
@@ -321,13 +330,13 @@
       "required": ["from", "to"],
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string"},
-        "from": {"type": "string"},
-        "to": {"type": "string"},
-        "label": {"type": "string"},
-        "type": {"type": "string"},
-        "data": {"type": "object", "additionalProperties": true},
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "id": { "type": "string" },
+        "from": { "type": "string" },
+        "to": { "type": "string" },
+        "label": { "type": "string" },
+        "type": { "type": "string" },
+        "data": { "type": "object", "additionalProperties": true },
+        "extensions": { "$ref": "#/$defs/extensions" }
       }
     },
     "diagram": {
@@ -335,50 +344,47 @@
       "required": ["id", "kind", "diagram"],
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string", "minLength": 1},
-        "kind": {"const": "diagram"},
-        "title": {"type": "string"},
-        "description": {"type": "string"},
-        "diagram": {"type": "string", "minLength": 1},
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "const": "diagram" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "diagram": { "type": "string", "minLength": 1 },
         "nodes": {
           "type": "array",
-          "items": {"$ref": "#/$defs/node"}
+          "items": { "$ref": "#/$defs/node" }
         },
         "edges": {
           "type": "array",
-          "items": {"$ref": "#/$defs/edge"}
+          "items": { "$ref": "#/$defs/edge" }
         },
-        "model": {"type": "object", "additionalProperties": true},
-        "direction": {"enum": ["top-down", "bottom-up", "left-right", "right-left"]},
-        "options": {"type": "object", "additionalProperties": true},
-        "renderer": {"$ref": "#/$defs/rendererPreference"},
-        "theme": {"$ref": "#/$defs/themeRef"},
-        "placement": {"$ref": "#/$defs/placement"},
-        "accessibility": {"$ref": "#/$defs/accessibility"},
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "model": { "type": "object", "additionalProperties": true },
+        "direction": { "enum": ["top-down", "bottom-up", "left-right", "right-left"] },
+        "options": { "type": "object", "additionalProperties": true },
+        "renderer": { "$ref": "#/$defs/rendererPreference" },
+        "theme": { "$ref": "#/$defs/themeRef" },
+        "placement": { "$ref": "#/$defs/placement" },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "extensions": { "$ref": "#/$defs/extensions" }
       },
-      "anyOf": [
-        {"required": ["nodes"]},
-        {"required": ["model"]}
-      ]
+      "anyOf": [{ "required": ["nodes"] }, { "required": ["model"] }]
     },
     "infographicItem": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string"},
-        "label": {"type": "string"},
-        "title": {"type": "string"},
-        "description": {"type": "string"},
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
         "value": true,
-        "icon": {"type": "string"},
-        "image": {"type": "string", "format": "uri-reference"},
+        "icon": { "type": "string" },
+        "image": { "type": "string", "format": "uri-reference" },
         "children": {
           "type": "array",
-          "items": {"$ref": "#/$defs/infographicItem"}
+          "items": { "$ref": "#/$defs/infographicItem" }
         },
-        "data": {"type": "object", "additionalProperties": true},
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "data": { "type": "object", "additionalProperties": true },
+        "extensions": { "$ref": "#/$defs/extensions" }
       }
     },
     "infographic": {
@@ -386,21 +392,21 @@
       "required": ["id", "kind", "structure", "items"],
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string", "minLength": 1},
-        "kind": {"const": "infographic"},
-        "title": {"type": "string"},
-        "description": {"type": "string"},
-        "structure": {"type": "string", "minLength": 1},
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "const": "infographic" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "structure": { "type": "string", "minLength": 1 },
         "items": {
           "type": "array",
-          "items": {"$ref": "#/$defs/infographicItem"}
+          "items": { "$ref": "#/$defs/infographicItem" }
         },
-        "options": {"type": "object", "additionalProperties": true},
-        "renderer": {"$ref": "#/$defs/rendererPreference"},
-        "theme": {"$ref": "#/$defs/themeRef"},
-        "placement": {"$ref": "#/$defs/placement"},
-        "accessibility": {"$ref": "#/$defs/accessibility"},
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "options": { "type": "object", "additionalProperties": true },
+        "renderer": { "$ref": "#/$defs/rendererPreference" },
+        "theme": { "$ref": "#/$defs/themeRef" },
+        "placement": { "$ref": "#/$defs/placement" },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "extensions": { "$ref": "#/$defs/extensions" }
       }
     },
     "table": {
@@ -408,11 +414,11 @@
       "required": ["id", "kind", "data"],
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string", "minLength": 1},
-        "kind": {"const": "table"},
-        "title": {"type": "string"},
-        "description": {"type": "string"},
-        "data": {"type": "string"},
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "const": "table" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "data": { "type": "string" },
         "columns": {
           "type": "array",
           "items": {
@@ -420,14 +426,14 @@
             "required": ["field"],
             "additionalProperties": false,
             "properties": {
-              "field": {"type": "string"},
-              "label": {"type": "string"},
-              "format": {"type": "string"},
-              "width": {"type": ["number", "string"]},
-              "sortable": {"type": "boolean"},
-              "hidden": {"type": "boolean"},
-              "heatmap": {"type": "boolean"},
-              "extensions": {"$ref": "#/$defs/extensions"}
+              "field": { "type": "string" },
+              "label": { "type": "string" },
+              "format": { "type": "string" },
+              "width": { "type": ["number", "string"] },
+              "sortable": { "type": "boolean" },
+              "hidden": { "type": "boolean" },
+              "heatmap": { "type": "boolean" },
+              "extensions": { "$ref": "#/$defs/extensions" }
             }
           }
         },
@@ -438,17 +444,17 @@
             "required": ["field", "order"],
             "additionalProperties": false,
             "properties": {
-              "field": {"type": "string"},
-              "order": {"enum": ["ascending", "descending"]}
+              "field": { "type": "string" },
+              "order": { "enum": ["ascending", "descending"] }
             }
           }
         },
-        "pageSize": {"type": "integer", "minimum": 1},
-        "options": {"type": "object", "additionalProperties": true},
-        "theme": {"$ref": "#/$defs/themeRef"},
-        "placement": {"$ref": "#/$defs/placement"},
-        "accessibility": {"$ref": "#/$defs/accessibility"},
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "pageSize": { "type": "integer", "minimum": 1 },
+        "options": { "type": "object", "additionalProperties": true },
+        "theme": { "$ref": "#/$defs/themeRef" },
+        "placement": { "$ref": "#/$defs/placement" },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "extensions": { "$ref": "#/$defs/extensions" }
       }
     },
     "text": {
@@ -456,15 +462,15 @@
       "required": ["id", "kind", "markdown"],
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string", "minLength": 1},
-        "kind": {"const": "text"},
-        "title": {"type": "string"},
-        "description": {"type": "string"},
-        "markdown": {"type": "string"},
-        "theme": {"$ref": "#/$defs/themeRef"},
-        "placement": {"$ref": "#/$defs/placement"},
-        "accessibility": {"$ref": "#/$defs/accessibility"},
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "const": "text" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "markdown": { "type": "string" },
+        "theme": { "$ref": "#/$defs/themeRef" },
+        "placement": { "$ref": "#/$defs/placement" },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "extensions": { "$ref": "#/$defs/extensions" }
       }
     },
     "metric": {
@@ -472,45 +478,42 @@
       "required": ["id", "kind"],
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string", "minLength": 1},
-        "kind": {"const": "metric"},
-        "title": {"type": "string"},
-        "description": {"type": "string"},
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "const": "metric" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
         "value": true,
-        "label": {"type": "string"},
-        "format": {"type": "string"},
-        "delta": {"type": "number"},
-        "trend": {"enum": ["up", "down", "flat"]},
-        "data": {"type": "string"},
-        "field": {"type": "string"},
-        "theme": {"$ref": "#/$defs/themeRef"},
-        "placement": {"$ref": "#/$defs/placement"},
-        "accessibility": {"$ref": "#/$defs/accessibility"},
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "label": { "type": "string" },
+        "format": { "type": "string" },
+        "delta": { "type": "number" },
+        "trend": { "enum": ["up", "down", "flat"] },
+        "data": { "type": "string" },
+        "field": { "type": "string" },
+        "theme": { "$ref": "#/$defs/themeRef" },
+        "placement": { "$ref": "#/$defs/placement" },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "extensions": { "$ref": "#/$defs/extensions" }
       },
-      "anyOf": [
-        {"required": ["value"]},
-        {"required": ["data", "field"]}
-      ]
+      "anyOf": [{ "required": ["value"] }, { "required": ["data", "field"] }]
     },
     "container": {
       "type": "object",
       "required": ["id", "kind", "views"],
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string", "minLength": 1},
-        "kind": {"const": "container"},
-        "title": {"type": "string"},
-        "description": {"type": "string"},
-        "layout": {"$ref": "#/$defs/layout"},
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "const": "container" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "layout": { "$ref": "#/$defs/layout" },
         "views": {
           "type": "array",
-          "items": {"$ref": "#/$defs/view"}
+          "items": { "$ref": "#/$defs/view" }
         },
-        "theme": {"$ref": "#/$defs/themeRef"},
-        "placement": {"$ref": "#/$defs/placement"},
-        "accessibility": {"$ref": "#/$defs/accessibility"},
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "theme": { "$ref": "#/$defs/themeRef" },
+        "placement": { "$ref": "#/$defs/placement" },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "extensions": { "$ref": "#/$defs/extensions" }
       }
     },
     "native": {
@@ -518,16 +521,16 @@
       "required": ["id", "kind", "renderer", "spec"],
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string", "minLength": 1},
-        "kind": {"const": "native"},
-        "title": {"type": "string"},
-        "description": {"type": "string"},
-        "renderer": {"type": "string"},
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "const": "native" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "renderer": { "type": "string" },
         "spec": true,
-        "data": {"type": "string"},
-        "placement": {"$ref": "#/$defs/placement"},
-        "accessibility": {"$ref": "#/$defs/accessibility"},
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "data": { "type": "string" },
+        "placement": { "$ref": "#/$defs/placement" },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "extensions": { "$ref": "#/$defs/extensions" }
       }
     },
     "interaction": {
@@ -535,23 +538,31 @@
       "required": ["type", "source"],
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string"},
+        "id": { "type": "string" },
         "type": {
           "enum": [
-            "hover", "select", "multi-select", "filter", "highlight",
-            "cross-filter", "zoom", "pan", "drilldown", "parameter"
+            "hover",
+            "select",
+            "multi-select",
+            "filter",
+            "highlight",
+            "cross-filter",
+            "zoom",
+            "pan",
+            "drilldown",
+            "parameter"
           ]
         },
-        "source": {"type": "string"},
+        "source": { "type": "string" },
         "targets": {
           "type": "array",
-          "items": {"type": "string"},
+          "items": { "type": "string" },
           "uniqueItems": true
         },
-        "field": {"type": "string"},
-        "parameter": {"type": "string"},
-        "options": {"type": "object", "additionalProperties": true},
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "field": { "type": "string" },
+        "parameter": { "type": "string" },
+        "options": { "type": "object", "additionalProperties": true },
+        "extensions": { "$ref": "#/$defs/extensions" }
       }
     },
     "security": {
@@ -564,7 +575,7 @@
           "properties": {
             "allow": {
               "type": "array",
-              "items": {"type": "string"},
+              "items": { "type": "string" },
               "uniqueItems": true
             }
           }
@@ -575,15 +586,15 @@
           "properties": {
             "roots": {
               "type": "array",
-              "items": {"type": "string"},
+              "items": { "type": "string" },
               "uniqueItems": true
             }
           }
         },
-        "externalAssets": {"type": "boolean", "default": false},
-        "unsafeHtml": {"type": "boolean", "default": false},
-        "scripts": {"type": "boolean", "default": false},
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "externalAssets": { "type": "boolean", "default": false },
+        "unsafeHtml": { "type": "boolean", "default": false },
+        "scripts": { "type": "boolean", "default": false },
+        "extensions": { "$ref": "#/$defs/extensions" }
       }
     },
     "rendererCapability": {
@@ -591,29 +602,29 @@
       "required": ["name"],
       "additionalProperties": false,
       "properties": {
-        "name": {"type": "string"},
-        "version": {"type": "string"},
+        "name": { "type": "string" },
+        "version": { "type": "string" },
         "visualKinds": {
           "type": "array",
-          "items": {"type": "string"},
+          "items": { "type": "string" },
           "uniqueItems": true
         },
         "formats": {
           "type": "array",
-          "items": {"enum": ["svg", "png", "pdf", "html", "json"]},
+          "items": { "enum": ["svg", "png", "pdf", "html", "json"] },
           "uniqueItems": true
         },
         "interactions": {
           "type": "array",
-          "items": {"type": "string"},
+          "items": { "type": "string" },
           "uniqueItems": true
         },
         "features": {
           "type": "array",
-          "items": {"type": "string"},
+          "items": { "type": "string" },
           "uniqueItems": true
         },
-        "extensions": {"$ref": "#/$defs/extensions"}
+        "extensions": { "$ref": "#/$defs/extensions" }
       }
     }
   }
