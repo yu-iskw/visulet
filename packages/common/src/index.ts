@@ -9,10 +9,7 @@ export {
   isSupportedInfographic,
 } from './catalog';
 export type { SupportedChart, SupportedDiagram, SupportedInfographic } from './catalog';
-export {
-  validateVisualDocument,
-  validateVisualDocumentSemantics,
-} from './document-validation';
+export { validateVisualDocument, validateVisualDocumentSemantics } from './document-validation';
 export { renderSvgDocument } from './render-svg';
 export { validateVisualDocumentStructure } from './schema-validation';
 export type {
