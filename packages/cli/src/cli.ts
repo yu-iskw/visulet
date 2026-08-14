@@ -9,10 +9,7 @@ import {
   renderSvgDocument,
   validateVisualDocument,
 } from '@visulet/core';
-import {
-  VEGA_LITE_CAPABILITIES,
-  compileVegaLiteDocument,
-} from '@visulet/renderer-vegalite';
+import { VEGA_LITE_CAPABILITIES, compileVegaLiteDocument } from '@visulet/renderer-vegalite';
 
 import type { Diagnostic, VisualDocument, VisualView } from '@visulet/core';
 

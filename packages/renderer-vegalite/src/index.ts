@@ -1,12 +1,6 @@
 import { validateVisualDocument } from '@visulet/core';
 
-import type {
-  ChartView,
-  DataSource,
-  Diagnostic,
-  FieldRef,
-  VisualDocument,
-} from '@visulet/core';
+import type { ChartView, DataSource, Diagnostic, FieldRef, VisualDocument } from '@visulet/core';
 
 export const VEGA_LITE_CAPABILITIES = {
   name: 'vega-lite',
@@ -89,7 +83,10 @@ function compileField(field: FieldRef, path: string, diagnostics: Diagnostic[]):
   return result;
 }
 
-function compileEncoding(view: ChartView, diagnostics: Diagnostic[]): Readonly<Record<string, unknown>> {
+function compileEncoding(
+  view: ChartView,
+  diagnostics: Diagnostic[],
+): Readonly<Record<string, unknown>> {
   const result: Record<string, unknown> = {};
   for (const [channel, field] of Object.entries(view.encoding)) {
     if (field !== undefined) {
