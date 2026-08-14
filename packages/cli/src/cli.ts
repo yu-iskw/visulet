@@ -80,6 +80,8 @@ async function readInput(path: string | undefined): Promise<unknown> {
   if (path === undefined) {
     throw new Error('An input file or - for stdin is required');
   }
+  // The CLI intentionally accepts a user-selected input path.
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   const text = path === '-' ? await readStdin() : await readFile(path, 'utf8');
   return JSON.parse(text) as unknown;
 }
@@ -132,6 +134,8 @@ async function writeOutput(text: string, output: string | undefined): Promise<vo
     process.stdout.write(text.endsWith('\n') ? text : `${text}\n`);
     return;
   }
+  // The CLI intentionally accepts a user-selected output path.
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   await writeFile(output, text, 'utf8');
 }
 
