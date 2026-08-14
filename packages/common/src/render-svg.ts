@@ -1,12 +1,6 @@
 import { isSupportedChart, isSupportedDiagram, isSupportedInfographic } from './catalog';
 import { validateVisualDocument } from './validate';
-import {
-  displayValue,
-  isRecord,
-  readMapValue,
-  readRowValue,
-  readUnknownProperty,
-} from './value';
+import { displayValue, isRecord, readMapValue, readRowValue, readUnknownProperty } from './value';
 
 import type {
   ChartView,
