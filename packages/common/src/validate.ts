@@ -1,10 +1,11 @@
 import { isSupportedChart, isSupportedDiagram, isSupportedInfographic } from './catalog';
-import { readMapValue } from './value';
+import { isRecord, readMapValue } from './value';
 
 import type {
   ChartView,
   DataSource,
   Diagnostic,
+  DiagnosticSeverity,
   DiagramView,
   MetricView,
   ValidationResult,
@@ -12,14 +13,10 @@ import type {
   VisualView,
 } from './types';
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 function addDiagnostic(
   diagnostics: Diagnostic[],
   code: string,
-  severity: 'error' | 'warning',
+  severity: DiagnosticSeverity,
   path: string,
   message: string,
 ): void {
@@ -143,7 +140,7 @@ function validateMetric(
       'Metric requires either value or both data and field',
     );
   }
-  if (view.data !== undefined && view.field !== undefined) {
+  if (hasReference) {
     validateDataReference(document, view.data, view.field, path, diagnostics);
   }
 }
@@ -236,6 +233,10 @@ function validateView(
       break;
     case 'text':
       break;
+    default: {
+      const exhaustive: never = view;
+      return exhaustive;
+    }
   }
 }
 
@@ -323,21 +324,7 @@ export function validateVisualDocument(input: unknown): ValidationResult {
   }
 
   const document = input as unknown as VisualDocument;
-  const ids = new Set<string>();
-  for (const [index, rawView] of input.views.entries()) {
-    const view = parseView(rawView);
-    if (view === undefined) {
-      addDiagnostic(
-        diagnostics,
-        'view.shape',
-        'error',
-        `$.views[${index}]`,
-        'View does not satisfy the required shape for its kind',
-      );
-      continue;
-    }
-    validateView(document, view, `$.views[${index}]`, ids, diagnostics);
-  }
+  validateContainerChildren(document, input.views, '$', new Set<string>(), diagnostics);
   return {
     valid: !diagnostics.some((diagnostic) => diagnostic.severity === 'error'),
     diagnostics,

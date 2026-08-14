@@ -6,14 +6,18 @@ export type SupportedChart = (typeof SUPPORTED_CHARTS)[number];
 export type SupportedDiagram = (typeof SUPPORTED_DIAGRAMS)[number];
 export type SupportedInfographic = (typeof SUPPORTED_INFOGRAPHICS)[number];
 
+function isCatalogMember<T extends string>(catalog: readonly T[], value: string): value is T {
+  return catalog.some((item) => item === value);
+}
+
 export function isSupportedChart(value: string): value is SupportedChart {
-  return (SUPPORTED_CHARTS as readonly string[]).includes(value);
+  return isCatalogMember(SUPPORTED_CHARTS, value);
 }
 
 export function isSupportedDiagram(value: string): value is SupportedDiagram {
-  return (SUPPORTED_DIAGRAMS as readonly string[]).includes(value);
+  return isCatalogMember(SUPPORTED_DIAGRAMS, value);
 }
 
 export function isSupportedInfographic(value: string): value is SupportedInfographic {
-  return (SUPPORTED_INFOGRAPHICS as readonly string[]).includes(value);
+  return isCatalogMember(SUPPORTED_INFOGRAPHICS, value);
 }
