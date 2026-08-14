@@ -87,7 +87,10 @@ function collectViews(views: readonly VisualView[], output: VisualView[]): void 
   }
 }
 
-function inspectDocument(document: VisualDocument, diagnostics: readonly Diagnostic[]): InspectResult {
+function inspectDocument(
+  document: VisualDocument,
+  diagnostics: readonly Diagnostic[],
+): InspectResult {
   const views: VisualView[] = [];
   collectViews(document.views, views);
   const kinds: Record<string, number> = {};
@@ -169,9 +172,11 @@ async function runInspect(args: ParsedArguments): Promise<number> {
           `VisualDocument v${result.version}${result.title === undefined ? '' : ` — ${result.title}`}`,
           `Views: ${result.viewCount}`,
           `Datasets: ${result.datasets.length}`,
-          `Kinds: ${Object.entries(result.viewKinds)
-            .map(([kind, count]) => `${kind}=${count}`)
-            .join(', ') || 'none'}`,
+          `Kinds: ${
+            Object.entries(result.viewKinds)
+              .map(([kind, count]) => `${kind}=${count}`)
+              .join(', ') || 'none'
+          }`,
         ].join('\n'),
     args.output,
   );
