@@ -14,6 +14,7 @@
   "author": "",
   "scripts": {
     "build": "pnpm --recursive build",
+    "benchmark:agent": "node benchmarks/agent-authoring/v0/run.cjs",
     "trunk": "trunk",
     "format": "pnpm format:trunk",
     "format:all": "pnpm format:trunk-all",
