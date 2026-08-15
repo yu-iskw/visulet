@@ -3,7 +3,10 @@
 const { readFileSync } = require('node:fs');
 const { resolve } = require('node:path');
 
-const { scoreAuthoringCandidate, validateVisualDocument } = require('../../../packages/common/dist/index.js');
+const {
+  scoreAuthoringCandidate,
+  validateVisualDocument,
+} = require('../../../packages/common/dist/index.js');
 
 const root = __dirname;
 
@@ -142,7 +145,9 @@ function controlCandidate(testCase) {
 }
 
 function average(values) {
-  return values.length === 0 ? undefined : values.reduce((sum, value) => sum + value, 0) / values.length;
+  return values.length === 0
+    ? undefined
+    : values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
 function main() {
@@ -209,20 +214,34 @@ function main() {
       nativeEscapeRate: scored.length === 0 ? undefined : nativeEscapes / scored.length,
       averageInputTokens: average(scored.flatMap((item) => item.metrics?.inputTokens ?? [])),
       averageOutputTokens: average(scored.flatMap((item) => item.metrics?.outputTokens ?? [])),
-      averageCorrectionTurns: average(scored.flatMap((item) => item.metrics?.correctionTurns ?? [])),
+      averageCorrectionTurns: average(
+        scored.flatMap((item) => item.metrics?.correctionTurns ?? []),
+      ),
       averageLatencyMs: average(scored.flatMap((item) => item.metrics?.latencyMs ?? [])),
     },
     baselines: Object.fromEntries(
       ['vega-lite', 'mermaid'].map((representation) => {
-        const entries = baselineRecords.filter((record) => record.representation === representation);
+        const entries = baselineRecords.filter(
+          (record) => record.representation === representation,
+        );
         return [
           representation,
           {
             candidates: entries.length,
-            validRate: average(entries.flatMap((entry) => entry.metrics?.valid === undefined ? [] : [entry.metrics.valid ? 1 : 0])),
-            averageInputTokens: average(entries.flatMap((entry) => entry.metrics?.inputTokens ?? [])),
-            averageOutputTokens: average(entries.flatMap((entry) => entry.metrics?.outputTokens ?? [])),
-            averageCorrectionTurns: average(entries.flatMap((entry) => entry.metrics?.correctionTurns ?? [])),
+            validRate: average(
+              entries.flatMap((entry) =>
+                entry.metrics?.valid === undefined ? [] : [entry.metrics.valid ? 1 : 0],
+              ),
+            ),
+            averageInputTokens: average(
+              entries.flatMap((entry) => entry.metrics?.inputTokens ?? []),
+            ),
+            averageOutputTokens: average(
+              entries.flatMap((entry) => entry.metrics?.outputTokens ?? []),
+            ),
+            averageCorrectionTurns: average(
+              entries.flatMap((entry) => entry.metrics?.correctionTurns ?? []),
+            ),
             averageLatencyMs: average(entries.flatMap((entry) => entry.metrics?.latencyMs ?? [])),
           },
         ];
@@ -231,14 +250,18 @@ function main() {
     results: scored,
   };
 
-  process.stdout.write(args.json ? `${JSON.stringify(summary, null, 2)}\n` : [
-    `Corpus: ${summary.corpus.cases} cases`,
-    `Vizulet candidates: ${summary.visulet.candidates}`,
-    `Average score: ${summary.visulet.averageScore ?? 'n/a'}`,
-    `Valid rate: ${summary.visulet.validRate ?? 'n/a'}`,
-    `Native escape rate: ${summary.visulet.nativeEscapeRate ?? 'n/a'}`,
-    `Baseline records: Vega-Lite=${summary.baselines['vega-lite'].candidates}, Mermaid=${summary.baselines.mermaid.candidates}`,
-  ].join('\n') + '\n');
+  process.stdout.write(
+    args.json
+      ? `${JSON.stringify(summary, null, 2)}\n`
+      : [
+          `Corpus: ${summary.corpus.cases} cases`,
+          `Vizulet candidates: ${summary.visulet.candidates}`,
+          `Average score: ${summary.visulet.averageScore ?? 'n/a'}`,
+          `Valid rate: ${summary.visulet.validRate ?? 'n/a'}`,
+          `Native escape rate: ${summary.visulet.nativeEscapeRate ?? 'n/a'}`,
+          `Baseline records: Vega-Lite=${summary.baselines['vega-lite'].candidates}, Mermaid=${summary.baselines.mermaid.candidates}`,
+        ].join('\n') + '\n',
+  );
 }
 
 try {

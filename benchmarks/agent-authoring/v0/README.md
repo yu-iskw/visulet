@@ -22,13 +22,13 @@ human/vision evaluation are separate measurements. They must not be hidden insid
 
 `cases.jsonl` contains 50 cases:
 
-| Category | Cases | Comparative baseline |
-| --- | ---: | --- |
-| Charts | 20 | Vega-Lite |
-| Diagrams | 12 | Mermaid |
-| Infographics | 8 | — |
-| Composition/reports | 6 | — |
-| Adversarial/error handling | 4 | Vega-Lite where applicable |
+| Category                   | Cases | Comparative baseline       |
+| -------------------------- | ----: | -------------------------- |
+| Charts                     |    20 | Vega-Lite                  |
+| Diagrams                   |    12 | Mermaid                    |
+| Infographics               |     8 | —                          |
+| Composition/reports        |     6 | —                          |
+| Adversarial/error handling |     4 | Vega-Lite where applicable |
 
 The chart corpus is balanced across bar, line, scatter, and heatmap. Diagram cases are
 balanced across flowchart, sequence, and architecture. The corpus deliberately contains
@@ -59,7 +59,12 @@ composition scoring, and portability scoring agree with one another.
 Candidate JSONL records use this shape:
 
 ```json
-{"caseId":"chart-bar-01","representation":"visulet","candidate":{"version":"0","views":[]},"metrics":{"inputTokens":1000,"outputTokens":220,"correctionTurns":1,"latencyMs":1500}}
+{
+  "caseId": "chart-bar-01",
+  "representation": "visulet",
+  "candidate": { "version": "0", "views": [] },
+  "metrics": { "inputTokens": 1000, "outputTokens": 220, "correctionTurns": 1, "latencyMs": 1500 }
+}
 ```
 
 Then run:
