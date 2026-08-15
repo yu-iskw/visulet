@@ -1,4 +1,4 @@
-import { isSupportedChart, isSupportedDiagram, isSupportedInfographic } from './catalog';
+import { jsonPointer } from './json-pointer';
 import { isRecord, readMapValue } from './value';
 
 import type {
@@ -8,6 +8,8 @@ import type {
   DiagnosticSeverity,
   DiagramView,
   MetricView,
+  SequenceMessage,
+  SequenceModel,
   ValidationResult,
   VisualDocument,
   VisualView,
@@ -19,13 +21,26 @@ function addDiagnostic(
   severity: DiagnosticSeverity,
   path: string,
   message: string,
+  hint?: string,
 ): void {
-  diagnostics.push({ code, severity, path, message });
+  diagnostics.push(hint === undefined ? { code, severity, path, message } : { code, severity, path, message, hint });
 }
 
 function fieldNames(source: DataSource | undefined): ReadonlySet<string> | undefined {
-  const fields = source?.schema?.fields;
-  return fields === undefined ? undefined : new Set(fields.map((field) => field.name));
+  const declared = source?.schema?.fields;
+  if (declared !== undefined) {
+    return new Set(declared.map((field) => field.name));
+  }
+  if (source !== undefined && 'values' in source) {
+    const names = new Set<string>();
+    for (const row of source.values) {
+      for (const key of Object.keys(row)) {
+        names.add(key);
+      }
+    }
+    return names.size === 0 ? undefined : names;
+  }
+  return undefined;
 }
 
 function validateDataReference(
@@ -40,7 +55,14 @@ function validateDataReference(
   }
   const source = readMapValue(document.data, dataName);
   if (source === undefined) {
-    addDiagnostic(diagnostics, 'data.missing', 'error', path, `Unknown dataset: ${dataName}`);
+    addDiagnostic(
+      diagnostics,
+      'semantic.dataset_not_found',
+      'error',
+      path,
+      `Unknown dataset: ${dataName}`,
+      'Use a named dataset from document.data',
+    );
     return;
   }
   if (field === undefined) {
@@ -50,10 +72,11 @@ function validateDataReference(
   if (names !== undefined && !names.has(field)) {
     addDiagnostic(
       diagnostics,
-      'field.missing',
+      'semantic.field_not_found',
       'error',
       path,
       `Unknown field ${field} in dataset ${dataName}`,
+      `Available fields: ${[...names].join(', ')}`,
     );
   }
 }
@@ -64,39 +87,77 @@ function validateChart(
   path: string,
   diagnostics: Diagnostic[],
 ): void {
-  validateDataReference(document, view.data, undefined, `${path}.data`, diagnostics);
+  validateDataReference(document, view.data, undefined, `${path}/data`, diagnostics);
   for (const [channel, field] of Object.entries(view.encoding)) {
     if (field !== undefined) {
       validateDataReference(
         document,
         view.data,
         field.field,
-        `${path}.encoding.${channel}.field`,
+        `${path}/encoding/${channel}/field`,
         diagnostics,
       );
     }
   }
-  if (!isSupportedChart(view.chart)) {
+}
+
+function isSequenceModel(value: unknown): value is SequenceModel {
+  if (!isRecord(value) || !Array.isArray(value.participants)) {
+    return false;
+  }
+  return value.participants.every(
+    (participant) => isRecord(participant) && typeof participant.id === 'string',
+  );
+}
+
+function validateSequenceModel(model: SequenceModel, path: string, diagnostics: Diagnostic[]): void {
+  const ids = new Set<string>();
+  for (const [index, participant] of model.participants.entries()) {
+    const idPath = `${path}/model/participants/${String(index)}/id`;
+    if (ids.has(participant.id)) {
+      addDiagnostic(
+        diagnostics,
+        'semantic.duplicate_participant_id',
+        'error',
+        idPath,
+        `Duplicate participant id: ${participant.id}`,
+      );
+    } else {
+      ids.add(participant.id);
+    }
+  }
+  for (const [index, message] of (model.messages ?? []).entries()) {
+    validateSequenceEndpoint(ids, message, `${path}/model/messages/${String(index)}`, diagnostics);
+  }
+}
+
+function validateSequenceEndpoint(
+  ids: ReadonlySet<string>,
+  message: SequenceMessage,
+  path: string,
+  diagnostics: Diagnostic[],
+): void {
+  if (!ids.has(message.from)) {
     addDiagnostic(
       diagnostics,
-      'catalog.chart.unsupported',
-      'warning',
-      `${path}.chart`,
-      `Chart type ${view.chart} is valid but not supported by the v0 SVG renderer`,
+      'semantic.sequence_message_from',
+      'error',
+      `${path}/from`,
+      `Unknown participant: ${message.from}`,
+    );
+  }
+  if (!ids.has(message.to)) {
+    addDiagnostic(
+      diagnostics,
+      'semantic.sequence_message_to',
+      'error',
+      `${path}/to`,
+      `Unknown participant: ${message.to}`,
     );
   }
 }
 
-function validateDiagram(view: DiagramView, path: string, diagnostics: Diagnostic[]): void {
-  if (!isSupportedDiagram(view.diagram)) {
-    addDiagnostic(
-      diagnostics,
-      'catalog.diagram.unsupported',
-      'warning',
-      `${path}.diagram`,
-      `Diagram type ${view.diagram} is valid but not supported by the v0 SVG renderer`,
-    );
-  }
+function validateNodeEdges(view: DiagramView, path: string, diagnostics: Diagnostic[]): void {
   if (view.nodes === undefined) {
     return;
   }
@@ -105,22 +166,40 @@ function validateDiagram(view: DiagramView, path: string, diagnostics: Diagnosti
     if (!nodeIds.has(edge.from)) {
       addDiagnostic(
         diagnostics,
-        'diagram.edge.from',
+        'semantic.diagram_edge_from',
         'error',
-        `${path}.edges[${index}].from`,
+        `${path}/edges/${String(index)}/from`,
         `Unknown node: ${edge.from}`,
       );
     }
     if (!nodeIds.has(edge.to)) {
       addDiagnostic(
         diagnostics,
-        'diagram.edge.to',
+        'semantic.diagram_edge_to',
         'error',
-        `${path}.edges[${index}].to`,
+        `${path}/edges/${String(index)}/to`,
         `Unknown node: ${edge.to}`,
       );
     }
   }
+}
+
+function validateDiagram(view: DiagramView, path: string, diagnostics: Diagnostic[]): void {
+  if (view.diagram === 'sequence') {
+    if (!isSequenceModel(view.model)) {
+      addDiagnostic(
+        diagnostics,
+        'semantic.sequence_model_required',
+        'error',
+        `${path}/model`,
+        'Sequence diagrams require model.participants',
+      );
+      return;
+    }
+    validateSequenceModel(view.model, path, diagnostics);
+    return;
+  }
+  validateNodeEdges(view, path, diagnostics);
 }
 
 function validateMetric(
@@ -134,7 +213,7 @@ function validateMetric(
   if (!hasValue && !hasReference) {
     addDiagnostic(
       diagnostics,
-      'metric.source.required',
+      'semantic.metric_source_required',
       'error',
       path,
       'Metric requires either value or both data and field',
@@ -154,17 +233,18 @@ function validateViews(
 ): void {
   for (const [index, rawChild] of rawChildren.entries()) {
     const child = parseView(rawChild);
+    const childPath = `${path}/${String(index)}`;
     if (child === undefined) {
       addDiagnostic(
         diagnostics,
-        'view.shape',
+        'semantic.view_shape',
         'error',
-        `${path}.views[${index}]`,
+        childPath,
         'View does not satisfy the required shape for its kind',
       );
       continue;
     }
-    validateView(document, child, `${path}.views[${index}]`, ids, diagnostics);
+    validateView(document, child, childPath, ids, diagnostics);
   }
 }
 
@@ -178,9 +258,9 @@ function validateView(
   if (ids.has(view.id)) {
     addDiagnostic(
       diagnostics,
-      'view.id.duplicate',
+      'semantic.duplicate_view_id',
       'error',
-      `${path}.id`,
+      `${path}/id`,
       `Duplicate view id: ${view.id}`,
     );
   } else {
@@ -194,24 +274,15 @@ function validateView(
       validateDiagram(view, path, diagnostics);
       break;
     case 'infographic':
-      if (!isSupportedInfographic(view.structure)) {
-        addDiagnostic(
-          diagnostics,
-          'catalog.infographic.unsupported',
-          'warning',
-          `${path}.structure`,
-          `Infographic structure ${view.structure} is valid but not supported by the v0 SVG renderer`,
-        );
-      }
       break;
     case 'table':
-      validateDataReference(document, view.data, undefined, `${path}.data`, diagnostics);
+      validateDataReference(document, view.data, undefined, `${path}/data`, diagnostics);
       for (const [index, column] of (view.columns ?? []).entries()) {
         validateDataReference(
           document,
           view.data,
           column.field,
-          `${path}.columns[${index}].field`,
+          `${path}/columns/${String(index)}/field`,
           diagnostics,
         );
       }
@@ -220,12 +291,12 @@ function validateView(
       validateMetric(document, view, path, diagnostics);
       break;
     case 'container':
-      validateViews(document, view.views, path, ids, diagnostics);
+      validateViews(document, view.views, `${path}/views`, ids, diagnostics);
       break;
     case 'native':
       addDiagnostic(
         diagnostics,
-        'native.portability',
+        'capability.native_escape',
         'warning',
         path,
         `Native renderer ${view.renderer} bypasses canonical portability guarantees`,
@@ -303,21 +374,23 @@ function parseView(value: unknown): VisualView | undefined {
 export function validateVisualDocument(input: unknown): ValidationResult {
   const diagnostics: Diagnostic[] = [];
   if (!isRecord(input)) {
-    addDiagnostic(diagnostics, 'document.type', 'error', '$', 'Document must be an object');
+    addDiagnostic(diagnostics, 'semantic.document_type', 'error', '', 'Document must be an object');
     return { valid: false, diagnostics };
   }
   if (input.version !== '0') {
-    addDiagnostic(diagnostics, 'document.version', 'error', '$.version', 'version must equal "0"');
+    addDiagnostic(diagnostics, 'semantic.document_version', 'error', jsonPointer(['version']), 'version must equal "0"');
   }
   if (!Array.isArray(input.views)) {
-    addDiagnostic(diagnostics, 'document.views', 'error', '$.views', 'views must be an array');
+    addDiagnostic(diagnostics, 'semantic.document_views', 'error', jsonPointer(['views']), 'views must be an array');
     return { valid: false, diagnostics };
   }
 
   const document = input as unknown as VisualDocument;
-  validateViews(document, input.views, '$', new Set<string>(), diagnostics);
+  validateViews(document, input.views, jsonPointer(['views']), new Set<string>(), diagnostics);
+  const valid = !diagnostics.some((diagnostic) => diagnostic.severity === 'error');
   return {
-    valid: !diagnostics.some((diagnostic) => diagnostic.severity === 'error'),
+    valid,
     diagnostics,
+    document: valid ? document : undefined,
   };
 }

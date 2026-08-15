@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "scoringProfile": "agent-authoring-v1",
+  "id": "gen-chart-scatter",
+  "category": "chart",
+  "taskType": "generation",
+  "prompt": "Create a VisualDocument v0 scatter plot of latency vs throughput.",
+  "expected": {
+    "kind": "chart",
+    "visualType": "scatter"
+  },
+  "baselineTargets": [
+    "visulet",
+    "vega-lite"
+  ]
+}

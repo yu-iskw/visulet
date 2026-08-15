@@ -5,6 +5,9 @@
   "description": "Vizulet VisualDocument v0 validation, diagnostics, catalog, rendering, and benchmark primitives.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json"
   },

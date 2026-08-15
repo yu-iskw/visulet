@@ -1,0 +1,41 @@
+{
+  "version": "0",
+  "title": "Latency vs throughput",
+  "data": {
+    "points": {
+      "values": [
+        {
+          "latency": 12,
+          "throughput": 80
+        },
+        {
+          "latency": 18,
+          "throughput": 120
+        },
+        {
+          "latency": 25,
+          "throughput": 90
+        }
+      ]
+    }
+  },
+  "views": [
+    {
+      "id": "scatter",
+      "kind": "chart",
+      "chart": "scatter",
+      "title": "Latency vs throughput (filtered)",
+      "data": "points",
+      "encoding": {
+        "x": {
+          "field": "latency",
+          "type": "quantitative"
+        },
+        "y": {
+          "field": "throughput",
+          "type": "quantitative"
+        }
+      }
+    }
+  ]
+}

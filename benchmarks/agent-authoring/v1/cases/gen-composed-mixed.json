@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "scoringProfile": "agent-authoring-v1",
+  "id": "gen-composed-mixed",
+  "category": "composed",
+  "taskType": "generation",
+  "prompt": "Compose a container with a metric and a list infographic.",
+  "expected": {
+    "kind": "container"
+  },
+  "baselineTargets": [
+    "visulet"
+  ]
+}

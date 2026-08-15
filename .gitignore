@@ -148,6 +148,10 @@ TODO.md
 
 *.bak
 
+# Benchmark live/offline result dumps (fixtures and control candidates stay tracked)
+benchmarks/agent-authoring/v1/results/**
+!benchmarks/agent-authoring/v1/results/.gitkeep
+
 # CodeQL local artifacts
 .codeql_db/
 codeql-results.sarif

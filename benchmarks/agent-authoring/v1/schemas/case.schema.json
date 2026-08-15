@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://visulet.dev/benchmark/agent-authoring/v1/case.schema.json",
+  "title": "Agent-authoring benchmark case v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "version",
+    "category",
+    "taskType",
+    "prompt",
+    "expected",
+    "baselineTargets",
+    "scoringProfile"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "const": 1
+    },
+    "category": {
+      "enum": [
+        "chart",
+        "diagram",
+        "infographic",
+        "composed"
+      ]
+    },
+    "taskType": {
+      "enum": [
+        "generation",
+        "modification"
+      ]
+    },
+    "prompt": {
+      "type": "string",
+      "minLength": 1
+    },
+    "startingArtifact": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Fixture path relative to the v1 corpus root, e.g. fixtures/chart-bar.json"
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "chart",
+            "diagram",
+            "infographic",
+            "table",
+            "text",
+            "metric",
+            "container",
+            "native"
+          ]
+        },
+        "visualType": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "baselineTargets": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "holdout": {
+      "type": "boolean"
+    },
+    "scoringProfile": {
+      "const": "agent-authoring-v1"
+    }
+  }
+}

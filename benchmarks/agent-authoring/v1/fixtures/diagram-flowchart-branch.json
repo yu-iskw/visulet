@@ -1,0 +1,46 @@
+{
+  "version": "0",
+  "title": "Decision flow",
+  "views": [
+    {
+      "id": "branch",
+      "kind": "diagram",
+      "diagram": "flowchart",
+      "nodes": [
+        {
+          "id": "start",
+          "label": "Start"
+        },
+        {
+          "id": "decide",
+          "label": "Valid?",
+          "type": "decision"
+        },
+        {
+          "id": "accept",
+          "label": "Accept"
+        },
+        {
+          "id": "reject",
+          "label": "Reject"
+        }
+      ],
+      "edges": [
+        {
+          "from": "start",
+          "to": "decide"
+        },
+        {
+          "from": "decide",
+          "to": "accept",
+          "label": "yes"
+        },
+        {
+          "from": "decide",
+          "to": "reject",
+          "label": "no"
+        }
+      ]
+    }
+  ]
+}

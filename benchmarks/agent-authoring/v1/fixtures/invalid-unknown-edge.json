@@ -1,0 +1,27 @@
+{
+  "version": "0",
+  "title": "Unknown edge target",
+  "views": [
+    {
+      "id": "flow",
+      "kind": "diagram",
+      "diagram": "flowchart",
+      "nodes": [
+        {
+          "id": "start",
+          "label": "Start"
+        },
+        {
+          "id": "validate",
+          "label": "Validate"
+        }
+      ],
+      "edges": [
+        {
+          "from": "validate",
+          "to": "gone"
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,8 @@
+import { evaluateCapabilities, svgRendererCapabilities } from './capabilities';
 import { isSupportedChart, isSupportedDiagram, isSupportedInfographic } from './catalog';
-import { validateVisualDocument } from './validate';
-import { displayValue, isRecord, readMapValue, readRowValue, readUnknownProperty } from './value';
+import { validateVisualDocument } from './document-validation';
+import { jsonPointer } from './json-pointer';
+import { displayValue, isRecord, optionalFiniteNumber, readMapValue, readRowValue, readUnknownProperty } from './value';
 
 import type {
   ChartView,
@@ -77,10 +79,6 @@ function inlineRows(document: VisualDocument, dataName: string): readonly DataRo
   return source !== undefined && 'values' in source ? source.values : [];
 }
 
-function numeric(value: unknown): number | undefined {
-  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
-}
-
 function scale(value: number, min: number, max: number, start: number, end: number): number {
   if (max === min) {
     return (start + end) / 2;
@@ -100,7 +98,7 @@ function renderBar(document: VisualDocument, view: ChartView): string {
     return '';
   }
   const rows = inlineRows(document, view.data);
-  const values = rows.map((row) => numeric(readRowValue(row, yField)) ?? 0);
+  const values = rows.map((row) => optionalFiniteNumber(readRowValue(row, yField)) ?? 0);
   const max = maxAtLeast(values, 1);
   const chartWidth = WIDTH - PADDING * 2;
   const barWidth = rows.length === 0 ? chartWidth : chartWidth / rows.length;
@@ -124,8 +122,8 @@ function numericPoints(document: VisualDocument, view: ChartView): readonly [num
   }
   const raw: [number, number][] = [];
   for (const row of inlineRows(document, view.data)) {
-    const x = numeric(readRowValue(row, xField));
-    const y = numeric(readRowValue(row, yField));
+    const x = optionalFiniteNumber(readRowValue(row, xField));
+    const y = optionalFiniteNumber(readRowValue(row, yField));
     if (x !== undefined && y !== undefined) {
       raw.push([x, y]);
     }
@@ -147,7 +145,7 @@ function ordinalLinePoints(document: VisualDocument, view: ChartView): readonly 
     return [];
   }
   const rows = inlineRows(document, view.data);
-  const ys = rows.map((row) => numeric(readRowValue(row, yField)));
+  const ys = rows.map((row) => optionalFiniteNumber(readRowValue(row, yField)));
   const extent = numericExtent(ys.filter((value): value is number => value !== undefined));
   if (extent === undefined) {
     return [];
@@ -193,7 +191,7 @@ function renderHeatmap(document: VisualDocument, view: ChartView): string {
   const cells = rows.map((row) => ({
     xIndex: firstSeenIndex(xIndexes, displayValue(readRowValue(row, xField))),
     yIndex: firstSeenIndex(yIndexes, displayValue(readRowValue(row, yField))),
-    value: numeric(readRowValue(row, colorField)) ?? 0,
+    value: optionalFiniteNumber(readRowValue(row, colorField)) ?? 0,
   }));
   const max = maxAtLeast(
     cells.map((cell) => cell.value),
@@ -263,8 +261,9 @@ function sequenceParticipantId(participant: Record<string, unknown>, index: numb
 }
 
 function renderSequence(view: DiagramView): string {
-  const participants = recordArray(readUnknownProperty(view.model, 'participants'));
-  const messages = recordArray(readUnknownProperty(view.model, 'messages'));
+  const model = isRecord(view.model) ? view.model : undefined;
+  const participants = recordArray(readUnknownProperty(model, 'participants'));
+  const messages = recordArray(readUnknownProperty(model, 'messages'));
   if (participants.length === 0) {
     return '';
   }
@@ -404,10 +403,11 @@ function renderView(document: VisualDocument, view: VisualView, diagnostics: Dia
     case 'chart':
       if ((view.transforms?.length ?? 0) > 0) {
         diagnostics.push({
-          code: 'render.transforms.unimplemented',
+          code: 'renderer.svg.transforms_unimplemented',
           severity: 'warning',
-          path: `$.views.${view.id}.transforms`,
+          path: jsonPointer(['views', view.id, 'transforms']),
           message: 'The v0 SVG renderer does not execute canonical transforms yet',
+          backend: 'svg',
         });
       }
       return renderChart(document, view);
@@ -434,17 +434,21 @@ function renderView(document: VisualDocument, view: VisualView, diagnostics: Dia
 
 export function renderSvgDocument(input: unknown): RenderResult {
   const validation = validateVisualDocument(input);
-  if (!validation.valid) {
+  if (!validation.valid || validation.document === undefined) {
     return { svg: '', diagnostics: validation.diagnostics };
   }
-  const document = input as VisualDocument;
-  const diagnostics = [...validation.diagnostics];
+  const document = validation.document;
+  const diagnostics = [
+    ...validation.diagnostics,
+    ...evaluateCapabilities(document, svgRendererCapabilities()),
+  ];
   if ((document.interactions?.length ?? 0) > 0) {
     diagnostics.push({
-      code: 'render.interactions.unimplemented',
+      code: 'renderer.svg.interactions_unimplemented',
       severity: 'warning',
-      path: '$.interactions',
+      path: jsonPointer(['interactions']),
       message: 'Static SVG output preserves no interactive behavior in v0',
+      backend: 'svg',
     });
   }
   const { groups, height: stackedHeight } = stackedViewGroups(

@@ -1,10 +1,13 @@
-export type DiagnosticSeverity = 'error' | 'warning';
+export type DiagnosticSeverity = 'error' | 'warning' | 'info';
 
 export interface Diagnostic {
   readonly code: string;
   readonly severity: DiagnosticSeverity;
   readonly path: string;
   readonly message: string;
+  readonly hint?: string;
+  readonly backend?: string;
+  readonly metadata?: Readonly<Record<string, unknown>>;
 }
 
 export type DataRow = Readonly<Record<string, unknown>>;
@@ -76,12 +79,20 @@ export interface Accessibility {
   readonly decorative?: boolean;
 }
 
+export interface RendererPreference {
+  readonly preferred?: string;
+  readonly fallbacks?: readonly string[];
+  readonly requireCapabilities?: readonly string[];
+}
+
 export interface BaseView {
   readonly id: string;
   readonly title?: string;
   readonly description?: string;
   readonly placement?: Placement;
   readonly accessibility?: Accessibility;
+  readonly renderer?: RendererPreference;
+  readonly theme?: string | Readonly<Record<string, unknown>>;
 }
 
 export interface ChartView extends BaseView {
@@ -110,12 +121,29 @@ export interface DiagramEdge {
   readonly data?: Readonly<Record<string, unknown>>;
 }
 
+export interface SequenceParticipant {
+  readonly id: string;
+  readonly label?: string;
+}
+
+export interface SequenceMessage {
+  readonly from: string;
+  readonly to: string;
+  readonly label?: string;
+  readonly type?: string;
+}
+
+export interface SequenceModel {
+  readonly participants: readonly SequenceParticipant[];
+  readonly messages?: readonly SequenceMessage[];
+}
+
 export interface DiagramView extends BaseView {
   readonly kind: 'diagram';
   readonly diagram: string;
   readonly nodes?: readonly DiagramNode[];
   readonly edges?: readonly DiagramEdge[];
-  readonly model?: Readonly<Record<string, unknown>>;
+  readonly model?: SequenceModel | Readonly<Record<string, unknown>>;
   readonly direction?: 'top-down' | 'bottom-up' | 'left-right' | 'right-left';
   readonly options?: Readonly<Record<string, unknown>>;
 }
@@ -166,8 +194,9 @@ export interface MetricView extends BaseView {
   readonly data?: string;
   readonly field?: string;
   readonly format?: string;
-  readonly unit?: string;
+  readonly label?: string;
   readonly delta?: number;
+  readonly trend?: 'up' | 'down' | 'flat';
 }
 
 export interface ContainerView extends BaseView {
@@ -176,10 +205,11 @@ export interface ContainerView extends BaseView {
   readonly views: readonly VisualView[];
 }
 
-export interface NativeView extends BaseView {
+export interface NativeView extends Omit<BaseView, 'renderer'> {
   readonly kind: 'native';
   readonly renderer: string;
   readonly spec: Readonly<Record<string, unknown>>;
+  readonly data?: string;
 }
 
 export type VisualView =
@@ -207,25 +237,98 @@ export interface FlowLayout {
 
 export type Layout = GridLayout | FlowLayout;
 
+export interface DocumentSecurity {
+  readonly network?: { readonly allow?: readonly string[] };
+  readonly files?: { readonly roots?: readonly string[] };
+  readonly externalAssets?: boolean;
+  readonly unsafeHtml?: boolean;
+  readonly scripts?: boolean;
+}
+
 export interface VisualDocument {
+  readonly $schema?: string;
   readonly version: '0';
   readonly title?: string;
   readonly description?: string;
   readonly metadata?: Readonly<Record<string, unknown>>;
   readonly data?: Readonly<Record<string, DataSource>>;
+  readonly theme?: string | Readonly<Record<string, unknown>>;
+  readonly parameters?: Readonly<Record<string, unknown>>;
   readonly layout?: Layout;
   readonly views: readonly VisualView[];
   readonly interactions?: readonly Readonly<Record<string, unknown>>[];
-  readonly security?: Readonly<Record<string, unknown>>;
+  readonly security?: DocumentSecurity;
   readonly extensions?: Readonly<Record<string, unknown>>;
+}
+
+export interface ValidationOptions {
+  readonly limits?: ResourceLimits;
 }
 
 export interface ValidationResult {
   readonly valid: boolean;
   readonly diagnostics: readonly Diagnostic[];
+  readonly document?: VisualDocument;
 }
 
 export interface RenderResult {
   readonly svg: string;
   readonly diagnostics: readonly Diagnostic[];
 }
+
+export interface ResourceLimits {
+  readonly maxDocumentBytes: number;
+  readonly maxViews: number;
+  readonly maxInlineRows: number;
+  readonly maxStringLength: number;
+  readonly maxPatchOperations: number;
+}
+
+export interface RendererCapabilities {
+  readonly id: string;
+  readonly version: string;
+  readonly visualDocumentVersions: readonly string[];
+  readonly visuals: {
+    readonly chart?: { readonly types: readonly string[] };
+    readonly diagram?: { readonly types: readonly string[] };
+    readonly infographic?: { readonly types: readonly string[] };
+  };
+  readonly data: { readonly inline: boolean; readonly references: readonly string[] };
+  readonly interactions: readonly string[];
+  readonly outputFormats: readonly string[];
+}
+
+export interface VisualDocumentInspection {
+  readonly version: string;
+  readonly viewIds: readonly string[];
+  readonly kinds: readonly string[];
+  readonly datasets: readonly string[];
+  readonly nativeViewIds: readonly string[];
+  readonly hasInteractions: boolean;
+  readonly hasTransforms: boolean;
+}
+
+export interface RendererCompileOptions {
+  readonly viewId?: string;
+  readonly limits?: ResourceLimits;
+}
+
+export interface RendererResult<TOutput> {
+  readonly valid: boolean;
+  readonly diagnostics: readonly Diagnostic[];
+  readonly output?: TOutput;
+}
+
+export interface VisualRenderer<TOutput> {
+  readonly id: string;
+  capabilities(): RendererCapabilities;
+  compile(document: VisualDocument, options?: RendererCompileOptions): RendererResult<TOutput>;
+}
+
+export const DEFAULT_RESOURCE_LIMITS: ResourceLimits = {
+  maxDocumentBytes: 1_000_000,
+  maxViews: 100,
+  maxInlineRows: 10_000,
+  maxStringLength: 10_000,
+  maxPatchOperations: 500,
+};

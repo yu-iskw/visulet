@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "scoringProfile": "agent-authoring-v1",
+  "id": "gen-invalid-unknown-edge",
+  "category": "diagram",
+  "taskType": "generation",
+  "prompt": "Repair a flowchart edge that points at a missing node id.",
+  "startingArtifact": "fixtures/invalid-unknown-edge.json",
+  "expected": {
+    "kind": "diagram",
+    "visualType": "flowchart"
+  },
+  "baselineTargets": [
+    "visulet",
+    "mermaid"
+  ]
+}

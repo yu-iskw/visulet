@@ -117,10 +117,10 @@ describe('normative VisualDocument v0 schema validation', () => {
     };
     expect(validateVisualDocumentStructure(structurallyValid).valid).toBe(true);
     expect(validateVisualDocumentSemantics(structurallyValid).diagnostics).toEqual(
-      expect.arrayContaining([expect.objectContaining({ code: 'data.missing' })]),
+      expect.arrayContaining([expect.objectContaining({ code: 'semantic.dataset_not_found' })]),
     );
     expect(validateVisualDocument(structurallyValid).diagnostics).toEqual(
-      expect.arrayContaining([expect.objectContaining({ code: 'data.missing' })]),
+      expect.arrayContaining([expect.objectContaining({ code: 'semantic.dataset_not_found' })]),
     );
   });
 });

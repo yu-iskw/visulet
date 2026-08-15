@@ -1,0 +1,13 @@
+{
+  "version": "0",
+  "title": "Empty list",
+  "unexpected": true,
+  "views": [
+    {
+      "id": "checklist",
+      "kind": "infographic",
+      "structure": "list",
+      "items": []
+    }
+  ]
+}

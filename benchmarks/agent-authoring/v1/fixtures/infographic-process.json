@@ -1,0 +1,28 @@
+{
+  "version": "0",
+  "title": "Compile process",
+  "views": [
+    {
+      "id": "process",
+      "kind": "infographic",
+      "structure": "process",
+      "items": [
+        {
+          "label": "Author",
+          "title": "Author",
+          "description": "Semantic IR"
+        },
+        {
+          "label": "Validate",
+          "title": "Validate",
+          "description": "Ajv plus semantics"
+        },
+        {
+          "label": "Compile",
+          "title": "Compile",
+          "description": "Renderer backend"
+        }
+      ]
+    }
+  ]
+}

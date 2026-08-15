@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "scoringProfile": "agent-authoring-v1",
+  "id": "mod-infographic-process",
+  "category": "infographic",
+  "taskType": "modification",
+  "prompt": "Rename Compile to Emit SVG in the process infographic.",
+  "startingArtifact": "fixtures/infographic-process.json",
+  "expected": {
+    "kind": "infographic",
+    "visualType": "process"
+  },
+  "baselineTargets": [
+    "visulet"
+  ]
+}

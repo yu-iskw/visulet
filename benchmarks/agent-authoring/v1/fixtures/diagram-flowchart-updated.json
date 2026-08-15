@@ -1,0 +1,44 @@
+{
+  "version": "0",
+  "title": "Request flow",
+  "views": [
+    {
+      "id": "flow",
+      "kind": "diagram",
+      "diagram": "flowchart",
+      "title": "Request flow (updated)",
+      "nodes": [
+        {
+          "id": "start",
+          "label": "Start"
+        },
+        {
+          "id": "validate",
+          "label": "Validate"
+        },
+        {
+          "id": "reject",
+          "label": "Reject"
+        },
+        {
+          "id": "done",
+          "label": "Done"
+        }
+      ],
+      "edges": [
+        {
+          "from": "start",
+          "to": "validate"
+        },
+        {
+          "from": "validate",
+          "to": "done"
+        },
+        {
+          "from": "validate",
+          "to": "reject"
+        }
+      ]
+    }
+  ]
+}

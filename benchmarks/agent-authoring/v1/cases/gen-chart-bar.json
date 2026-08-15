@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "scoringProfile": "agent-authoring-v1",
+  "id": "gen-chart-bar",
+  "category": "chart",
+  "taskType": "generation",
+  "prompt": "Create a VisualDocument v0 bar chart of quarterly revenue for Q1–Q3.",
+  "expected": {
+    "kind": "chart",
+    "visualType": "bar"
+  },
+  "baselineTargets": [
+    "visulet",
+    "vega-lite"
+  ]
+}

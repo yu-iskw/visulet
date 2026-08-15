@@ -1,0 +1,45 @@
+{
+  "version": "0",
+  "title": "Revenue brief",
+  "data": {
+    "sales": {
+      "values": [
+        {
+          "quarter": "Q1",
+          "revenue": 10
+        },
+        {
+          "quarter": "Q2",
+          "revenue": 20
+        },
+        {
+          "quarter": "Q3",
+          "revenue": 17
+        }
+      ]
+    }
+  },
+  "views": [
+    {
+      "id": "intro",
+      "kind": "text",
+      "markdown": "# Quarterly revenue\nBars show Q1–Q3 totals."
+    },
+    {
+      "id": "revenue",
+      "kind": "chart",
+      "chart": "bar",
+      "data": "sales",
+      "encoding": {
+        "x": {
+          "field": "quarter",
+          "type": "ordinal"
+        },
+        "y": {
+          "field": "revenue",
+          "type": "quantitative"
+        }
+      }
+    }
+  ]
+}

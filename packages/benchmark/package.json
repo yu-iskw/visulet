@@ -1,0 +1,19 @@
+{
+  "name": "@visulet/benchmark",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Offline agent-authoring benchmark harness for VisualDocument v1.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@visulet/core": "workspace:*",
+    "@visulet/renderer-mermaid": "workspace:*",
+    "@visulet/renderer-vegalite": "workspace:*"
+  }
+}

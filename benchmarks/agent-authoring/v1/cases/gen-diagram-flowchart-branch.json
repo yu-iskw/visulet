@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "scoringProfile": "agent-authoring-v1",
+  "id": "gen-diagram-flowchart-branch",
+  "category": "diagram",
+  "taskType": "generation",
+  "prompt": "Create a flowchart with a decision node branching to Accept and Reject.",
+  "expected": {
+    "kind": "diagram",
+    "visualType": "flowchart"
+  },
+  "baselineTargets": [
+    "visulet",
+    "mermaid"
+  ]
+}

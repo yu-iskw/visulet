@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "scoringProfile": "agent-authoring-v1",
+  "id": "mod-diagram-sequence",
+  "category": "diagram",
+  "taskType": "modification",
+  "prompt": "Add a 200 OK reply message from api to client.",
+  "startingArtifact": "fixtures/diagram-sequence.json",
+  "expected": {
+    "kind": "diagram",
+    "visualType": "sequence"
+  },
+  "baselineTargets": [
+    "visulet",
+    "mermaid"
+  ]
+}

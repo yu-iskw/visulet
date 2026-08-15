@@ -1,0 +1,28 @@
+{
+  "version": "0",
+  "title": "Authoring checklist",
+  "views": [
+    {
+      "id": "checklist",
+      "kind": "infographic",
+      "structure": "list",
+      "items": [
+        {
+          "label": "Validate",
+          "title": "Validate",
+          "description": "Run visual_validate"
+        },
+        {
+          "label": "Patch",
+          "title": "Patch",
+          "description": "Apply a local JSON Patch"
+        },
+        {
+          "label": "Render",
+          "title": "Render",
+          "description": "Compile to SVG"
+        }
+      ]
+    }
+  ]
+}

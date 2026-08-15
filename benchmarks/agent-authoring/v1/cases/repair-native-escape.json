@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "scoringProfile": "agent-authoring-v1",
+  "id": "repair-native-escape",
+  "category": "chart",
+  "taskType": "generation",
+  "prompt": "Replace a native Vega-Lite view with a portable canonical bar chart.",
+  "startingArtifact": "fixtures/native-escape.json",
+  "expected": {
+    "kind": "chart",
+    "visualType": "bar"
+  },
+  "baselineTargets": [
+    "visulet",
+    "vega-lite"
+  ]
+}

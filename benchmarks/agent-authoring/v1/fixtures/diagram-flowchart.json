@@ -1,0 +1,35 @@
+{
+  "version": "0",
+  "title": "Request flow",
+  "views": [
+    {
+      "id": "flow",
+      "kind": "diagram",
+      "diagram": "flowchart",
+      "nodes": [
+        {
+          "id": "start",
+          "label": "Start"
+        },
+        {
+          "id": "validate",
+          "label": "Validate"
+        },
+        {
+          "id": "done",
+          "label": "Done"
+        }
+      ],
+      "edges": [
+        {
+          "from": "start",
+          "to": "validate"
+        },
+        {
+          "from": "validate",
+          "to": "done"
+        }
+      ]
+    }
+  ]
+}

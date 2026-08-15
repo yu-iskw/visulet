@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "scoringProfile": "agent-authoring-v1",
+  "id": "gen-chart-bar-grouped",
+  "category": "chart",
+  "taskType": "generation",
+  "prompt": "Create a bar chart of revenue by quarter with a color encoding for region.",
+  "expected": {
+    "kind": "chart",
+    "visualType": "bar"
+  },
+  "baselineTargets": [
+    "visulet",
+    "vega-lite"
+  ]
+}

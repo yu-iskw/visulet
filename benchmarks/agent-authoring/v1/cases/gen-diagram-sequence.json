@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "scoringProfile": "agent-authoring-v1",
+  "id": "gen-diagram-sequence",
+  "category": "diagram",
+  "taskType": "generation",
+  "prompt": "Create a VisualDocument v0 sequence diagram of a client posting /login to an API.",
+  "expected": {
+    "kind": "diagram",
+    "visualType": "sequence"
+  },
+  "baselineTargets": [
+    "visulet",
+    "mermaid"
+  ]
+}

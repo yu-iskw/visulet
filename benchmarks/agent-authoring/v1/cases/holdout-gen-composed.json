@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "scoringProfile": "agent-authoring-v1",
+  "id": "holdout-gen-composed",
+  "category": "composed",
+  "taskType": "generation",
+  "prompt": "Holdout: container with a heatmap and architecture diagram.",
+  "expected": {
+    "kind": "container"
+  },
+  "baselineTargets": [
+    "visulet"
+  ],
+  "holdout": true
+}

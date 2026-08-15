@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "scoringProfile": "agent-authoring-v1",
+  "id": "repair-infographic-copy",
+  "category": "infographic",
+  "taskType": "generation",
+  "prompt": "Repair a list infographic whose items array is empty by adding three labeled items.",
+  "startingArtifact": "fixtures/invalid-empty-infographic.json",
+  "expected": {
+    "kind": "infographic",
+    "visualType": "list"
+  },
+  "baselineTargets": [
+    "visulet"
+  ]
+}
