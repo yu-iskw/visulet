@@ -1,0 +1,16 @@
+{
+  "experimentId": "live-v1-example",
+  "mode": "live",
+  "repetitions": 1,
+  "temperature": 0,
+  "targets": ["visulet", "vega-lite", "mermaid"],
+  "models": [{ "provider": "openai", "model": "MODEL_ID" }],
+  "promptProfiles": ["minimal", "schema-assisted", "diagnostic-repair", "mcp-tool-repair"],
+  "corpusPath": "benchmarks/agent-authoring/v1",
+  "resultsPath": "benchmarks/agent-authoring/v1/results",
+  "notes": [
+    "Manual workflow_dispatch only. Default CI stays control-mode.",
+    "Do not log full prompts or API keys.",
+    "Holdout case ids must not be used for prompt or schema tuning in the same iteration."
+  ]
+}

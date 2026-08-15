@@ -1,0 +1,27 @@
+{
+  "name": "@visulet/benchmark-live",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Optional live-model adapters for the Vizulet agent-authoring benchmark.",
+  "bin": {
+    "visulet-benchmark-live": "dist/main.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@visulet/benchmark": "workspace:*",
+    "@visulet/core": "workspace:*"
+  }
+}

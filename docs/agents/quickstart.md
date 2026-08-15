@@ -6,3 +6,10 @@
 4. `visual_validate`. If invalid, repair from structured diagnostics.
 5. `visual_render` (SVG) or `visual_compile` (`mermaid` | `vega-lite`).
 6. For edits, emit RFC 6902 JSON Patch and `visual_apply_patch`.
+7. Optional: hosts that support MCP Apps (`io.modelcontextprotocol/ui`) can
+   render `ui://visulet/preview` for SVG preview, diagnostics, and patch
+   review. Apply-patch still requires host consent.
+
+Deterministic dogfood (no live model): capabilities → describe_type →
+validate → patch → render/compile → inspect. See
+`packages/mcp-server/src/dogfood.test.ts`.

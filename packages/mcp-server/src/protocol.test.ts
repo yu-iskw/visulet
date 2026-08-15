@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { consume, handle } from './protocol';
-import { MCP_TOOL_SCHEMAS } from './tools';
+import { MCP_TOOL_NAMES, MCP_TOOL_SCHEMAS } from './tools';
 
 const document = {
   version: '0',
@@ -20,16 +20,6 @@ const document = {
     },
   ],
 };
-
-const expectedTools = [
-  'visual_validate',
-  'visual_inspect',
-  'visual_render',
-  'visual_apply_patch',
-  'visual_capabilities',
-  'visual_describe_type',
-  'visual_compile',
-];
 
 function frame(payload: unknown): string {
   const body = JSON.stringify(payload);
@@ -85,13 +75,18 @@ describe('handle', () => {
     const result = handle({ jsonrpc: '2.0', id: 1, method: 'initialize' });
     expect(result).toEqual({
       protocolVersion: '2024-11-05',
-      capabilities: { tools: {}, resources: {}, prompts: {} },
-      serverInfo: { name: 'visulet', version: '0.0.0' },
+      capabilities: {
+        tools: {},
+        resources: {},
+        prompts: {},
+        extensions: { 'io.modelcontextprotocol/ui': {} },
+      },
+      serverInfo: { name: 'visulet', version: '0.1.0' },
     });
   });
 
   it('lists the visual MCP tools', () => {
-    expect(toolNames(handle({ method: 'tools/list' }))).toEqual(expectedTools);
+    expect(toolNames(handle({ method: 'tools/list' }))).toEqual([...MCP_TOOL_NAMES]);
   });
 
   it('lists per-tool input schemas from MCP_TOOL_SCHEMAS', () => {
@@ -140,6 +135,25 @@ describe('handle', () => {
     expect(promptNames(handle({ method: 'prompts/list' }))).toEqual(
       expect.arrayContaining(['author-visual', 'repair-visual', 'modify-visual']),
     );
+  });
+
+  it('returns prompts/get messages', () => {
+    const result = asRecord(handle({ method: 'prompts/get', params: { name: 'repair-visual' } }));
+    expect(result?.description).toEqual(expect.stringContaining('JSON Patch'));
+  });
+
+  it('binds MCP App preview metadata and serves the ui resource', () => {
+    const listed = asRecord(handle({ method: 'tools/list' }))?.tools;
+    const tools: readonly unknown[] = Array.isArray(listed) ? listed : [];
+    const renderTool = tools.find((item) => asRecord(item)?.name === 'visual_render');
+    expect(JSON.stringify(renderTool)).toContain('ui://visulet/preview');
+    expect(resourceUris(handle({ method: 'resources/list' }))).toContain('ui://visulet/preview');
+    const preview = handle({
+      method: 'resources/read',
+      params: { uri: 'ui://visulet/preview' },
+    });
+    expect(JSON.stringify(preview)).toContain('text/html;profile=mcp-app');
+    expect(JSON.stringify(preview)).toContain('data:image/svg+xml');
   });
 
   it('rejects unknown methods', () => {

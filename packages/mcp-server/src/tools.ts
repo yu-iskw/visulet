@@ -1,3 +1,7 @@
+/* eslint-disable security/detect-non-literal-fs-filename -- preview and example paths are package-relative constants */
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import {
   applyVisualDocumentPatch,
   inspectVisualDocument,
@@ -161,28 +165,31 @@ function handleCompile(args: Readonly<Record<string, unknown>>): McpToolResponse
 }
 
 function handleCapabilities(args: Readonly<Record<string, unknown>>): McpToolResponse {
-  const backend = args.backend;
-  if (backend === undefined) {
+  const result = capabilitiesFor(args.backend);
+  if (result === undefined) {
     return {
-      ok: true,
-      category: 'success',
-      result: [svgRendererCapabilities(), getMermaidCapabilities(), getVegaLiteCapabilities()],
+      ok: false,
+      category: 'unsupported_backend',
+      result: { error: `Unknown backend ${asLabel(args.backend)}` },
     };
   }
+  return { ok: true, category: 'success', result };
+}
+
+function capabilitiesFor(backend: unknown): unknown {
+  if (backend === undefined) {
+    return [svgRendererCapabilities(), getMermaidCapabilities(), getVegaLiteCapabilities()];
+  }
   if (backend === 'svg') {
-    return { ok: true, category: 'success', result: svgRendererCapabilities() };
+    return svgRendererCapabilities();
   }
   if (backend === 'mermaid') {
-    return { ok: true, category: 'success', result: getMermaidCapabilities() };
+    return getMermaidCapabilities();
   }
   if (backend === 'vega-lite') {
-    return { ok: true, category: 'success', result: getVegaLiteCapabilities() };
+    return getVegaLiteCapabilities();
   }
-  return {
-    ok: false,
-    category: 'unsupported_backend',
-    result: { error: `Unknown backend ${asLabel(backend)}` },
-  };
+  return undefined;
 }
 
 function handleDescribeType(args: Readonly<Record<string, unknown>>): McpToolResponse {
@@ -198,6 +205,28 @@ function handleDescribeType(args: Readonly<Record<string, unknown>>): McpToolRes
   }
   return { ok: true, category: 'success', result: description };
 }
+
+export const MCP_UI_PREVIEW_URI = 'ui://visulet/preview';
+export const MCP_UI_RESOURCE_MIME = 'text/html;profile=mcp-app';
+export const MCP_UI_TOOL_NAMES = ['visual_render', 'visual_inspect', 'visual_apply_patch'] as const;
+
+const PREVIEW_HTML_PATH = join(__dirname, '../ui/preview.html');
+const PREVIEW_HTML = readFileSync(PREVIEW_HTML_PATH, 'utf8');
+
+const DIAGNOSTIC_DOCS = {
+  namespaces: [
+    'schema.*',
+    'semantic.*',
+    'capability.*',
+    'resource.*',
+    'patch.*',
+    'renderer.svg.*',
+    'renderer.mermaid.*',
+    'renderer.vega_lite.*',
+  ],
+};
+
+export const MCP_TYPE_IDS = [...TYPE_CATALOG.keys()];
 
 export const MCP_TOOL_NAMES = [
   'visual_validate',
@@ -308,23 +337,16 @@ export function readMcpResource(
     return { mimeType: 'application/schema+json', text: JSON.stringify(visualDocumentV0Schema) };
   }
   if (uri === 'visulet://capabilities') {
-    return {
-      mimeType: 'application/json',
-      text: JSON.stringify([
-        svgRendererCapabilities(),
-        getMermaidCapabilities(),
-        getVegaLiteCapabilities(),
-      ]),
-    };
+    return { mimeType: 'application/json', text: JSON.stringify(capabilitiesFor(undefined)) };
   }
   if (uri === 'visulet://capabilities/svg') {
-    return { mimeType: 'application/json', text: JSON.stringify(svgRendererCapabilities()) };
+    return { mimeType: 'application/json', text: JSON.stringify(capabilitiesFor('svg')) };
   }
   if (uri === 'visulet://capabilities/mermaid') {
-    return { mimeType: 'application/json', text: JSON.stringify(getMermaidCapabilities()) };
+    return { mimeType: 'application/json', text: JSON.stringify(capabilitiesFor('mermaid')) };
   }
   if (uri === 'visulet://capabilities/vega-lite') {
-    return { mimeType: 'application/json', text: JSON.stringify(getVegaLiteCapabilities()) };
+    return { mimeType: 'application/json', text: JSON.stringify(capabilitiesFor('vega-lite')) };
   }
   if (uri.startsWith('visulet://types/')) {
     const key = uri.slice('visulet://types/'.length);
@@ -333,6 +355,31 @@ export function readMcpResource(
       return undefined;
     }
     return { mimeType: 'application/json', text: JSON.stringify(description) };
+  }
+  if (uri === MCP_UI_PREVIEW_URI) {
+    return { mimeType: MCP_UI_RESOURCE_MIME, text: PREVIEW_HTML };
+  }
+  if (uri === 'visulet://examples') {
+    return {
+      mimeType: 'application/json',
+      text: JSON.stringify({
+        version: '0',
+        title: 'Example revenue',
+        data: { sales: { values: [{ quarter: 'Q1', revenue: 10 }] } },
+        views: [
+          {
+            id: 'revenue',
+            kind: 'chart',
+            chart: 'bar',
+            data: 'sales',
+            encoding: { x: { field: 'quarter' }, y: { field: 'revenue' } },
+          },
+        ],
+      }),
+    };
+  }
+  if (uri === 'visulet://diagnostics') {
+    return { mimeType: 'application/json', text: JSON.stringify(DIAGNOSTIC_DOCS) };
   }
   return undefined;
 }

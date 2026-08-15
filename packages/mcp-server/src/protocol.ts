@@ -5,11 +5,16 @@ import {
   MCP_PROMPTS,
   MCP_TOOL_NAMES,
   MCP_TOOL_SCHEMAS,
+  MCP_TYPE_IDS,
+  MCP_UI_PREVIEW_URI,
+  MCP_UI_RESOURCE_MIME,
+  MCP_UI_TOOL_NAMES,
   readMcpResource,
 } from './tools';
 
 const MCP_METHODS = [
   'initialize',
+  'prompts/get',
   'prompts/list',
   'resources/list',
   'resources/read',
@@ -44,9 +49,21 @@ function logTool(name: string, started: number, category: string, diagnosticCoun
 function initializeResult(): unknown {
   return {
     protocolVersion: '2024-11-05',
-    capabilities: { tools: {}, resources: {}, prompts: {} },
-    serverInfo: { name: 'visulet', version: '0.0.0' },
+    capabilities: {
+      tools: {},
+      resources: {},
+      prompts: {},
+      extensions: { 'io.modelcontextprotocol/ui': {} },
+    },
+    serverInfo: { name: 'visulet', version: '0.1.0' },
   };
+}
+
+function uiMeta(name: (typeof MCP_TOOL_NAMES)[number]): unknown {
+  if (MCP_UI_TOOL_NAMES.some((tool) => tool === name)) {
+    return { ui: { resourceUri: MCP_UI_PREVIEW_URI } };
+  }
+  return undefined;
 }
 
 function listTools(): unknown {
@@ -55,6 +72,7 @@ function listTools(): unknown {
       name,
       description: `Vizulet ${name.replaceAll('_', ' ')}`,
       inputSchema: schemaForTool(name),
+      _meta: uiMeta(name),
     })),
   };
 }
@@ -99,14 +117,43 @@ function callTool(params: Readonly<Record<string, unknown>> | undefined): unknow
 }
 
 function listResources(): unknown {
+  const types = MCP_TYPE_IDS.map((id) => ({
+    uri: `visulet://types/${id}`,
+    name: `${id} type`,
+    mimeType: 'application/json',
+  }));
   return {
     resources: [
-      { uri: 'visulet://schema/v0/visual-document', name: 'VisualDocument v0 schema' },
-      { uri: 'visulet://capabilities', name: 'Renderer capabilities' },
-      { uri: 'visulet://capabilities/svg', name: 'SVG capabilities' },
-      { uri: 'visulet://capabilities/mermaid', name: 'Mermaid capabilities' },
-      { uri: 'visulet://capabilities/vega-lite', name: 'Vega-Lite capabilities' },
-      { uri: 'visulet://types/diagram/sequence', name: 'Sequence type' },
+      {
+        uri: MCP_UI_PREVIEW_URI,
+        name: 'Vizulet preview',
+        mimeType: MCP_UI_RESOURCE_MIME,
+        _meta: { ui: { csp: { connectDomains: [], resourceDomains: [] } } },
+      },
+      {
+        uri: 'visulet://schema/v0/visual-document',
+        name: 'VisualDocument v0 schema',
+        mimeType: 'application/schema+json',
+      },
+      {
+        uri: 'visulet://capabilities',
+        name: 'Renderer capabilities',
+        mimeType: 'application/json',
+      },
+      { uri: 'visulet://capabilities/svg', name: 'SVG capabilities', mimeType: 'application/json' },
+      {
+        uri: 'visulet://capabilities/mermaid',
+        name: 'Mermaid capabilities',
+        mimeType: 'application/json',
+      },
+      {
+        uri: 'visulet://capabilities/vega-lite',
+        name: 'Vega-Lite capabilities',
+        mimeType: 'application/json',
+      },
+      { uri: 'visulet://examples', name: 'Example VisualDocument', mimeType: 'application/json' },
+      { uri: 'visulet://diagnostics', name: 'Diagnostic namespaces', mimeType: 'application/json' },
+      ...types,
     ],
   };
 }
@@ -126,6 +173,31 @@ function readResource(params: Readonly<Record<string, unknown>> | undefined): un
 function listPrompts(): unknown {
   return {
     prompts: Object.entries(MCP_PROMPTS).map(([name, description]) => ({ name, description })),
+  };
+}
+
+function getPrompt(params: Readonly<Record<string, unknown>> | undefined): unknown {
+  const name = params?.name;
+  if (typeof name !== 'string') {
+    throw new Error('prompt name required');
+  }
+  let description: string;
+  switch (name) {
+    case 'author-visual':
+      description = MCP_PROMPTS['author-visual'];
+      break;
+    case 'repair-visual':
+      description = MCP_PROMPTS['repair-visual'];
+      break;
+    case 'modify-visual':
+      description = MCP_PROMPTS['modify-visual'];
+      break;
+    default:
+      throw new Error(`Unknown prompt ${name}`);
+  }
+  return {
+    description,
+    messages: [{ role: 'user', content: { type: 'text', text: description } }],
   };
 }
 
@@ -172,6 +244,8 @@ export function handle(request: JsonRpcRequest): unknown {
       return readResource(request.params);
     case 'prompts/list':
       return listPrompts();
+    case 'prompts/get':
+      return getPrompt(request.params);
     default: {
       const exhaustive: never = method;
       return exhaustive;
