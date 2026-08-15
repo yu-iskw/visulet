@@ -73,7 +73,7 @@ describe('Vega-Lite compiler', () => {
   it('does not pass canonical transforms through until portable semantics are defined', () => {
     const document = chartDocument('bar');
     const chart = document.views[0];
-    if (chart?.kind !== 'chart') {
+    if (chart.kind !== 'chart') {
       throw new Error('Expected chart fixture');
     }
     const result = compileVegaLiteDocument({
