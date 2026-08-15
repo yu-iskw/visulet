@@ -62,6 +62,8 @@ export interface CandidateRecord {
   readonly outputTokens?: number;
   readonly latencyMs?: number;
   readonly correctionTurns?: number;
+  readonly promptProfile?: PromptProfileId;
+  readonly repetition?: number;
 }
 
 export interface ScoringProfileWeights {
@@ -102,6 +104,8 @@ export interface CandidateMetrics {
   readonly outputTokens?: number;
   readonly latencyMs?: number;
   readonly correctionTurns?: number;
+  readonly promptProfile?: PromptProfileId;
+  readonly repetition?: number;
   readonly nativeEscape: boolean;
   readonly capabilityWarningCount: number;
   readonly authoringScore?: AuthoringScore;
@@ -131,6 +135,7 @@ export interface AggregateResult {
   readonly hypotheses: ScoringProfileHypotheses;
   readonly byTarget: Readonly<Record<string, GroupStats>>;
   readonly byCategory: Readonly<Record<string, GroupStats>>;
+  readonly byPromptProfile: Readonly<Record<string, GroupStats>>;
   readonly metrics: readonly CandidateMetrics[];
 }
 

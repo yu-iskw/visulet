@@ -11,6 +11,7 @@ import {
 import { compileMermaidDocument } from '@visulet/renderer-mermaid';
 import { compileVegaLiteDocument } from '@visulet/renderer-vegalite';
 
+import { assessCandidateText, looksLikeVisualDocument } from './assess-candidate';
 import { modificationDistance } from './json-distance';
 import { parseCandidateText } from './parse';
 
@@ -85,10 +86,24 @@ export function scoreCandidate(
     outputTokens: candidate.outputTokens,
     latencyMs: candidate.latencyMs,
     correctionTurns: candidate.correctionTurns,
+    promptProfile: candidate.promptProfile,
+    repetition: candidate.repetition,
     nativeEscape: false,
     capabilityWarningCount: 0,
     parseError: parsed.error,
   };
+  const nativeTarget = candidate.target === 'mermaid' || candidate.target === 'vega-lite';
+  if (nativeTarget && !looksLikeVisualDocument(parsed.value)) {
+    const assessment = assessCandidateText(resolvedText, candidate.target);
+    const valid = !assessment.invalid;
+    return {
+      ...base,
+      structuralValid: valid,
+      semanticValid: valid,
+      compileSuccess: valid,
+      parseError: assessment.parseError,
+    };
+  }
   if (parsed.value === undefined) {
     return base;
   }

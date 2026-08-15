@@ -111,7 +111,7 @@
             diagnostics: parsed.diagnostics,
             json: result.document,
             document: result.document,
-            outline: result.outline,
+            outline: result.outline ?? (Array.isArray(result.viewIds) ? result : undefined),
             capabilities: result.capabilities,
             patch: result.patch,
           };

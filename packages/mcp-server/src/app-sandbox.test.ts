@@ -26,6 +26,7 @@ describe('mcp-app sandbox preview', () => {
     expect(html).not.toContain('innerHTML');
     expect(html).toContain('event.source !== window.parent');
     expect(html).toContain('Outline');
+    expect(html).toContain('result.viewIds');
     expect(html).toContain('Diagnostics');
     expect(html).toContain('Compatibility');
     expect(html).toContain('Patch');

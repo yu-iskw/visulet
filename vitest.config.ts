@@ -1,6 +1,11 @@
 import { defineConfig } from 'vitest/config';
 
+import { visuletSrcAliases } from './vitest.aliases';
+
 export default defineConfig({
+  resolve: {
+    alias: visuletSrcAliases,
+  },
   test: {
     projects: ['packages/*/vitest.config.ts'],
     coverage: {

@@ -40,6 +40,14 @@ export function renderReportMarkdown(aggregate: AggregateResult): string {
       `- ${category}: n=${String(stats.count)} structural ${percent(stats.structuralValidity)} semantic ${percent(stats.semanticValidity)}`,
     );
   }
+  if (Object.keys(aggregate.byPromptProfile).length > 0) {
+    lines.push('', '## By prompt profile', '');
+    for (const [profile, stats] of Object.entries(aggregate.byPromptProfile)) {
+      lines.push(
+        `- ${profile}: n=${String(stats.count)} structural ${percent(stats.structuralValidity)} semantic ${percent(stats.semanticValidity)}`,
+      );
+    }
+  }
   lines.push(
     '',
     'Live models were not required for this report. CI asserts control-fixture scores only.',

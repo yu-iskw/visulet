@@ -77,10 +77,14 @@ describe('runLiveBenchmark', () => {
       promptProfiles: ['minimal'],
     });
     expect(result.candidates).toHaveLength(1);
+    expect(result.candidates[0]?.promptProfile).toBe('minimal');
+    expect(result.candidates[0]?.repetition).toBe(0);
     expect(result.aggregate.metrics[0]?.structuralValid).toBe(true);
     expect(result.aggregate.metrics[0]?.authoringScore?.score).toBe(100);
     expect(result.aggregate.metrics[0]?.inputTokens).toBe(11);
+    expect(result.aggregate.metrics[0]?.promptProfile).toBe('minimal');
     expect(result.reportMarkdown).toContain('live-unit');
+    expect(result.reportMarkdown).toContain('By prompt profile');
   });
 
   it('skips holdout cases and domain-incompatible baselines', async () => {
@@ -115,8 +119,12 @@ describe('runLiveBenchmark', () => {
       targets: ['visulet'],
       promptProfiles: ['diagnostic-repair'],
     });
-    expect(result.candidates[0]?.correctionTurns).toBe(1);
-    expect(result.aggregate.metrics[0]?.structuralValid).toBe(true);
+    expect(result.candidates).toHaveLength(2);
+    expect(result.candidates[0]?.correctionTurns).toBe(0);
+    expect(result.candidates[0]?.promptProfile).toBe('diagnostic-repair');
+    expect(result.candidates[1]?.correctionTurns).toBe(1);
+    expect(result.aggregate.metrics[0]?.structuralValid).toBe(false);
+    expect(result.aggregate.metrics[1]?.structuralValid).toBe(true);
   });
 
   it('repairs mermaid output that is a JSON object instead of source', async () => {
@@ -138,8 +146,28 @@ describe('runLiveBenchmark', () => {
       targets: ['mermaid'],
       promptProfiles: ['diagnostic-repair'],
     });
-    expect(result.candidates[0]?.correctionTurns).toBe(1);
-    expect(result.candidates[0]?.text).toContain('flowchart');
+    expect(result.candidates).toHaveLength(2);
+    expect(result.candidates[0]?.correctionTurns).toBe(0);
+    expect(result.candidates[1]?.correctionTurns).toBe(1);
+    expect(result.candidates[1]?.text).toContain('flowchart');
+    expect(result.aggregate.metrics[0]?.structuralValid).toBe(false);
+    expect(result.aggregate.metrics[1]?.structuralValid).toBe(true);
+  });
+
+  it('scores a native Vega-Lite spec without requiring a VisualDocument', async () => {
+    const result = await runLiveBenchmark({
+      cases: [barCase],
+      provider: scriptedProvider([JSON.stringify({ mark: 'bar' })]),
+      model: 'unit-model',
+      targets: ['vega-lite'],
+      promptProfiles: ['minimal'],
+    });
+    expect(result.candidates).toHaveLength(1);
+    expect(result.aggregate.metrics[0]?.structuralValid).toBe(true);
+    expect(result.aggregate.metrics[0]?.semanticValid).toBe(true);
+    expect(result.aggregate.metrics[0]?.compileSuccess).toBe(true);
+    expect(result.aggregate.metrics[0]?.authoringScore).toBeUndefined();
+    expect(result.aggregate.metrics[0]?.nativeEscape).toBe(false);
   });
 
   it('puts the starting fixture in the live prompt for modification cases', async () => {

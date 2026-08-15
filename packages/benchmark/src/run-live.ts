@@ -1,6 +1,6 @@
-import { readMapValue, validateVisualDocument } from '@visulet/core';
+import { readMapValue } from '@visulet/core';
 
-import { parseCandidateText } from './parse';
+import { assessCandidateText } from './assess-candidate';
 import { DEFAULT_SCHEMA_FRAGMENT, buildPrompt } from './prompt-profiles';
 import { runOfflineBenchmark } from './run-offline';
 
@@ -19,7 +19,6 @@ export interface LiveRunResult extends OfflineRunResult {
   readonly candidates: readonly CandidateRecord[];
 }
 
-const PARSE_ERROR = 'parse.error';
 const REPAIR_PROFILES: ReadonlySet<PromptProfileId> = new Set([
   'diagnostic-repair',
   'mcp-tool-repair',
@@ -48,6 +47,8 @@ async function callProvider(
   provider: ModelProvider,
   request: ModelRunRequest,
   target: BenchmarkTarget,
+  promptProfile: PromptProfileId,
+  repetition: number,
 ): Promise<CandidateRecord> {
   const started = Date.now();
   const result = await provider.run(request);
@@ -58,49 +59,9 @@ async function callProvider(
     inputTokens: result.inputTokens,
     outputTokens: result.outputTokens,
     latencyMs: result.latencyMs ?? Date.now() - started,
+    promptProfile,
+    repetition,
   };
-}
-
-function evaluateFirstPass(
-  text: string,
-  target: BenchmarkTarget,
-): { readonly invalid: boolean; readonly diagnostics: unknown } {
-  switch (target) {
-    case 'mermaid': {
-      const trimmed = text.trim();
-      const parsed = parseCandidateText(trimmed);
-      const jsonObject =
-        parsed.value !== undefined && typeof parsed.value === 'object' && parsed.value !== null;
-      const invalid = trimmed.length === 0 || jsonObject;
-      return {
-        invalid,
-        diagnostics: invalid ? [{ code: PARSE_ERROR, message: 'expected Mermaid source' }] : [],
-      };
-    }
-    case 'vega-lite': {
-      const parsed = parseCandidateText(text);
-      if (parsed.value === undefined) {
-        return { invalid: true, diagnostics: [{ code: PARSE_ERROR, message: parsed.error }] };
-      }
-      const invalid = typeof parsed.value !== 'object' || parsed.value === null;
-      return {
-        invalid,
-        diagnostics: invalid ? [{ code: PARSE_ERROR, message: 'expected Vega-Lite object' }] : [],
-      };
-    }
-    case 'visulet': {
-      const parsed = parseCandidateText(text);
-      if (parsed.value === undefined) {
-        return { invalid: true, diagnostics: [{ code: PARSE_ERROR, message: parsed.error }] };
-      }
-      const result = validateVisualDocument(parsed.value);
-      return { invalid: !result.valid, diagnostics: result.diagnostics };
-    }
-    default: {
-      const exhaustive: never = target;
-      return exhaustive;
-    }
-  }
 }
 
 async function runAttempt(
@@ -108,7 +69,8 @@ async function runAttempt(
   benchmarkCase: BenchmarkCase,
   target: BenchmarkTarget,
   profile: PromptProfileId,
-): Promise<CandidateRecord> {
+  repetition: number,
+): Promise<readonly CandidateRecord[]> {
   const schemaFragment = input.schemaFragment ?? DEFAULT_SCHEMA_FRAGMENT;
   const startingArtifact = startingArtifactFor(benchmarkCase, input.fixtures);
   const isRepair = REPAIR_PROFILES.has(profile);
@@ -128,10 +90,10 @@ async function runAttempt(
     prompt: firstPrompt.prompt,
     system: firstPrompt.system,
   };
-  const first = await callProvider(input.provider, baseRequest, target);
-  const firstPass = evaluateFirstPass(first.text, target);
+  const first = await callProvider(input.provider, baseRequest, target, profile, repetition);
+  const firstPass = assessCandidateText(first.text, target);
   if (!isRepair || !firstPass.invalid) {
-    return { ...first, correctionTurns: 0 };
+    return [{ ...first, correctionTurns: 0 }];
   }
   const repairPrompt = buildPrompt(profile, {
     benchmarkCase,
@@ -149,14 +111,19 @@ async function runAttempt(
       system: repairPrompt.system,
     },
     target,
+    profile,
+    repetition,
   );
-  return {
-    ...repaired,
-    inputTokens: (first.inputTokens ?? 0) + (repaired.inputTokens ?? 0),
-    outputTokens: (first.outputTokens ?? 0) + (repaired.outputTokens ?? 0),
-    latencyMs: (first.latencyMs ?? 0) + (repaired.latencyMs ?? 0),
-    correctionTurns: 1,
-  };
+  return [
+    { ...first, correctionTurns: 0 },
+    {
+      ...repaired,
+      inputTokens: (first.inputTokens ?? 0) + (repaired.inputTokens ?? 0),
+      outputTokens: (first.outputTokens ?? 0) + (repaired.outputTokens ?? 0),
+      latencyMs: (first.latencyMs ?? 0) + (repaired.latencyMs ?? 0),
+      correctionTurns: 1,
+    },
+  ];
 }
 
 export async function runLiveBenchmark(input: LiveRunInput): Promise<LiveRunResult> {
@@ -172,7 +139,7 @@ export async function runLiveBenchmark(input: LiveRunInput): Promise<LiveRunResu
       }
       for (const profile of input.promptProfiles) {
         for (let attempt = 0; attempt < repetitions; attempt += 1) {
-          candidates.push(await runAttempt(input, benchmarkCase, target, profile));
+          candidates.push(...(await runAttempt(input, benchmarkCase, target, profile, attempt)));
         }
       }
     }

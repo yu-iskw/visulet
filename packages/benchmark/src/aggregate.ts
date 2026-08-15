@@ -90,6 +90,7 @@ export function aggregateMetrics(
     hypotheses: profile.hypotheses,
     byTarget: grouped(metrics, (row) => row.target),
     byCategory: grouped(metrics, (row) => row.category),
+    byPromptProfile: grouped(metrics, (row) => row.promptProfile),
     metrics,
   };
 }
