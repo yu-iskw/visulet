@@ -47,12 +47,26 @@
     </aside>
     <script>
       function setText(id, value) {
-        document.getElementById(id).textContent = value;
+        document.getElementById(id).textContent = typeof value === 'string' ? value : '';
+      }
+      function setSvgPreview(svg) {
+        var preview = document.getElementById('preview');
+        preview.replaceChildren();
+        if (typeof svg !== 'string' || svg.indexOf('<svg') === -1) {
+          return;
+        }
+        var image = document.createElement('img');
+        image.alt = 'Rendered visual';
+        image.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+        preview.appendChild(image);
       }
       window.addEventListener('message', function (event) {
+        if (event.source !== window.parent) {
+          return;
+        }
         var data = event.data || {};
         if (data.svg) {
-          document.getElementById('preview').innerHTML = data.svg;
+          setSvgPreview(data.svg);
         }
         if (data.outline) setText('outline', data.outline);
         if (data.diagnostics) setText('diagnostics', data.diagnostics);

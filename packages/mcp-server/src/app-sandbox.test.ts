@@ -23,6 +23,8 @@ describe('mcp-app sandbox preview', () => {
     expect(csp).not.toContain('http://');
     expect(csp).not.toContain('https://');
     expect(html).toContain('Preview');
+    expect(html).not.toContain('innerHTML');
+    expect(html).toContain('event.source !== window.parent');
     expect(html).toContain('Outline');
     expect(html).toContain('Diagnostics');
     expect(html).toContain('Backends');
