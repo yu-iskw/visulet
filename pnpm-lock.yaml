@@ -67,6 +67,9 @@ importers:
       '@visulet/core':
         specifier: workspace:*
         version: link:../common
+      '@visulet/renderer-vegalite':
+        specifier: workspace:*
+        version: link:../renderer-vegalite
     devDependencies:
       '@types/node':
         specifier: 24.13.3
@@ -80,6 +83,12 @@ importers:
       ajv:
         specifier: 8.20.0
         version: 8.20.0
+
+  packages/renderer-vegalite:
+    dependencies:
+      '@visulet/core':
+        specifier: workspace:*
+        version: link:../common
 
   schemas: {}
 

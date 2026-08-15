@@ -9,12 +9,14 @@ import {
   renderSvgDocument,
   validateVisualDocument,
 } from '@visulet/core';
+import { VEGA_LITE_CAPABILITIES, compileVegaLiteDocument } from '@visulet/renderer-vegalite';
 
 import type { Diagnostic, VisualDocument, VisualView } from '@visulet/core';
 
 interface ParsedArguments {
   readonly command?: string;
   readonly input?: string;
+  readonly backend?: string;
   readonly json: boolean;
   readonly output?: string;
   readonly format?: string;
@@ -43,6 +45,7 @@ function parseArguments(argv: readonly string[]): ParsedArguments {
   let json = false;
   let output: string | undefined;
   let format: string | undefined;
+  let backend: string | undefined;
   while (values.length > 0) {
     const value = values.shift();
     if (value === undefined) {
@@ -54,6 +57,8 @@ function parseArguments(argv: readonly string[]): ParsedArguments {
       output = takeOptionValue(values, value);
     } else if (value === '--format') {
       format = takeOptionValue(values, value);
+    } else if (value === '--backend') {
+      backend = takeOptionValue(values, value);
     } else {
       positional.push(value);
     }
@@ -61,6 +66,7 @@ function parseArguments(argv: readonly string[]): ParsedArguments {
   return {
     command: positional.at(0),
     input: positional.at(1),
+    backend: backend ?? positional.at(1),
     json,
     output,
     format,
@@ -124,8 +130,10 @@ function usage(): string {
     'Usage:',
     '  vizulet validate <file|-> [--json]',
     '  vizulet render <file|-> [--format svg] [--output file]',
+    '  vizulet compile <file|-> --backend vega-lite [--output file]',
     '  vizulet inspect <file|-> [--json]',
     '  vizulet types [--json]',
+    '  vizulet capabilities [vega-lite] [--json]',
   ].join('\n');
 }
 
@@ -164,6 +172,22 @@ async function runRender(args: ParsedArguments): Promise<number> {
   const result = renderSvgDocument(input);
   await writeOutput(result.svg, args.output);
   return result.diagnostics.some((diagnostic) => diagnostic.severity === 'error') ? 1 : 0;
+}
+
+async function runCompile(args: ParsedArguments): Promise<number> {
+  if (args.backend !== 'vega-lite') {
+    throw new Error(`Unsupported compile backend: ${args.backend ?? 'none'}`);
+  }
+  const input = await readInput(args.input);
+  const validation = validateVisualDocument(input);
+  if (!validation.valid) {
+    await writeOutput(JSON.stringify(validation, undefined, 2), args.output);
+    return 1;
+  }
+  const result = compileVegaLiteDocument(input as VisualDocument);
+  const hasError = result.diagnostics.some((diagnostic) => diagnostic.severity === 'error');
+  await writeOutput(JSON.stringify(result, undefined, 2), args.output);
+  return hasError ? 1 : 0;
 }
 
 async function runInspect(args: ParsedArguments): Promise<number> {
@@ -216,6 +240,24 @@ async function runTypes(args: ParsedArguments): Promise<number> {
   return 0;
 }
 
+async function runCapabilities(args: ParsedArguments): Promise<number> {
+  if (args.backend !== undefined && args.backend !== 'vega-lite') {
+    throw new Error(`Unknown backend: ${args.backend}`);
+  }
+  await writeOutput(
+    args.json
+      ? JSON.stringify(VEGA_LITE_CAPABILITIES, undefined, 2)
+      : [
+          'Backend: vega-lite',
+          `Visual kinds: ${VEGA_LITE_CAPABILITIES.visualKinds.join(', ')}`,
+          `Charts: ${VEGA_LITE_CAPABILITIES.charts.join(', ')}`,
+          `Formats: ${VEGA_LITE_CAPABILITIES.formats.join(', ')}`,
+        ].join('\n'),
+    args.output,
+  );
+  return 0;
+}
+
 export async function runCli(argv: readonly string[]): Promise<number> {
   const args = parseArguments(argv);
   try {
@@ -224,10 +266,14 @@ export async function runCli(argv: readonly string[]): Promise<number> {
         return await runValidate(args);
       case 'render':
         return await runRender(args);
+      case 'compile':
+        return await runCompile(args);
       case 'inspect':
         return await runInspect(args);
       case 'types':
         return await runTypes(args);
+      case 'capabilities':
+        return await runCapabilities(args);
       case 'help':
       case '--help':
       case '-h':
