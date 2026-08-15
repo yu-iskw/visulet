@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "scoringProfile": "agent-authoring-v1",
+  "id": "gen-chart-heatmap",
+  "category": "chart",
+  "taskType": "generation",
+  "prompt": "Create a VisualDocument v0 heatmap of demand by region and weekday.",
+  "expected": {
+    "kind": "chart",
+    "visualType": "heatmap"
+  },
+  "baselineTargets": ["visulet", "vega-lite"]
+}

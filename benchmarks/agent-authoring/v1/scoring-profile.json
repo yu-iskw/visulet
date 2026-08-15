@@ -1,0 +1,22 @@
+{
+  "id": "agent-authoring-v1",
+  "version": 1,
+  "description": "Named composite for agent authoring. Raw metrics are always stored; weights only document optional composites.",
+  "weights": {
+    "structuralValidity": 0.25,
+    "semanticValidity": 0.35,
+    "intentMatch": 0.2,
+    "repairSuccess": 0.1,
+    "nativeEscapePenalty": 0.05,
+    "editLocality": 0.05
+  },
+  "hypotheses": {
+    "structuralValidityAfterOneRepair": 0.95,
+    "semanticValidityAfterOneRepair": 0.9,
+    "nativeEscapeRateMax": 0.25
+  },
+  "notes": [
+    "CI asserts control-fixture scores and result schema, never live-model composites.",
+    "Core authoringScore remains 25/35/30/10 for structural/semantic/intent/portability."
+  ]
+}

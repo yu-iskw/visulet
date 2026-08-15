@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "scoringProfile": "agent-authoring-v1",
+  "id": "gen-diagram-architecture",
+  "category": "diagram",
+  "taskType": "generation",
+  "prompt": "Create a VisualDocument v0 architecture diagram of Agent → Core → SVG.",
+  "expected": {
+    "kind": "diagram",
+    "visualType": "architecture"
+  },
+  "baselineTargets": ["visulet", "mermaid"]
+}

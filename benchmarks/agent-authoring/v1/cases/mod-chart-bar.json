@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "scoringProfile": "agent-authoring-v1",
+  "id": "mod-chart-bar",
+  "category": "chart",
+  "taskType": "modification",
+  "prompt": "Set the bar chart title to Updated revenue without rewriting unrelated fields.",
+  "startingArtifact": "fixtures/chart-bar.json",
+  "expected": {
+    "kind": "chart",
+    "visualType": "bar"
+  },
+  "baselineTargets": ["visulet", "vega-lite"]
+}

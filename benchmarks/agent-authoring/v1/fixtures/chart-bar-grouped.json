@@ -1,0 +1,52 @@
+{
+  "version": "0",
+  "title": "Revenue by quarter and region",
+  "data": {
+    "sales": {
+      "values": [
+        {
+          "quarter": "Q1",
+          "revenue": 10,
+          "region": "APAC"
+        },
+        {
+          "quarter": "Q1",
+          "revenue": 8,
+          "region": "EMEA"
+        },
+        {
+          "quarter": "Q2",
+          "revenue": 20,
+          "region": "APAC"
+        },
+        {
+          "quarter": "Q2",
+          "revenue": 14,
+          "region": "EMEA"
+        }
+      ]
+    }
+  },
+  "views": [
+    {
+      "id": "grouped",
+      "kind": "chart",
+      "chart": "bar",
+      "data": "sales",
+      "encoding": {
+        "x": {
+          "field": "quarter",
+          "type": "ordinal"
+        },
+        "y": {
+          "field": "revenue",
+          "type": "quantitative"
+        },
+        "color": {
+          "field": "region",
+          "type": "nominal"
+        }
+      }
+    }
+  ]
+}

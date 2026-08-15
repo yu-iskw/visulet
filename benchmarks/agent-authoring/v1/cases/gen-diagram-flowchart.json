@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "scoringProfile": "agent-authoring-v1",
+  "id": "gen-diagram-flowchart",
+  "category": "diagram",
+  "taskType": "generation",
+  "prompt": "Create a VisualDocument v0 flowchart for Start → Validate → Done.",
+  "expected": {
+    "kind": "diagram",
+    "visualType": "flowchart"
+  },
+  "baselineTargets": ["visulet", "mermaid"]
+}

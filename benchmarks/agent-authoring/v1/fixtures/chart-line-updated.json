@@ -1,0 +1,41 @@
+{
+  "version": "0",
+  "title": "Monthly users",
+  "data": {
+    "users": {
+      "values": [
+        {
+          "month": "Jan",
+          "count": 120
+        },
+        {
+          "month": "Feb",
+          "count": 151
+        },
+        {
+          "month": "Mar",
+          "count": 143
+        }
+      ]
+    }
+  },
+  "views": [
+    {
+      "id": "users",
+      "kind": "chart",
+      "chart": "line",
+      "title": "Monthly users (updated)",
+      "data": "users",
+      "encoding": {
+        "x": {
+          "field": "month",
+          "type": "ordinal"
+        },
+        "y": {
+          "field": "count",
+          "type": "quantitative"
+        }
+      }
+    }
+  ]
+}

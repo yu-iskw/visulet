@@ -1,0 +1,22 @@
+{
+  "version": "0",
+  "title": "Missing dataset",
+  "views": [
+    {
+      "id": "revenue",
+      "kind": "chart",
+      "chart": "bar",
+      "data": "sales",
+      "encoding": {
+        "x": {
+          "field": "quarter",
+          "type": "ordinal"
+        },
+        "y": {
+          "field": "revenue",
+          "type": "quantitative"
+        }
+      }
+    }
+  ]
+}

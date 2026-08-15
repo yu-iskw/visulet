@@ -1,0 +1,28 @@
+{
+  "version": "0",
+  "title": "Repair loop",
+  "views": [
+    {
+      "id": "steps",
+      "kind": "infographic",
+      "structure": "steps",
+      "items": [
+        {
+          "label": "Draft",
+          "title": "Draft",
+          "description": "Emit a VisualDocument"
+        },
+        {
+          "label": "Diagnose",
+          "title": "Diagnose",
+          "description": "Read structured diagnostics"
+        },
+        {
+          "label": "Repair",
+          "title": "Repair",
+          "description": "Patch the failing path"
+        }
+      ]
+    }
+  ]
+}

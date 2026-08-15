@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "scoringProfile": "agent-authoring-v1",
+  "id": "mod-chart-heatmap",
+  "category": "chart",
+  "taskType": "modification",
+  "prompt": "Change the heatmap view id to heat-updated and keep encodings.",
+  "startingArtifact": "fixtures/chart-heatmap.json",
+  "expected": {
+    "kind": "chart",
+    "visualType": "heatmap"
+  },
+  "baselineTargets": ["visulet", "vega-lite"]
+}

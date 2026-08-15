@@ -59,7 +59,10 @@ describe('validateVisualDocument', () => {
       ],
     });
     expect(result.valid).toBe(false);
-    expect(result.diagnostics.some((diagnostic) => diagnostic.code === 'data.missing')).toBe(true);
+    expect(
+      result.diagnostics.some((diagnostic) => diagnostic.code === 'semantic.dataset_not_found'),
+    ).toBe(true);
+    expect(result.diagnostics[0]?.path).toBe('/views/0/data');
   });
 
   it('reports invalid diagram edges', () => {
@@ -76,12 +79,15 @@ describe('validateVisualDocument', () => {
       ],
     });
     expect(result.valid).toBe(false);
-    expect(result.diagnostics.some((diagnostic) => diagnostic.code === 'diagram.edge.to')).toBe(
+    expect(
+      result.diagnostics.some((diagnostic) => diagnostic.code === 'semantic.diagram_edge_to'),
+    ).toBe(true);
+    expect(result.diagnostics.some((diagnostic) => diagnostic.path === '/views/0/edges/0/to')).toBe(
       true,
     );
   });
 
-  it('keeps unknown catalog entries valid but diagnostic', () => {
+  it('keeps unknown catalog entries valid without capability warnings', () => {
     const result = validateVisualDocument({
       version: '0',
       data: { rows: { values: [{ x: 'A', y: 1 }] } },
@@ -96,7 +102,7 @@ describe('validateVisualDocument', () => {
       ],
     });
     expect(result.valid).toBe(true);
-    expect(result.diagnostics[0]?.severity).toBe('warning');
+    expect(result.diagnostics).toEqual([]);
   });
 });
 
@@ -166,10 +172,13 @@ describe('renderSvgDocument', () => {
   });
 
   it('warns instead of pretending to execute interactions', () => {
-    const result = renderSvgDocument({ ...document, interactions: [{ type: 'select' }] });
+    const result = renderSvgDocument({
+      ...document,
+      interactions: [{ type: 'select', source: 'revenue' }],
+    });
     expect(
       result.diagnostics.some(
-        (diagnostic) => diagnostic.code === 'render.interactions.unimplemented',
+        (diagnostic) => diagnostic.code === 'renderer.svg.interactions_unimplemented',
       ),
     ).toBe(true);
   });

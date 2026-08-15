@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "scoringProfile": "agent-authoring-v1",
+  "id": "mod-chart-scatter",
+  "category": "chart",
+  "taskType": "modification",
+  "prompt": "Add a title Latency vs throughput (filtered) to the scatter view.",
+  "startingArtifact": "fixtures/chart-scatter.json",
+  "expected": {
+    "kind": "chart",
+    "visualType": "scatter"
+  },
+  "baselineTargets": ["visulet", "vega-lite"]
+}

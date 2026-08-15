@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "scoringProfile": "agent-authoring-v1",
+  "id": "gen-chart-line",
+  "category": "chart",
+  "taskType": "generation",
+  "prompt": "Create a VisualDocument v0 line chart of monthly active users for Jan–Mar.",
+  "expected": {
+    "kind": "chart",
+    "visualType": "line"
+  },
+  "baselineTargets": ["visulet", "vega-lite"]
+}

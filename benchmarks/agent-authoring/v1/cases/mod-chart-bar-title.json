@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "scoringProfile": "agent-authoring-v1",
+  "id": "mod-chart-bar-title",
+  "category": "chart",
+  "taskType": "modification",
+  "prompt": "Set document title to Q1–Q3 revenue and keep the bar view.",
+  "startingArtifact": "fixtures/chart-bar.json",
+  "expected": {
+    "kind": "chart",
+    "visualType": "bar"
+  },
+  "baselineTargets": ["visulet", "vega-lite"]
+}

@@ -339,6 +339,41 @@
         "extensions": { "$ref": "#/$defs/extensions" }
       }
     },
+    "sequenceParticipant": {
+      "type": "object",
+      "required": ["id"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "label": { "type": "string" }
+      }
+    },
+    "sequenceMessage": {
+      "type": "object",
+      "required": ["from", "to"],
+      "additionalProperties": false,
+      "properties": {
+        "from": { "type": "string", "minLength": 1 },
+        "to": { "type": "string", "minLength": 1 },
+        "label": { "type": "string" },
+        "type": { "type": "string" }
+      }
+    },
+    "sequenceModel": {
+      "type": "object",
+      "required": ["participants"],
+      "additionalProperties": false,
+      "properties": {
+        "participants": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sequenceParticipant" }
+        },
+        "messages": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sequenceMessage" }
+        }
+      }
+    },
     "diagram": {
       "type": "object",
       "required": ["id", "kind", "diagram"],
@@ -366,7 +401,17 @@
         "accessibility": { "$ref": "#/$defs/accessibility" },
         "extensions": { "$ref": "#/$defs/extensions" }
       },
-      "anyOf": [{ "required": ["nodes"] }, { "required": ["model"] }]
+      "anyOf": [{ "required": ["nodes"] }, { "required": ["model"] }],
+      "if": {
+        "properties": { "diagram": { "const": "sequence" } },
+        "required": ["diagram"]
+      },
+      "then": {
+        "required": ["model"],
+        "properties": {
+          "model": { "$ref": "#/$defs/sequenceModel" }
+        }
+      }
     },
     "infographicItem": {
       "type": "object",

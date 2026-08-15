@@ -1,0 +1,19 @@
+{
+  "name": "@visulet/cli",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Command-line adapter for Vizulet validation, inspection, rendering, and patching.",
+  "bin": {
+    "visulet": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@visulet/core": "workspace:*",
+    "@visulet/renderer-mermaid": "workspace:*",
+    "@visulet/renderer-vegalite": "workspace:*"
+  }
+}

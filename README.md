@@ -68,11 +68,19 @@ if (validation.valid) {
 
 ## Contracts
 
-- RFC: `docs/rfcs/0001-visual-document-v0.md`
-- Adversarial review: `docs/rfcs/0001-adversarial-review.md`
+- RFC 0001: `docs/rfcs/0001-visual-document-v0.md`
+- RFC 0001 review: `docs/rfcs/0001-adversarial-review.md`
+- RFC 0002: `docs/rfcs/0002-post-v0-roadmap.md`
+- RFC 0002 review: `docs/rfcs/0002-adversarial-review.md`
+- v1 status: `docs/v1-status.md` (not frozen)
 - JSON Schema: `schemas/v0/visual-document.schema.json`
 - Example document: `examples/v0/quarterly-revenue.json`
-- Agent benchmark corpus: `benchmarks/agent-authoring/v0/`
+- Agent benchmark: `benchmarks/agent-authoring/`
+- CLI: `@visulet/cli` (`visulet validate|inspect|render|patch|compile`)
+- MCP: `@visulet/mcp-server`
+- Renderers: SVG in core; `@visulet/renderer-mermaid`; `@visulet/renderer-vegalite`
+
+The core remains free of MCP, CLI parsers, and renderer-framework dependencies.
 
 ## Development
 

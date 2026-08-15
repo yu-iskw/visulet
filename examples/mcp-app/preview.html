@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'"
+    />
+    <title>Vizulet preview</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 0;
+        display: grid;
+        grid-template-columns: 1fr 20rem;
+        min-height: 100vh;
+      }
+      main,
+      aside {
+        padding: 1rem;
+      }
+      aside {
+        border-left: 1px solid #cbd5e1;
+        overflow: auto;
+      }
+      pre {
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Preview</h1>
+      <div id="preview"></div>
+    </main>
+    <aside>
+      <h2>Outline</h2>
+      <pre id="outline"></pre>
+      <h2>Diagnostics</h2>
+      <pre id="diagnostics"></pre>
+      <h2>Backends</h2>
+      <pre id="capabilities"></pre>
+      <h2>Patch</h2>
+      <pre id="patch"></pre>
+      <h2>JSON</h2>
+      <pre id="json"></pre>
+    </aside>
+    <script>
+      function setText(id, value) {
+        document.getElementById(id).textContent = typeof value === 'string' ? value : '';
+      }
+      function setSvgPreview(svg) {
+        var preview = document.getElementById('preview');
+        preview.replaceChildren();
+        if (typeof svg !== 'string' || svg.indexOf('<svg') === -1) {
+          return;
+        }
+        var image = document.createElement('img');
+        image.alt = 'Rendered visual';
+        image.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+        preview.appendChild(image);
+      }
+      window.addEventListener('message', function (event) {
+        if (event.source !== window.parent) {
+          return;
+        }
+        var data = event.data || {};
+        if (data.svg) {
+          setSvgPreview(data.svg);
+        }
+        if (data.outline) setText('outline', data.outline);
+        if (data.diagnostics) setText('diagnostics', data.diagnostics);
+        if (data.capabilities) setText('capabilities', data.capabilities);
+        if (data.patch) setText('patch', data.patch);
+        if (data.json) setText('json', data.json);
+      });
+    </script>
+  </body>
+</html>

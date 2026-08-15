@@ -1,0 +1,28 @@
+{
+  "name": "@visulet/mcp-server",
+  "version": "0.0.0",
+  "private": true,
+  "description": "MCP adapter for Vizulet deterministic visual operations.",
+  "bin": {
+    "visulet-mcp": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@visulet/core": "workspace:*",
+    "@visulet/renderer-mermaid": "workspace:*",
+    "@visulet/renderer-vegalite": "workspace:*",
+    "@visulet/schema": "workspace:*"
+  }
+}

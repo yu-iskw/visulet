@@ -1,0 +1,47 @@
+{
+  "version": "0",
+  "title": "Region by weekday",
+  "data": {
+    "cells": {
+      "values": [
+        {
+          "region": "APAC",
+          "weekday": "Mon",
+          "heat": 10
+        },
+        {
+          "region": "EMEA",
+          "weekday": "Mon",
+          "heat": 4
+        },
+        {
+          "region": "APAC",
+          "weekday": "Tue",
+          "heat": 7
+        }
+      ]
+    }
+  },
+  "views": [
+    {
+      "id": "heat",
+      "kind": "chart",
+      "chart": "heatmap",
+      "data": "cells",
+      "encoding": {
+        "x": {
+          "field": "region",
+          "type": "nominal"
+        },
+        "y": {
+          "field": "weekday",
+          "type": "ordinal"
+        },
+        "color": {
+          "field": "heat",
+          "type": "quantitative"
+        }
+      }
+    }
+  ]
+}

@@ -4,6 +4,10 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+export function optionalFiniteNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
 export function readMapValue<T>(
   record: Readonly<Record<string, T>> | undefined,
   key: string,
@@ -23,6 +27,10 @@ export function readUnknownProperty(
   key: string,
 ): unknown {
   return readMapValue(record, key);
+}
+
+export function parseJson(text: string): unknown {
+  return JSON.parse(text) as unknown;
 }
 
 export function displayValue(value: unknown): string {

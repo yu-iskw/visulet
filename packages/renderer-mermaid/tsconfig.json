@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@visulet/core": ["../common/src/index.ts"],
+      "@visulet/schema": ["../../schemas/v0/visual-document.schema.json"]
+    }
+  },
+  "include": ["src"]
+}

@@ -1,0 +1,43 @@
+{
+  "version": "0",
+  "title": "Ops snapshot",
+  "views": [
+    {
+      "id": "board",
+      "kind": "container",
+      "layout": {
+        "type": "stack",
+        "direction": "column",
+        "gap": 12
+      },
+      "views": [
+        {
+          "id": "kpi",
+          "kind": "metric",
+          "label": "Open incidents",
+          "value": 3,
+          "trend": "down"
+        },
+        {
+          "id": "checklist",
+          "kind": "infographic",
+          "structure": "list",
+          "items": [
+            {
+              "label": "Triage",
+              "title": "Triage"
+            },
+            {
+              "label": "Mitigate",
+              "title": "Mitigate"
+            },
+            {
+              "label": "Review",
+              "title": "Review"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
