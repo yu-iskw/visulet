@@ -122,6 +122,30 @@ describe('applyVisualDocumentPatch', () => {
     expect(tooMany.valid).toBe(false);
   });
 
+  it('rejects prototype-polluting pointers', () => {
+    const titled = applyVisualDocumentPatch(document, [{ op: 'add', path: '/title', value: 'A' }]);
+    expect(titled.valid).toBe(true);
+    const poisoned = applyVisualDocumentPatch(titled.document, [
+      { op: 'add', path: '/extensions', value: {} },
+      { op: 'add', path: '/extensions/__proto__', value: { p: true } },
+    ]);
+    expect(poisoned.valid).toBe(false);
+    expect(
+      poisoned.diagnostics.some((diagnostic) => diagnostic.code === 'patch.invalid_path'),
+    ).toBe(true);
+  });
+
+  it('treats object key order as equal in test operations', () => {
+    const withExtensions = applyVisualDocumentPatch(document, [
+      { op: 'add', path: '/extensions', value: { a: 1, b: 2 } },
+    ]);
+    expect(withExtensions.valid).toBe(true);
+    const tested = applyVisualDocumentPatch(withExtensions.document, [
+      { op: 'test', path: '/extensions', value: { b: 2, a: 1 } },
+    ]);
+    expect(tested.valid).toBe(true);
+  });
+
   it('does not mutate the original document', () => {
     const before = structuredClone(document);
     applyVisualDocumentPatch(document, [{ op: 'add', path: '/title', value: 'Changed' }]);

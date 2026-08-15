@@ -88,4 +88,41 @@ describe('compileVegaLiteDocument', () => {
     expect(flow.valid).toBe(false);
     expect(compileVegaLiteDocument({ version: '0', views: [] }).valid).toBe(false);
   });
+
+  it('rejects referenced datasets that have a uri and no inline values', () => {
+    const result = compileVegaLiteDocument({
+      version: '0',
+      data: {
+        sales: {
+          uri: 'https://example.com/sales.json',
+          format: 'json',
+          schema: {
+            fields: [
+              { name: 'quarter', type: 'string' },
+              { name: 'revenue', type: 'number' },
+            ],
+          },
+        },
+      },
+      views: [
+        {
+          id: 'revenue',
+          kind: 'chart',
+          chart: 'bar',
+          data: 'sales',
+          encoding: {
+            x: { field: 'quarter', type: 'ordinal' },
+            y: { field: 'revenue', type: 'quantitative' },
+          },
+        },
+      ],
+    });
+    expect(result.valid).toBe(false);
+    expect(result.output).toEqual([]);
+    expect(
+      result.diagnostics.some(
+        (diagnostic) => diagnostic.code === 'capability.unsupported_data_reference',
+      ),
+    ).toBe(true);
+  });
 });

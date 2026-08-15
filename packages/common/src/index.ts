@@ -1,6 +1,6 @@
 export type { AuthoringExpectation, AuthoringScore } from './benchmark';
 export { hasStructuralError, scoreAuthoringCandidate, STRUCTURAL_CODES } from './benchmark';
-export { evaluateCapabilities, svgRendererCapabilities } from './capabilities';
+export { evaluateCapabilities, svgRendererCapabilities, walkViews } from './capabilities';
 export {
   SUPPORTED_CHARTS,
   SUPPORTED_DIAGRAMS,
@@ -60,4 +60,10 @@ export type {
   VisualView,
 } from './types';
 export { DEFAULT_RESOURCE_LIMITS } from './types';
-export { isRecord, optionalFiniteNumber, readMapValue, readUnknownProperty } from './value';
+export {
+  isRecord,
+  optionalFiniteNumber,
+  parseJson,
+  readMapValue,
+  readUnknownProperty,
+} from './value';

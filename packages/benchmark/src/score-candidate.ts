@@ -1,7 +1,6 @@
 import {
   hasStructuralError,
   inspectVisualDocument,
-  isRecord,
   readMapValue,
   renderSvgDocument,
   scoreAuthoringCandidate,
@@ -16,20 +15,6 @@ import { modificationDistance } from './json-distance';
 import { parseCandidateText } from './parse';
 
 import type { BenchmarkCase, BenchmarkTarget, CandidateMetrics, CandidateRecord } from './types';
-
-function looksLikeMermaid(text: string): boolean {
-  return /^(flowchart|sequenceDiagram|graph)\b/.test(text.trim());
-}
-
-function looksLikeVegaLite(value: unknown): boolean {
-  if (!isRecord(value)) {
-    return false;
-  }
-  const schema = value.$schema;
-  return (
-    typeof value.mark === 'string' || (typeof schema === 'string' && schema.includes('vega-lite'))
-  );
-}
 
 function countCapabilityWarnings(diagnostics: readonly Diagnostic[]): number {
   return diagnostics.filter((diagnostic) => diagnostic.code.startsWith('capability.')).length;
@@ -105,19 +90,13 @@ export function scoreCandidate(
     parseError: parsed.error,
   };
   if (parsed.value === undefined) {
-    return {
-      ...base,
-      compileSuccess: candidate.target === 'mermaid' && looksLikeMermaid(resolvedText),
-    };
+    return base;
   }
   const validation = validateVisualDocument(parsed.value);
   const document = validation.document;
   if (document === undefined) {
     return {
       ...base,
-      compileSuccess:
-        (candidate.target === 'vega-lite' && looksLikeVegaLite(parsed.value)) ||
-        (candidate.target === 'mermaid' && looksLikeMermaid(resolvedText)),
       structuralValid: !hasStructuralError(validation.diagnostics),
     };
   }

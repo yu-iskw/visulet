@@ -60,7 +60,7 @@ describe('runOfflineBenchmark', () => {
       text: 'flowchart TD\n  a-->b',
     });
     expect(mermaid.parseError).toBeDefined();
-    expect(mermaid.compileSuccess).toBe(true);
+    expect(mermaid.compileSuccess).toBe(false);
     const invalid = scoreCandidate(barCase, {
       caseId: 'gen-chart-bar',
       target: 'visulet',

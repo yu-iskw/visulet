@@ -1,6 +1,6 @@
 /* eslint-disable security/detect-object-injection -- JSON Pointer must index document keys supplied by the patch */
 import { validateVisualDocument } from './document-validation';
-import { jsonPointer } from './json-pointer';
+import { jsonPointer, splitJsonPointer } from './json-pointer';
 import { DEFAULT_RESOURCE_LIMITS } from './types';
 import { isRecord } from './value';
 
@@ -32,17 +32,8 @@ function patchDiagnostic(code: string, path: string, message: string): Diagnosti
   return { code, severity: 'error', path, message };
 }
 
-function splitPointer(pointer: string): string[] | undefined {
-  if (pointer === '') {
-    return [];
-  }
-  if (!pointer.startsWith('/')) {
-    return undefined;
-  }
-  return pointer
-    .slice(1)
-    .split('/')
-    .map((token) => token.replaceAll('~1', '/').replaceAll('~0', '~'));
+function isPrototypeToken(token: string): boolean {
+  return token === '__proto__' || token === 'prototype' || token === 'constructor';
 }
 
 function cloneDocument(document: unknown): unknown {
@@ -97,7 +88,7 @@ function readParent(root: unknown, tokens: readonly string[]): PointerHit | unde
 }
 
 function readValue(root: unknown, pointer: string): { found: boolean; value: unknown } {
-  const tokens = splitPointer(pointer);
+  const tokens = splitJsonPointer(pointer);
   if (tokens === undefined) {
     return { found: false, value: undefined };
   }
@@ -122,7 +113,35 @@ function readValue(root: unknown, pointer: string): { found: boolean; value: unk
 }
 
 function deepEqual(left: unknown, right: unknown): boolean {
-  return JSON.stringify(left) === JSON.stringify(right);
+  if (left === right) {
+    return true;
+  }
+  if (left === null || right === null) {
+    return false;
+  }
+  if (Array.isArray(left) && Array.isArray(right)) {
+    return arrayEqual(left, right);
+  }
+  if (isRecord(left) && isRecord(right)) {
+    return recordEqual(left, right);
+  }
+  return false;
+}
+
+function arrayEqual(left: readonly unknown[], right: readonly unknown[]): boolean {
+  return left.length === right.length && left.every((item, index) => deepEqual(item, right[index]));
+}
+
+function recordEqual(
+  left: Readonly<Record<string, unknown>>,
+  right: Readonly<Record<string, unknown>>,
+): boolean {
+  const leftKeys = Object.keys(left).sort();
+  const rightKeys = Object.keys(right).sort();
+  return (
+    leftKeys.length === rightKeys.length &&
+    leftKeys.every((key, index) => key === rightKeys[index] && deepEqual(left[key], right[key]))
+  );
 }
 
 function applyAdd(hit: PointerHit, value: unknown): boolean {
@@ -258,7 +277,7 @@ function applyCopyMove(
     return document;
   }
   if (operation.op === 'move') {
-    const fromTokens = splitPointer(sourcePath);
+    const fromTokens = splitJsonPointer(sourcePath);
     if (fromTokens === undefined || fromTokens.length === 0) {
       diagnostics.push(
         patchDiagnostic(PATCH_INVALID_PATH, sourcePath, 'Cannot move the document root'),
@@ -333,7 +352,7 @@ function applyOne(
     }
     return document;
   }
-  const tokens = splitPointer(operation.path);
+  const tokens = splitJsonPointer(operation.path);
   if (tokens === undefined) {
     diagnostics.push(
       patchDiagnostic(
@@ -343,6 +362,21 @@ function applyOne(
       ),
     );
     return document;
+  }
+  if (tokens.some((token) => isPrototypeToken(token))) {
+    diagnostics.push(
+      patchDiagnostic(PATCH_INVALID_PATH, operation.path, 'Prototype tokens are not allowed'),
+    );
+    return document;
+  }
+  if (operation.from !== undefined) {
+    const fromTokens = splitJsonPointer(operation.from);
+    if (fromTokens?.some((token) => isPrototypeToken(token)) === true) {
+      diagnostics.push(
+        patchDiagnostic(PATCH_INVALID_PATH, operation.from, 'Prototype tokens are not allowed'),
+      );
+      return document;
+    }
   }
   if (operation.op === 'test') {
     const current = readValue(document, operation.path);

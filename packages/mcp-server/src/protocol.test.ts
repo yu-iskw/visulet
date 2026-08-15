@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { consume, handle } from './protocol';
+import { MCP_TOOL_SCHEMAS } from './tools';
 
 const document = {
   version: '0',
@@ -93,6 +94,13 @@ describe('handle', () => {
     expect(toolNames(handle({ method: 'tools/list' }))).toEqual(expectedTools);
   });
 
+  it('lists per-tool input schemas from MCP_TOOL_SCHEMAS', () => {
+    const listed = asRecord(handle({ method: 'tools/list' }))?.tools;
+    expect(Array.isArray(listed)).toBe(true);
+    const schemas = Array.isArray(listed) ? listed.map((item) => asRecord(item)?.inputSchema) : [];
+    expect(schemas).toEqual(Object.values(MCP_TOOL_SCHEMAS));
+  });
+
   it('validates a bar chart document', () => {
     const payload = toolPayload(
       handle({
@@ -134,8 +142,8 @@ describe('handle', () => {
     );
   });
 
-  it('returns an empty object for unknown methods', () => {
-    expect(handle({ method: 'no/such/method' })).toEqual({});
+  it('rejects unknown methods', () => {
+    expect(() => handle({ method: 'no/such/method' })).toThrow(/Method not found/);
   });
 });
 
@@ -157,5 +165,36 @@ describe('consume', () => {
       messages.push(message);
     });
     expect(JSON.stringify(messages)).toContain('tool name required');
+  });
+
+  it('returns a parse error for malformed JSON without throwing', () => {
+    const messages: unknown[] = [];
+    expect(() =>
+      consume('Content-Length: 1\r\n\r\n{', (message) => messages.push(message)),
+    ).not.toThrow();
+    expect(JSON.stringify(messages)).toContain('-32700');
+  });
+
+  it('frames non-ASCII bodies using byte length', () => {
+    const body = '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"title":"売上"}}';
+    const framed = `Content-Length: ${String(Buffer.byteLength(body, 'utf8'))}\r\n\r\n${body}`;
+    const messages: unknown[] = [];
+    expect(consume(framed, (message) => messages.push(message))).toBe('');
+    expect(JSON.stringify(messages)).toContain('protocolVersion');
+  });
+
+  it('parses a newline-delimited initialize request', () => {
+    const messages: unknown[] = [];
+    const leftover = consume(
+      `${JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize' })}\n`,
+      (message) => messages.push(message),
+    );
+    expect(leftover).toBe('');
+    expect(JSON.stringify(messages)).toContain('protocolVersion');
+  });
+
+  it('retains an incomplete NDJSON line without a trailing newline', () => {
+    const incomplete = JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize' });
+    expect(consume(incomplete)).toBe(incomplete);
   });
 });

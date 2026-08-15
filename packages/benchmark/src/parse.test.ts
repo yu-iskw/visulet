@@ -58,7 +58,7 @@ describe('scoreCandidate extras', () => {
       }),
     });
     expect(vega.structuralValid).toBe(false);
-    expect(vega.compileSuccess).toBe(true);
+    expect(vega.compileSuccess).toBe(false);
     const next = { ...start, title: 'New' };
     const modified = scoreCandidate(
       barCase,

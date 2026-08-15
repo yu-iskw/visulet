@@ -209,6 +209,77 @@ export const MCP_TOOL_NAMES = [
   'visual_compile',
 ] as const;
 
+type McpToolName = (typeof MCP_TOOL_NAMES)[number];
+
+interface McpToolSchema {
+  readonly type: 'object';
+  readonly additionalProperties: false;
+  readonly required?: readonly string[];
+  readonly properties: Readonly<Record<string, unknown>>;
+}
+
+export const MCP_TOOL_SCHEMAS: Readonly<Record<McpToolName, McpToolSchema>> = {
+  visual_validate: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['document'],
+    properties: {
+      document: { type: 'object' },
+    },
+  },
+  visual_inspect: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['document'],
+    properties: {
+      document: { type: 'object' },
+    },
+  },
+  visual_render: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['document'],
+    properties: {
+      document: { type: 'object' },
+      format: { type: 'string' },
+    },
+  },
+  visual_apply_patch: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['document', 'patch'],
+    properties: {
+      document: { type: 'object' },
+      patch: { type: 'array', items: { type: 'object' } },
+    },
+  },
+  visual_capabilities: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      backend: { type: 'string' },
+    },
+  },
+  visual_describe_type: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['kind', 'type'],
+    properties: {
+      kind: { type: 'string' },
+      type: { type: 'string' },
+    },
+  },
+  visual_compile: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['document', 'backend'],
+    properties: {
+      document: { type: 'object' },
+      backend: { type: 'string' },
+    },
+  },
+};
+
 export function executeMcpTool(request: McpToolRequest): McpToolResponse {
   switch (request.name) {
     case 'visual_validate':

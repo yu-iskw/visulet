@@ -2,12 +2,17 @@
 /* eslint-disable security/detect-non-literal-fs-filename -- reads user-selected CLI paths */
 import { readFileSync } from 'node:fs';
 
+import { DEFAULT_RESOURCE_LIMITS, parseJson } from '@visulet/core';
+
 import { executeCli } from './execute';
 import { parseCliArgs } from './parse';
 
 function readJson(path: string): unknown {
   const text = path === '-' ? readFileSync(0, 'utf8') : readFileSync(path, 'utf8');
-  return JSON.parse(text) as unknown;
+  if (Buffer.byteLength(text, 'utf8') > DEFAULT_RESOURCE_LIMITS.maxDocumentBytes) {
+    throw new Error(`Document exceeds ${String(DEFAULT_RESOURCE_LIMITS.maxDocumentBytes)} bytes`);
+  }
+  return parseJson(text);
 }
 
 function main(): void {

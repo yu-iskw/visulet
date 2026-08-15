@@ -27,6 +27,16 @@ function groupStats(metrics: readonly CandidateMetrics[]): GroupStats {
   };
 }
 
+function isFirstPassEligible(row: CandidateMetrics, caseIds: ReadonlySet<string>): boolean {
+  return (
+    row.target === 'visulet' &&
+    row.taskType === 'generation' &&
+    row.holdout !== true &&
+    (row.correctionTurns === undefined || row.correctionTurns === 0) &&
+    caseIds.has(row.caseId)
+  );
+}
+
 function grouped(
   metrics: readonly CandidateMetrics[],
   keyOf: (row: CandidateMetrics) => string | undefined,
@@ -58,15 +68,16 @@ export function aggregateMetrics(
   experimentId = 'offline',
 ): AggregateResult {
   const visulet = metrics.filter((row) => row.target === 'visulet');
-  const generation = visulet.filter((row) => row.taskType !== 'modification');
+  const caseIds = new Set(cases.map((benchmarkCase) => benchmarkCase.id));
+  const firstPass = metrics.filter((row) => isFirstPassEligible(row, caseIds));
   return {
     experimentId,
     scoringProfile: profile.id,
     caseCount: cases.length,
     candidateCount: metrics.length,
-    firstPassStructuralValidity: rate(generation, (row) => row.structuralValid),
-    firstPassSemanticValidity: rate(generation, (row) => row.semanticValid),
-    nativeEscapeRate: rate(visulet, (row) => row.nativeEscape),
+    firstPassStructuralValidity: rate(firstPass, (row) => row.structuralValid),
+    firstPassSemanticValidity: rate(firstPass, (row) => row.semanticValid),
+    nativeEscapeRate: rate(firstPass, (row) => row.nativeEscape),
     meanAuthoringScore: mean(
       visulet.flatMap((row) =>
         row.authoringScore === undefined ? [] : [row.authoringScore.score],

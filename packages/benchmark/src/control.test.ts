@@ -29,7 +29,7 @@ describe('control-mode v1 corpus', () => {
     const mermaid = result.aggregate.metrics.find(
       (row) => row.caseId === 'gen-diagram-flowchart' && row.target === 'mermaid',
     );
-    expect(mermaid?.compileSuccess).toBe(true);
+    expect(mermaid?.compileSuccess).toBe(false);
     const native = result.aggregate.metrics.find((row) => row.nativeEscape);
     expect(native).toBeDefined();
     expect(result.reportMarkdown).toContain('control-v1-2026-08-15');

@@ -24,7 +24,46 @@ describe('compileMermaidDocument', () => {
     expect(result.output).toMatch(/a\["Ingest"\][\s\S]*b\["Validate"\]/);
   });
 
-  it('rejects Mermaid init directives in labels', () => {
+  it('rejects Mermaid init, click, and newline injection in ids and labels', () => {
+    const injectedId = compileMermaidDocument({
+      version: '0',
+      views: [
+        {
+          id: 'flow',
+          kind: 'diagram',
+          diagram: 'flowchart',
+          nodes: [{ id: 'a\n%%{init: {"securityLevel":"loose"}}%%\nb', label: 'Safe' }],
+          edges: [],
+        },
+      ],
+    });
+    expect(injectedId.valid).toBe(false);
+    const clickLabel = compileMermaidDocument({
+      version: '0',
+      views: [
+        {
+          id: 'flow',
+          kind: 'diagram',
+          diagram: 'flowchart',
+          nodes: [{ id: 'a', label: 'Hello\nclick a href "javascript:alert(1)"' }],
+          edges: [],
+        },
+      ],
+    });
+    expect(clickLabel.valid).toBe(false);
+    expect(
+      clickLabel.diagnostics.some(
+        (diagnostic) => diagnostic.code === 'renderer.mermaid.unsafe_directive',
+      ),
+    ).toBe(true);
+    expect(
+      injectedId.diagnostics.some(
+        (diagnostic) => diagnostic.code === 'renderer.mermaid.unsafe_directive',
+      ),
+    ).toBe(true);
+  });
+
+  it('remaps node ids that contain spaces or punctuation', () => {
     const result = compileMermaidDocument({
       version: '0',
       views: [
@@ -32,17 +71,14 @@ describe('compileMermaidDocument', () => {
           id: 'flow',
           kind: 'diagram',
           diagram: 'flowchart',
-          nodes: [{ id: 'a', label: '%%{init: {"theme":"dark"}}%%' }],
+          nodes: [{ id: 'Start Node', label: 'Begin' }],
           edges: [],
         },
       ],
     });
-    expect(result.valid).toBe(false);
-    expect(
-      result.diagnostics.some(
-        (diagnostic) => diagnostic.code === 'renderer.mermaid.unsafe_directive',
-      ),
-    ).toBe(true);
+    expect(result.valid).toBe(true);
+    expect(result.output).toContain('n0');
+    expect(result.output).toContain('["Begin"]');
   });
 
   it('compiles architecture groups and nested containers', () => {

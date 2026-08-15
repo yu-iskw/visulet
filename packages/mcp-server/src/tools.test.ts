@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   executeMcpTool,
+  MCP_TOOL_SCHEMAS,
   readMcpResource,
   type McpToolRequest,
   type McpToolResponse,
@@ -24,6 +25,18 @@ const document = {
     },
   ],
 };
+
+describe('MCP_TOOL_SCHEMAS', () => {
+  it('declares required fields per tool', () => {
+    expect(MCP_TOOL_SCHEMAS.visual_validate.required).toEqual(['document']);
+    expect(MCP_TOOL_SCHEMAS.visual_inspect.required).toEqual(['document']);
+    expect(MCP_TOOL_SCHEMAS.visual_render.required).toEqual(['document']);
+    expect(MCP_TOOL_SCHEMAS.visual_apply_patch.required).toEqual(['document', 'patch']);
+    expect(MCP_TOOL_SCHEMAS.visual_compile.required).toEqual(['document', 'backend']);
+    expect(MCP_TOOL_SCHEMAS.visual_describe_type.required).toEqual(['kind', 'type']);
+    expect(MCP_TOOL_SCHEMAS.visual_capabilities.required).toBeUndefined();
+  });
+});
 
 describe('executeMcpTool', () => {
   it('validates and renders a document', () => {

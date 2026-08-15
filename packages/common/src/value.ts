@@ -29,6 +29,10 @@ export function readUnknownProperty(
   return readMapValue(record, key);
 }
 
+export function parseJson(text: string): unknown {
+  return JSON.parse(text) as unknown;
+}
+
 export function displayValue(value: unknown): string {
   if (typeof value === 'string') {
     return value;

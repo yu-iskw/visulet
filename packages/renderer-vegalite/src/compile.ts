@@ -1,8 +1,8 @@
 import {
   evaluateCapabilities,
-  jsonPointer,
   readMapValue,
   validateVisualDocument,
+  walkViews,
   type ChartView,
   type DataRow,
   type Diagnostic,
@@ -10,7 +10,6 @@ import {
   type RendererResult,
   type VisualDocument,
   type VisualRenderer,
-  type VisualView,
 } from '@visulet/core';
 
 function markFor(chart: string): string | undefined {
@@ -42,9 +41,27 @@ export function vegaLiteCapabilities(): RendererCapabilities {
   };
 }
 
-function inlineRows(document: VisualDocument, name: string): readonly DataRow[] {
+function inlineRows(
+  document: VisualDocument,
+  name: string,
+  path: string,
+  diagnostics: Diagnostic[],
+): readonly DataRow[] | undefined {
   const source = readMapValue(document.data, name);
-  return source !== undefined && 'values' in source ? source.values : [];
+  if (source !== undefined && 'values' in source) {
+    return source.values;
+  }
+  if (source !== undefined && 'uri' in source) {
+    diagnostics.push({
+      code: 'capability.unsupported_data_reference',
+      severity: 'error',
+      path,
+      message: `Referenced dataset ${name} is not supported by vega-lite`,
+      backend: 'vega-lite',
+    });
+    return undefined;
+  }
+  return [];
 }
 
 function encodingField(
@@ -97,33 +114,33 @@ function compileChart(
   if (color !== undefined) {
     encoding.color = color;
   }
+  const values = inlineRows(document, view.data, `${path}/data`, diagnostics);
+  if (values === undefined) {
+    return undefined;
+  }
   return {
     $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
     mark,
-    data: { values: inlineRows(document, view.data) },
+    data: { values },
     encoding,
   };
 }
 
-function compileViews(
+function compileDocumentViews(
   document: VisualDocument,
-  views: readonly VisualView[],
-  prefix: string,
   diagnostics: Diagnostic[],
   specs: unknown[],
 ): void {
-  for (const [index, view] of views.entries()) {
-    const path = `${prefix}/${String(index)}`;
+  walkViews(document.views, (view, path) => {
+    if (view.kind === 'container') {
+      return;
+    }
     if (view.kind === 'chart') {
       const spec = compileChart(document, view, path, diagnostics);
       if (spec !== undefined) {
         specs.push(spec);
       }
-      continue;
-    }
-    if (view.kind === 'container') {
-      compileViews(document, view.views, `${path}/views`, diagnostics, specs);
-      continue;
+      return;
     }
     diagnostics.push({
       code: 'capability.unsupported_view_kind',
@@ -132,7 +149,7 @@ function compileViews(
       message: `View kind ${view.kind} is not supported by vega-lite`,
       backend: 'vega-lite',
     });
-  }
+  });
 }
 
 export function compileVegaLiteDocument(document: VisualDocument): RendererResult<unknown> {
@@ -145,7 +162,7 @@ export function compileVegaLiteDocument(document: VisualDocument): RendererResul
     ...evaluateCapabilities(document, vegaLiteCapabilities()),
   ];
   const specs: unknown[] = [];
-  compileViews(document, document.views, jsonPointer(['views']), diagnostics, specs);
+  compileDocumentViews(document, diagnostics, specs);
   const hasError = diagnostics.some((diagnostic) => diagnostic.severity === 'error');
   if (hasError || specs.length === 0) {
     return { valid: false, diagnostics, output: specs };

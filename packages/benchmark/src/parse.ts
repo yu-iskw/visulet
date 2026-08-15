@@ -1,4 +1,4 @@
-import { isRecord, optionalFiniteNumber } from '@visulet/core';
+import { isRecord, optionalFiniteNumber, parseJson } from '@visulet/core';
 
 import type { BenchmarkCase, BenchmarkTarget, CandidateRecord } from './types';
 
@@ -16,7 +16,7 @@ export function parseJsonl(text: string): unknown[] {
     if (trimmed.length === 0) {
       continue;
     }
-    rows.push(JSON.parse(trimmed) as unknown);
+    rows.push(parseJson(trimmed));
   }
   return rows;
 }
