@@ -76,7 +76,8 @@ export function scoreAuthoringCandidate(
     expected.visualType === undefined ||
     (document !== undefined && firstVisualType(document) === expected.visualType);
   const intentMatch = kindMatches && typeMatches ? 30 : kindMatches ? 15 : 0;
-  const usesNative = document !== undefined && inspectVisualDocument(document).nativeViewIds.length > 0;
+  const usesNative =
+    document !== undefined && inspectVisualDocument(document).nativeViewIds.length > 0;
   const portability = usesNative && expected.allowNative !== true ? 0 : 10;
   return {
     score: structuralValidity + semanticValidity + intentMatch + portability,

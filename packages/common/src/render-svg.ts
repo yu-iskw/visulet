@@ -2,7 +2,14 @@ import { evaluateCapabilities, svgRendererCapabilities } from './capabilities';
 import { isSupportedChart, isSupportedDiagram, isSupportedInfographic } from './catalog';
 import { validateVisualDocument } from './document-validation';
 import { jsonPointer } from './json-pointer';
-import { displayValue, isRecord, optionalFiniteNumber, readMapValue, readRowValue, readUnknownProperty } from './value';
+import {
+  displayValue,
+  isRecord,
+  optionalFiniteNumber,
+  readMapValue,
+  readRowValue,
+  readUnknownProperty,
+} from './value';
 
 import type {
   ChartView,

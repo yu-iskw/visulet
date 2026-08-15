@@ -9,7 +9,5 @@
     "kind": "infographic",
     "visualType": "steps"
   },
-  "baselineTargets": [
-    "visulet"
-  ]
+  "baselineTargets": ["visulet"]
 }

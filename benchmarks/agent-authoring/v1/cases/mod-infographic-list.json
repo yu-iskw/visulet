@@ -10,7 +10,5 @@
     "kind": "infographic",
     "visualType": "list"
   },
-  "baselineTargets": [
-    "visulet"
-  ]
+  "baselineTargets": ["visulet"]
 }

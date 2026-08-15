@@ -9,8 +9,5 @@
     "kind": "chart",
     "visualType": "heatmap"
   },
-  "baselineTargets": [
-    "visulet",
-    "vega-lite"
-  ]
+  "baselineTargets": ["visulet", "vega-lite"]
 }

@@ -9,9 +9,6 @@
     "kind": "diagram",
     "visualType": "flowchart"
   },
-  "baselineTargets": [
-    "visulet",
-    "mermaid"
-  ],
+  "baselineTargets": ["visulet", "mermaid"],
   "holdout": true
 }

@@ -4,12 +4,7 @@ import { isRecord } from './value';
 
 import type { Diagnostic, ResourceLimits, ValidationResult } from './types';
 
-function addLimit(
-  diagnostics: Diagnostic[],
-  code: string,
-  path: string,
-  message: string,
-): void {
+function addLimit(diagnostics: Diagnostic[], code: string, path: string, message: string): void {
   diagnostics.push({ code, severity: 'error', path, message });
 }
 

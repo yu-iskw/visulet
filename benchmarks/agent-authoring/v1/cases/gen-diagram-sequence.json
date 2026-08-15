@@ -9,8 +9,5 @@
     "kind": "diagram",
     "visualType": "sequence"
   },
-  "baselineTargets": [
-    "visulet",
-    "mermaid"
-  ]
+  "baselineTargets": ["visulet", "mermaid"]
 }

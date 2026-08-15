@@ -46,9 +46,11 @@ describe('compileVegaLiteDocument', () => {
       ...document,
       views: [{ ...document.views[0], transforms: [{ type: 'filter' }] }],
     });
-    expect(result.diagnostics.some((diagnostic) => diagnostic.code === 'capability.unsupported_transform')).toBe(
-      true,
-    );
+    expect(
+      result.diagnostics.some(
+        (diagnostic) => diagnostic.code === 'capability.unsupported_transform',
+      ),
+    ).toBe(true);
   });
 
   it('compiles nested charts and rejects diagrams', () => {
@@ -65,7 +67,11 @@ describe('compileVegaLiteDocument', () => {
               kind: 'chart',
               chart: 'heatmap',
               data: 'sales',
-              encoding: { x: { field: 'quarter' }, y: { field: 'revenue' }, color: { field: 'revenue' } },
+              encoding: {
+                x: { field: 'quarter' },
+                y: { field: 'revenue' },
+                color: { field: 'revenue' },
+              },
             },
           ],
         },
@@ -75,7 +81,9 @@ describe('compileVegaLiteDocument', () => {
     expect(vegaLiteRenderer.compile(document).valid).toBe(true);
     const flow = compileVegaLiteDocument({
       version: '0',
-      views: [{ id: 'flow', kind: 'diagram', diagram: 'flowchart', nodes: [{ id: 'a' }], edges: [] }],
+      views: [
+        { id: 'flow', kind: 'diagram', diagram: 'flowchart', nodes: [{ id: 'a' }], edges: [] },
+      ],
     });
     expect(flow.valid).toBe(false);
     expect(compileVegaLiteDocument({ version: '0', views: [] }).valid).toBe(false);

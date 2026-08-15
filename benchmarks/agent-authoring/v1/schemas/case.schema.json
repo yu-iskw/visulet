@@ -23,18 +23,10 @@
       "const": 1
     },
     "category": {
-      "enum": [
-        "chart",
-        "diagram",
-        "infographic",
-        "composed"
-      ]
+      "enum": ["chart", "diagram", "infographic", "composed"]
     },
     "taskType": {
-      "enum": [
-        "generation",
-        "modification"
-      ]
+      "enum": ["generation", "modification"]
     },
     "prompt": {
       "type": "string",
@@ -48,9 +40,7 @@
     "expected": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "kind"
-      ],
+      "required": ["kind"],
       "properties": {
         "kind": {
           "enum": [

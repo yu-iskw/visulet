@@ -10,9 +10,6 @@
     "kind": "chart",
     "visualType": "line"
   },
-  "baselineTargets": [
-    "visulet",
-    "vega-lite"
-  ],
+  "baselineTargets": ["visulet", "vega-lite"],
   "holdout": true
 }

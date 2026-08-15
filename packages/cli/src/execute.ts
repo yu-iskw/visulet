@@ -19,9 +19,24 @@ export interface CliResult {
 export type CliRequest =
   | { readonly command: 'validate'; readonly document: unknown; readonly json: boolean }
   | { readonly command: 'inspect'; readonly document: unknown; readonly json: boolean }
-  | { readonly command: 'render'; readonly document: unknown; readonly format: string; readonly json: boolean }
-  | { readonly command: 'patch'; readonly document: unknown; readonly patch: unknown; readonly json: boolean }
-  | { readonly command: 'compile'; readonly document: unknown; readonly backend: string; readonly json: boolean }
+  | {
+      readonly command: 'render';
+      readonly document: unknown;
+      readonly format: string;
+      readonly json: boolean;
+    }
+  | {
+      readonly command: 'patch';
+      readonly document: unknown;
+      readonly patch: unknown;
+      readonly json: boolean;
+    }
+  | {
+      readonly command: 'compile';
+      readonly document: unknown;
+      readonly backend: string;
+      readonly json: boolean;
+    }
   | { readonly command: 'capabilities'; readonly backend?: string; readonly json: boolean };
 
 function printDiagnostics(diagnostics: readonly Diagnostic[], json: boolean): string {
@@ -29,7 +44,10 @@ function printDiagnostics(diagnostics: readonly Diagnostic[], json: boolean): st
     return `${JSON.stringify({ diagnostics }, null, 2)}\n`;
   }
   return diagnostics
-    .map((diagnostic) => `${diagnostic.severity} ${diagnostic.code} ${diagnostic.path} ${diagnostic.message}`)
+    .map(
+      (diagnostic) =>
+        `${diagnostic.severity} ${diagnostic.code} ${diagnostic.path} ${diagnostic.message}`,
+    )
     .join('\n');
 }
 
@@ -89,7 +107,11 @@ function runPatch(document: unknown, patch: unknown, json: boolean): CliResult {
     return fail('Patch failed', json, result.diagnostics);
   }
   return succeed(
-    { document: result.document, diagnostics: result.diagnostics, operationCount: result.operationCount },
+    {
+      document: result.document,
+      diagnostics: result.diagnostics,
+      operationCount: result.operationCount,
+    },
     json,
     `${JSON.stringify(result.document, null, 2)}\n`,
   );
@@ -119,7 +141,11 @@ function runCompile(document: unknown, backend: string, json: boolean): CliResul
     if (!compiled.valid) {
       return fail('Compile failed', json, compiled.diagnostics);
     }
-    return succeed({ vegaLite: compiled.output, diagnostics: compiled.diagnostics }, json, `${JSON.stringify(compiled.output, null, 2)}\n`);
+    return succeed(
+      { vegaLite: compiled.output, diagnostics: compiled.diagnostics },
+      json,
+      `${JSON.stringify(compiled.output, null, 2)}\n`,
+    );
   }
   return fail(`Unsupported backend ${backend}`, json);
 }

@@ -69,7 +69,12 @@ function handleValidate(args: Readonly<Record<string, unknown>>): McpToolRespons
   if (!result.valid) {
     return invalidFromValidation(result);
   }
-  return { ok: true, category: 'success', result: { valid: true }, diagnostics: result.diagnostics };
+  return {
+    ok: true,
+    category: 'success',
+    result: { valid: true },
+    diagnostics: result.diagnostics,
+  };
 }
 
 function handleInspect(args: Readonly<Record<string, unknown>>): McpToolResponse {
@@ -83,13 +88,22 @@ function handleInspect(args: Readonly<Record<string, unknown>>): McpToolResponse
 function handleRender(args: Readonly<Record<string, unknown>>): McpToolResponse {
   const format = args.format === undefined ? 'svg' : args.format;
   if (format !== 'svg') {
-    return { ok: false, category: 'unsupported_feature', result: { error: `Unsupported format ${asLabel(format)}` } };
+    return {
+      ok: false,
+      category: 'unsupported_feature',
+      result: { error: `Unsupported format ${asLabel(format)}` },
+    };
   }
   const rendered = renderSvgDocument(args.document);
   if (rendered.svg.length === 0) {
     return { ok: false, category: 'renderer_failure', diagnostics: rendered.diagnostics };
   }
-  return { ok: true, category: 'success', result: { svg: rendered.svg }, diagnostics: rendered.diagnostics };
+  return {
+    ok: true,
+    category: 'success',
+    result: { svg: rendered.svg },
+    diagnostics: rendered.diagnostics,
+  };
 }
 
 function handlePatch(args: Readonly<Record<string, unknown>>): McpToolResponse {
@@ -120,16 +134,30 @@ function handleCompile(args: Readonly<Record<string, unknown>>): McpToolResponse
     if (!compiled.valid) {
       return { ok: false, category: 'renderer_failure', diagnostics: compiled.diagnostics };
     }
-    return { ok: true, category: 'success', result: { mermaid: compiled.output }, diagnostics: compiled.diagnostics };
+    return {
+      ok: true,
+      category: 'success',
+      result: { mermaid: compiled.output },
+      diagnostics: compiled.diagnostics,
+    };
   }
   if (backend === 'vega-lite') {
     const compiled = compileVegaLiteDocument(document);
     if (!compiled.valid) {
       return { ok: false, category: 'renderer_failure', diagnostics: compiled.diagnostics };
     }
-    return { ok: true, category: 'success', result: { vegaLite: compiled.output }, diagnostics: compiled.diagnostics };
+    return {
+      ok: true,
+      category: 'success',
+      result: { vegaLite: compiled.output },
+      diagnostics: compiled.diagnostics,
+    };
   }
-  return { ok: false, category: 'unsupported_backend', result: { error: `Unsupported backend ${asLabel(backend)}` } };
+  return {
+    ok: false,
+    category: 'unsupported_backend',
+    result: { error: `Unsupported backend ${asLabel(backend)}` },
+  };
 }
 
 function handleCapabilities(args: Readonly<Record<string, unknown>>): McpToolResponse {
@@ -150,7 +178,11 @@ function handleCapabilities(args: Readonly<Record<string, unknown>>): McpToolRes
   if (backend === 'vega-lite') {
     return { ok: true, category: 'success', result: getVegaLiteCapabilities() };
   }
-  return { ok: false, category: 'unsupported_backend', result: { error: `Unknown backend ${asLabel(backend)}` } };
+  return {
+    ok: false,
+    category: 'unsupported_backend',
+    result: { error: `Unknown backend ${asLabel(backend)}` },
+  };
 }
 
 function handleDescribeType(args: Readonly<Record<string, unknown>>): McpToolResponse {
@@ -198,14 +230,20 @@ export function executeMcpTool(request: McpToolRequest): McpToolResponse {
   }
 }
 
-export function readMcpResource(uri: string): { readonly mimeType: string; readonly text: string } | undefined {
+export function readMcpResource(
+  uri: string,
+): { readonly mimeType: string; readonly text: string } | undefined {
   if (uri === 'visulet://schema/v0/visual-document') {
     return { mimeType: 'application/schema+json', text: JSON.stringify(visualDocumentV0Schema) };
   }
   if (uri === 'visulet://capabilities') {
     return {
       mimeType: 'application/json',
-      text: JSON.stringify([svgRendererCapabilities(), getMermaidCapabilities(), getVegaLiteCapabilities()]),
+      text: JSON.stringify([
+        svgRendererCapabilities(),
+        getMermaidCapabilities(),
+        getVegaLiteCapabilities(),
+      ]),
     };
   }
   if (uri === 'visulet://capabilities/svg') {
@@ -229,7 +267,10 @@ export function readMcpResource(uri: string): { readonly mimeType: string; reado
 }
 
 export const MCP_PROMPTS = {
-  'author-visual': 'Emit canonical VisualDocument JSON only. Inspect capabilities first. Validate, then repair with diagnostics or JSON Patch.',
-  'repair-visual': 'Given structured diagnostics, emit a minimal JSON Patch or corrected VisualDocument. Do not rewrite unrelated fields.',
-  'modify-visual': 'Apply the user change as RFC 6902 JSON Patch against the current VisualDocument.',
+  'author-visual':
+    'Emit canonical VisualDocument JSON only. Inspect capabilities first. Validate, then repair with diagnostics or JSON Patch.',
+  'repair-visual':
+    'Given structured diagnostics, emit a minimal JSON Patch or corrected VisualDocument. Do not rewrite unrelated fields.',
+  'modify-visual':
+    'Apply the user change as RFC 6902 JSON Patch against the current VisualDocument.',
 } as const;

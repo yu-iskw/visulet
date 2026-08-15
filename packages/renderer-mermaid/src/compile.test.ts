@@ -38,9 +38,11 @@ describe('compileMermaidDocument', () => {
       ],
     });
     expect(result.valid).toBe(false);
-    expect(result.diagnostics.some((diagnostic) => diagnostic.code === 'renderer.mermaid.unsafe_directive')).toBe(
-      true,
-    );
+    expect(
+      result.diagnostics.some(
+        (diagnostic) => diagnostic.code === 'renderer.mermaid.unsafe_directive',
+      ),
+    ).toBe(true);
   });
 
   it('compiles architecture groups and nested containers', () => {
@@ -120,16 +122,18 @@ describe('compileMermaidDocument', () => {
     expect(result.valid).toBe(true);
     expect(result.output).toContain('sequenceDiagram');
     expect(result.output).toContain('host->>core: validate');
-    expect(mermaidRenderer.compile({
-      version: '0',
-      views: [
-        {
-          id: 'seq',
-          kind: 'diagram',
-          diagram: 'sequence',
-          model: { participants: [{ id: 'a' }], messages: [] },
-        },
-      ],
-    }).valid).toBe(true);
+    expect(
+      mermaidRenderer.compile({
+        version: '0',
+        views: [
+          {
+            id: 'seq',
+            kind: 'diagram',
+            diagram: 'sequence',
+            model: { participants: [{ id: 'a' }], messages: [] },
+          },
+        ],
+      }).valid,
+    ).toBe(true);
   });
 });

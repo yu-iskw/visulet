@@ -4,14 +4,7 @@ export type BenchmarkTarget = 'visulet' | 'vega-lite' | 'mermaid';
 export type BenchmarkCategory = 'chart' | 'diagram' | 'infographic' | 'composed';
 export type BenchmarkTaskType = 'generation' | 'modification';
 export type ViewKind =
-  | 'chart'
-  | 'diagram'
-  | 'infographic'
-  | 'table'
-  | 'text'
-  | 'metric'
-  | 'container'
-  | 'native';
+  'chart' | 'diagram' | 'infographic' | 'table' | 'text' | 'metric' | 'container' | 'native';
 
 export interface ModelRunRequest {
   readonly caseId: string;

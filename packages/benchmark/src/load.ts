@@ -67,7 +67,9 @@ export function loadScoringProfile(path: string): ScoringProfile {
     ...DEFAULT_SCORING_PROFILE,
     id: parsed.id,
     description:
-      typeof parsed.description === 'string' ? parsed.description : DEFAULT_SCORING_PROFILE.description,
+      typeof parsed.description === 'string'
+        ? parsed.description
+        : DEFAULT_SCORING_PROFILE.description,
   };
 }
 

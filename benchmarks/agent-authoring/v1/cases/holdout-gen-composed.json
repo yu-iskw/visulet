@@ -8,8 +8,6 @@
   "expected": {
     "kind": "container"
   },
-  "baselineTargets": [
-    "visulet"
-  ],
+  "baselineTargets": ["visulet"],
   "holdout": true
 }

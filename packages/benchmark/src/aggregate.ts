@@ -9,7 +9,10 @@ function mean(values: readonly number[]): number {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
-function rate(metrics: readonly CandidateMetrics[], predicate: (row: CandidateMetrics) => boolean): number {
+function rate(
+  metrics: readonly CandidateMetrics[],
+  predicate: (row: CandidateMetrics) => boolean,
+): number {
   if (metrics.length === 0) {
     return 0;
   }
@@ -65,9 +68,13 @@ export function aggregateMetrics(
     firstPassSemanticValidity: rate(generation, (row) => row.semanticValid),
     nativeEscapeRate: rate(visulet, (row) => row.nativeEscape),
     meanAuthoringScore: mean(
-      visulet.flatMap((row) => (row.authoringScore === undefined ? [] : [row.authoringScore.score])),
+      visulet.flatMap((row) =>
+        row.authoringScore === undefined ? [] : [row.authoringScore.score],
+      ),
     ),
-    meanRewriteRatio: mean(metrics.flatMap((row) => (row.rewriteRatio === undefined ? [] : [row.rewriteRatio]))),
+    meanRewriteRatio: mean(
+      metrics.flatMap((row) => (row.rewriteRatio === undefined ? [] : [row.rewriteRatio])),
+    ),
     meanCapabilityWarningCount: mean(metrics.map((row) => row.capabilityWarningCount)),
     hypotheses: profile.hypotheses,
     byTarget: grouped(metrics, (row) => row.target),

@@ -23,7 +23,11 @@ function addDiagnostic(
   message: string,
   hint?: string,
 ): void {
-  diagnostics.push(hint === undefined ? { code, severity, path, message } : { code, severity, path, message, hint });
+  diagnostics.push(
+    hint === undefined
+      ? { code, severity, path, message }
+      : { code, severity, path, message, hint },
+  );
 }
 
 function fieldNames(source: DataSource | undefined): ReadonlySet<string> | undefined {
@@ -110,7 +114,11 @@ function isSequenceModel(value: unknown): value is SequenceModel {
   );
 }
 
-function validateSequenceModel(model: SequenceModel, path: string, diagnostics: Diagnostic[]): void {
+function validateSequenceModel(
+  model: SequenceModel,
+  path: string,
+  diagnostics: Diagnostic[],
+): void {
   const ids = new Set<string>();
   for (const [index, participant] of model.participants.entries()) {
     const idPath = `${path}/model/participants/${String(index)}/id`;
@@ -378,10 +386,22 @@ export function validateVisualDocument(input: unknown): ValidationResult {
     return { valid: false, diagnostics };
   }
   if (input.version !== '0') {
-    addDiagnostic(diagnostics, 'semantic.document_version', 'error', jsonPointer(['version']), 'version must equal "0"');
+    addDiagnostic(
+      diagnostics,
+      'semantic.document_version',
+      'error',
+      jsonPointer(['version']),
+      'version must equal "0"',
+    );
   }
   if (!Array.isArray(input.views)) {
-    addDiagnostic(diagnostics, 'semantic.document_views', 'error', jsonPointer(['views']), 'views must be an array');
+    addDiagnostic(
+      diagnostics,
+      'semantic.document_views',
+      'error',
+      jsonPointer(['views']),
+      'views must be an array',
+    );
     return { valid: false, diagnostics };
   }
 

@@ -2,12 +2,7 @@ import { SUPPORTED_CHARTS, SUPPORTED_DIAGRAMS, SUPPORTED_INFOGRAPHICS } from './
 import { jsonPointer } from './json-pointer';
 import { isRecord } from './value';
 
-import type {
-  Diagnostic,
-  RendererCapabilities,
-  VisualDocument,
-  VisualView,
-} from './types';
+import type { Diagnostic, RendererCapabilities, VisualDocument, VisualView } from './types';
 
 export function svgRendererCapabilities(): RendererCapabilities {
   return {

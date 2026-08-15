@@ -31,17 +31,37 @@ const flow = {
 
 describe('cross-renderer conformance', () => {
   it('compiles bar charts with Vega-Lite and rejects them on Mermaid with diagnostics', () => {
-    const vega = executeCli({ command: 'compile', document: bar, backend: 'vega-lite', json: true });
+    const vega = executeCli({
+      command: 'compile',
+      document: bar,
+      backend: 'vega-lite',
+      json: true,
+    });
     expect(vega.exitCode).toBe(0);
-    const mermaid = executeCli({ command: 'compile', document: bar, backend: 'mermaid', json: true });
+    const mermaid = executeCli({
+      command: 'compile',
+      document: bar,
+      backend: 'mermaid',
+      json: true,
+    });
     expect(mermaid.exitCode).toBe(1);
   });
 
   it('compiles flowcharts with Mermaid and rejects them on Vega-Lite with diagnostics', () => {
-    const mermaid = executeCli({ command: 'compile', document: flow, backend: 'mermaid', json: true });
+    const mermaid = executeCli({
+      command: 'compile',
+      document: flow,
+      backend: 'mermaid',
+      json: true,
+    });
     expect(mermaid.exitCode).toBe(0);
     expect(mermaid.stdout).toContain('flowchart');
-    const vega = executeCli({ command: 'compile', document: flow, backend: 'vega-lite', json: true });
+    const vega = executeCli({
+      command: 'compile',
+      document: flow,
+      backend: 'vega-lite',
+      json: true,
+    });
     expect(vega.exitCode).toBe(1);
   });
 });

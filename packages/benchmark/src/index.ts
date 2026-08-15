@@ -1,5 +1,11 @@
 export { aggregateMetrics } from './aggregate';
-export { loadCandidates, loadCases, loadControlCorpus, loadFixtures, loadScoringProfile } from './load';
+export {
+  loadCandidates,
+  loadCases,
+  loadControlCorpus,
+  loadFixtures,
+  loadScoringProfile,
+} from './load';
 export { modificationDistance, rewriteRatioFromText } from './json-distance';
 export { parseBenchmarkCase, parseCandidateRecord, parseCandidateText, parseJsonl } from './parse';
 export { renderReportMarkdown } from './report';

@@ -47,14 +47,23 @@ function inlineRows(document: VisualDocument, name: string): readonly DataRow[] 
   return source !== undefined && 'values' in source ? source.values : [];
 }
 
-function encodingField(field: { field: string; type?: string } | undefined): Record<string, string> | undefined {
+function encodingField(
+  field: { field: string; type?: string } | undefined,
+): Record<string, string> | undefined {
   if (field === undefined) {
     return undefined;
   }
-  return field.type === undefined ? { field: field.field } : { field: field.field, type: field.type };
+  return field.type === undefined
+    ? { field: field.field }
+    : { field: field.field, type: field.type };
 }
 
-function compileChart(document: VisualDocument, view: ChartView, path: string, diagnostics: Diagnostic[]): unknown {
+function compileChart(
+  document: VisualDocument,
+  view: ChartView,
+  path: string,
+  diagnostics: Diagnostic[],
+): unknown {
   const mark = markFor(view.chart);
   if (mark === undefined) {
     diagnostics.push({
@@ -131,7 +140,10 @@ export function compileVegaLiteDocument(document: VisualDocument): RendererResul
   if (!validation.valid) {
     return { valid: false, diagnostics: validation.diagnostics };
   }
-  const diagnostics = [...validation.diagnostics, ...evaluateCapabilities(document, vegaLiteCapabilities())];
+  const diagnostics = [
+    ...validation.diagnostics,
+    ...evaluateCapabilities(document, vegaLiteCapabilities()),
+  ];
   const specs: unknown[] = [];
   compileViews(document, document.views, jsonPointer(['views']), diagnostics, specs);
   const hasError = diagnostics.some((diagnostic) => diagnostic.severity === 'error');

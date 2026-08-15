@@ -42,7 +42,9 @@ describe('runOfflineBenchmark', () => {
     const result = runOfflineBenchmark({
       experimentId: 'offline-unit',
       cases: [barCase],
-      candidates: [{ caseId: 'gen-chart-bar', target: 'visulet', text: JSON.stringify(barDocument) }],
+      candidates: [
+        { caseId: 'gen-chart-bar', target: 'visulet', text: JSON.stringify(barDocument) },
+      ],
     });
     expect(result.aggregate.caseCount).toBe(1);
     expect(result.aggregate.metrics[0]?.structuralValid).toBe(true);
@@ -59,7 +61,11 @@ describe('runOfflineBenchmark', () => {
     });
     expect(mermaid.parseError).toBeDefined();
     expect(mermaid.compileSuccess).toBe(true);
-    const invalid = scoreCandidate(barCase, { caseId: 'gen-chart-bar', target: 'visulet', text: 'not-json' });
+    const invalid = scoreCandidate(barCase, {
+      caseId: 'gen-chart-bar',
+      target: 'visulet',
+      text: 'not-json',
+    });
     expect(invalid.structuralValid).toBe(false);
     expect(parseJsonl('{"a":1}\n\n{"b":2}\n')).toHaveLength(2);
   });
@@ -67,7 +73,9 @@ describe('runOfflineBenchmark', () => {
   it('writes aggregate.json and report.md when asked', () => {
     const directory = mkdtempSync(join(tmpdir(), 'visulet-bench-'));
     writeRunArtifacts(directory, '{"ok":true}\n', '# report\n');
-    expect(JSON.parse(readFileSync(join(directory, 'aggregate.json'), 'utf8'))).toEqual({ ok: true });
+    expect(JSON.parse(readFileSync(join(directory, 'aggregate.json'), 'utf8'))).toEqual({
+      ok: true,
+    });
     expect(readFileSync(join(directory, 'report.md'), 'utf8')).toContain('# report');
   });
 });

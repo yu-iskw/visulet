@@ -21,7 +21,10 @@ export function parseJsonl(text: string): unknown[] {
   return rows;
 }
 
-export function parseCandidateText(text: string): { readonly value?: unknown; readonly error?: string } {
+export function parseCandidateText(text: string): {
+  readonly value?: unknown;
+  readonly error?: string;
+} {
   try {
     return { value: JSON.parse(text) as unknown };
   } catch (error) {

@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { executeMcpTool, readMcpResource, type McpToolRequest, type McpToolResponse } from './tools';
+import {
+  executeMcpTool,
+  readMcpResource,
+  type McpToolRequest,
+  type McpToolResponse,
+} from './tools';
 
 const document = {
   version: '0',
@@ -25,7 +30,10 @@ describe('executeMcpTool', () => {
     const request: McpToolRequest = { name: 'visual_validate', arguments: { document } };
     const validated: McpToolResponse = executeMcpTool(request);
     expect(validated.ok).toBe(true);
-    const rendered = executeMcpTool({ name: 'visual_render', arguments: { document, format: 'svg' } });
+    const rendered = executeMcpTool({
+      name: 'visual_render',
+      arguments: { document, format: 'svg' },
+    });
     expect(rendered.ok).toBe(true);
     expect(JSON.stringify(rendered.result)).toContain('<svg');
   });
@@ -45,19 +53,38 @@ describe('executeMcpTool', () => {
       arguments: { document, backend: 'vega-lite' },
     });
     expect(compiled.ok).toBe(true);
-    expect(executeMcpTool({ name: 'visual_compile', arguments: { document, backend: 'svg' } }).ok).toBe(true);
-    expect(executeMcpTool({ name: 'visual_compile', arguments: { backend: 'mermaid' } }).ok).toBe(false);
-    expect(executeMcpTool({ name: 'visual_compile', arguments: { document, backend: 'nope' } }).ok).toBe(false);
-    expect(executeMcpTool({ name: 'visual_inspect', arguments: { document } }).ok).toBe(true);
-    expect(executeMcpTool({ name: 'visual_render', arguments: { document, format: 'png' } }).ok).toBe(false);
-    expect(executeMcpTool({ name: 'visual_capabilities', arguments: { backend: 'svg' } }).ok).toBe(true);
-    expect(executeMcpTool({ name: 'visual_capabilities', arguments: { backend: 'mermaid' } }).ok).toBe(true);
-    expect(executeMcpTool({ name: 'visual_capabilities', arguments: { backend: 'vega-lite' } }).ok).toBe(true);
-    expect(executeMcpTool({ name: 'visual_capabilities', arguments: { backend: 'nope' } }).ok).toBe(false);
-    expect(executeMcpTool({ name: 'visual_describe_type', arguments: { kind: 'chart' } }).ok).toBe(false);
-    expect(executeMcpTool({ name: 'visual_describe_type', arguments: { kind: 'chart', type: 'nope' } }).ok).toBe(
+    expect(
+      executeMcpTool({ name: 'visual_compile', arguments: { document, backend: 'svg' } }).ok,
+    ).toBe(true);
+    expect(executeMcpTool({ name: 'visual_compile', arguments: { backend: 'mermaid' } }).ok).toBe(
       false,
     );
+    expect(
+      executeMcpTool({ name: 'visual_compile', arguments: { document, backend: 'nope' } }).ok,
+    ).toBe(false);
+    expect(executeMcpTool({ name: 'visual_inspect', arguments: { document } }).ok).toBe(true);
+    expect(
+      executeMcpTool({ name: 'visual_render', arguments: { document, format: 'png' } }).ok,
+    ).toBe(false);
+    expect(executeMcpTool({ name: 'visual_capabilities', arguments: { backend: 'svg' } }).ok).toBe(
+      true,
+    );
+    expect(
+      executeMcpTool({ name: 'visual_capabilities', arguments: { backend: 'mermaid' } }).ok,
+    ).toBe(true);
+    expect(
+      executeMcpTool({ name: 'visual_capabilities', arguments: { backend: 'vega-lite' } }).ok,
+    ).toBe(true);
+    expect(executeMcpTool({ name: 'visual_capabilities', arguments: { backend: 'nope' } }).ok).toBe(
+      false,
+    );
+    expect(executeMcpTool({ name: 'visual_describe_type', arguments: { kind: 'chart' } }).ok).toBe(
+      false,
+    );
+    expect(
+      executeMcpTool({ name: 'visual_describe_type', arguments: { kind: 'chart', type: 'nope' } })
+        .ok,
+    ).toBe(false);
     expect(
       executeMcpTool({
         name: 'visual_validate',
@@ -71,9 +98,10 @@ describe('executeMcpTool', () => {
       arguments: { document, patch: [{ op: 'add', path: '/title', value: 'Revenue' }] },
     });
     expect(patched.ok).toBe(true);
-    expect(executeMcpTool({ name: 'visual_apply_patch', arguments: { document, patch: { op: 'add' } } }).ok).toBe(
-      false,
-    );
+    expect(
+      executeMcpTool({ name: 'visual_apply_patch', arguments: { document, patch: { op: 'add' } } })
+        .ok,
+    ).toBe(false);
     const unknown = executeMcpTool({ name: 'nope', arguments: {} });
     expect(unknown.ok).toBe(false);
   });

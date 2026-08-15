@@ -10,8 +10,5 @@
     "kind": "diagram",
     "visualType": "architecture"
   },
-  "baselineTargets": [
-    "visulet",
-    "mermaid"
-  ]
+  "baselineTargets": ["visulet", "mermaid"]
 }

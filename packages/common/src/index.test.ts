@@ -59,9 +59,9 @@ describe('validateVisualDocument', () => {
       ],
     });
     expect(result.valid).toBe(false);
-    expect(result.diagnostics.some((diagnostic) => diagnostic.code === 'semantic.dataset_not_found')).toBe(
-      true,
-    );
+    expect(
+      result.diagnostics.some((diagnostic) => diagnostic.code === 'semantic.dataset_not_found'),
+    ).toBe(true);
     expect(result.diagnostics[0]?.path).toBe('/views/0/data');
   });
 
@@ -79,9 +79,9 @@ describe('validateVisualDocument', () => {
       ],
     });
     expect(result.valid).toBe(false);
-    expect(result.diagnostics.some((diagnostic) => diagnostic.code === 'semantic.diagram_edge_to')).toBe(
-      true,
-    );
+    expect(
+      result.diagnostics.some((diagnostic) => diagnostic.code === 'semantic.diagram_edge_to'),
+    ).toBe(true);
     expect(result.diagnostics.some((diagnostic) => diagnostic.path === '/views/0/edges/0/to')).toBe(
       true,
     );

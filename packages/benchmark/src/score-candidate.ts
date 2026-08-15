@@ -15,12 +15,7 @@ import { compileVegaLiteDocument } from '@visulet/renderer-vegalite';
 import { modificationDistance } from './json-distance';
 import { parseCandidateText } from './parse';
 
-import type {
-  BenchmarkCase,
-  BenchmarkTarget,
-  CandidateMetrics,
-  CandidateRecord,
-} from './types';
+import type { BenchmarkCase, BenchmarkTarget, CandidateMetrics, CandidateRecord } from './types';
 
 function looksLikeMermaid(text: string): boolean {
   return /^(flowchart|sequenceDiagram|graph)\b/.test(text.trim());
@@ -32,8 +27,7 @@ function looksLikeVegaLite(value: unknown): boolean {
   }
   const schema = value.$schema;
   return (
-    typeof value.mark === 'string' ||
-    (typeof schema === 'string' && schema.includes('vega-lite'))
+    typeof value.mark === 'string' || (typeof schema === 'string' && schema.includes('vega-lite'))
   );
 }
 
@@ -44,7 +38,11 @@ function countCapabilityWarnings(diagnostics: readonly Diagnostic[]): number {
 function compileVisualDocument(
   document: VisualDocument,
   target: BenchmarkTarget,
-): { readonly compileSuccess: boolean; readonly renderSuccess: boolean; readonly warnings: number } {
+): {
+  readonly compileSuccess: boolean;
+  readonly renderSuccess: boolean;
+  readonly warnings: number;
+} {
   const rendered = renderSvgDocument(document);
   const renderSuccess = rendered.svg.length > 0;
   if (target === 'visulet') {

@@ -29,7 +29,10 @@ function collectLeaves(value: unknown, path: string, into: Map<string, string>):
   }
 }
 
-function leafState(left: unknown, right: unknown): {
+function leafState(
+  left: unknown,
+  right: unknown,
+): {
   readonly differing: readonly string[];
   readonly unionSize: number;
 } {

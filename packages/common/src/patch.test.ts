@@ -71,9 +71,9 @@ describe('applyVisualDocumentPatch', () => {
       },
     ]);
     expect(withTwo.valid).toBe(false);
-    expect(withTwo.diagnostics.some((diagnostic) => diagnostic.code === 'semantic.duplicate_view_id')).toBe(
-      true,
-    );
+    expect(
+      withTwo.diagnostics.some((diagnostic) => diagnostic.code === 'semantic.duplicate_view_id'),
+    ).toBe(true);
   });
 
   it('copies, moves, removes, and tests paths', () => {
@@ -92,9 +92,13 @@ describe('applyVisualDocumentPatch', () => {
       { op: 'move', from: '/description', path: '/metadata' },
     ]);
     expect(moved.valid).toBe(false);
-    const tested = applyVisualDocumentPatch(titled.document, [{ op: 'test', path: '/title', value: 'A' }]);
+    const tested = applyVisualDocumentPatch(titled.document, [
+      { op: 'test', path: '/title', value: 'A' },
+    ]);
     expect(tested.valid).toBe(true);
-    const testFail = applyVisualDocumentPatch(titled.document, [{ op: 'test', path: '/title', value: 'B' }]);
+    const testFail = applyVisualDocumentPatch(titled.document, [
+      { op: 'test', path: '/title', value: 'B' },
+    ]);
     expect(testFail.valid).toBe(false);
     const removed = applyVisualDocumentPatch(titled.document, [{ op: 'remove', path: '/title' }]);
     expect(removed.valid).toBe(true);
@@ -102,9 +106,19 @@ describe('applyVisualDocumentPatch', () => {
     expect(badOp.valid).toBe(false);
     const missingFrom = applyVisualDocumentPatch(document, [{ op: 'copy', path: '/title' }]);
     expect(missingFrom.valid).toBe(false);
-    const tooMany = applyVisualDocumentPatch(document, [{ op: 'add', path: '/title', value: 'A' }], {
-      limits: { maxDocumentBytes: 1_000_000, maxViews: 100, maxInlineRows: 10_000, maxStringLength: 10_000, maxPatchOperations: 0 },
-    });
+    const tooMany = applyVisualDocumentPatch(
+      document,
+      [{ op: 'add', path: '/title', value: 'A' }],
+      {
+        limits: {
+          maxDocumentBytes: 1_000_000,
+          maxViews: 100,
+          maxInlineRows: 10_000,
+          maxStringLength: 10_000,
+          maxPatchOperations: 0,
+        },
+      },
+    );
     expect(tooMany.valid).toBe(false);
   });
 

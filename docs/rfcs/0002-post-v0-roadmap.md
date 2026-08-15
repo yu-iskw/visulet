@@ -126,20 +126,20 @@ Long-term properties, in priority order:
 
 The v0 vertical slice is real and small:
 
-| Surface | Status |
-| --- | --- |
-| `@visulet/schema` (`schemas/`) | Normative JSON Schema Draft 2020-12, version `"0"` |
-| `@visulet/core` (`packages/common`) | Structural Ajv validation, semantic validation, SVG render, 100-point scorer |
-| SVG renderer | In core. Charts: `bar`, `line`, `scatter`, `heatmap`. Diagrams: `flowchart`, `sequence`, `architecture`. Infographics: `list`, `steps`, `process` |
-| CLI | Does not exist |
-| Vega-Lite backend | Does not exist |
-| Mermaid backend | Does not exist |
-| Capability API | Schema `$defs/rendererCapability` and view `renderer` preference exist; **no runtime resolution**. Semantic validator emits SVG-specific catalog warnings |
-| JSON Patch | Specified in RFC 0001 §17; not implemented |
-| MCP / MCP App | Keywords and RFC 0001 §§19–20 only |
-| Benchmark corpus | 10 generation-only JSONL cases in `benchmarks/agent-authoring/v0/` |
-| Benchmark runner | None. `scoreAuthoringCandidate` only |
-| Packages | Both `"private": true`. `publish.yml` cannot publish them as-is |
+| Surface                             | Status                                                                                                                                                    |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@visulet/schema` (`schemas/`)      | Normative JSON Schema Draft 2020-12, version `"0"`                                                                                                        |
+| `@visulet/core` (`packages/common`) | Structural Ajv validation, semantic validation, SVG render, 100-point scorer                                                                              |
+| SVG renderer                        | In core. Charts: `bar`, `line`, `scatter`, `heatmap`. Diagrams: `flowchart`, `sequence`, `architecture`. Infographics: `list`, `steps`, `process`         |
+| CLI                                 | Does not exist                                                                                                                                            |
+| Vega-Lite backend                   | Does not exist                                                                                                                                            |
+| Mermaid backend                     | Does not exist                                                                                                                                            |
+| Capability API                      | Schema `$defs/rendererCapability` and view `renderer` preference exist; **no runtime resolution**. Semantic validator emits SVG-specific catalog warnings |
+| JSON Patch                          | Specified in RFC 0001 §17; not implemented                                                                                                                |
+| MCP / MCP App                       | Keywords and RFC 0001 §§19–20 only                                                                                                                        |
+| Benchmark corpus                    | 10 generation-only JSONL cases in `benchmarks/agent-authoring/v0/`                                                                                        |
+| Benchmark runner                    | None. `scoreAuthoringCandidate` only                                                                                                                      |
+| Packages                            | Both `"private": true`. `publish.yml` cannot publish them as-is                                                                                           |
 
 Running catalog (authoritative for this RFC, not RFC 0001 §32’s `comparison`
 bullet): `list`, `steps`, `process`.
@@ -256,7 +256,7 @@ flowchart LR
 
 ---
 
-# Part I — Contract hygiene (pre-benchmark)
+## Part I — Contract hygiene (pre-benchmark)
 
 ## 8. Diagnostic contract
 
@@ -290,18 +290,18 @@ security.*
 
 Mapping from v0 codes (breaking for any unpublished client; do it now):
 
-| v0 code | post-hygiene |
-| --- | --- |
-| `schema.invalid` | `schema.invalid` plus `metadata.keyword` |
-| `data.missing` | `semantic.dataset_not_found` |
-| `field.missing` | `semantic.field_not_found` |
-| `diagram.edge.from` / `.to` | `semantic.diagram_edge_from` / `_to` |
-| `view.id.duplicate` | `semantic.duplicate_view_id` |
-| `metric.source.required` | `semantic.metric_source_required` |
-| `catalog.*.unsupported` | removed from validate; `capability.unsupported_*` at render/compile |
-| `native.portability` | `capability.native_escape` (warning; still not an SVG-specific sentence) |
-| `render.transforms.unimplemented` | `renderer.svg.transforms_unimplemented` |
-| `render.interactions.unimplemented` | `renderer.svg.interactions_unimplemented` |
+| v0 code                             | post-hygiene                                                             |
+| ----------------------------------- | ------------------------------------------------------------------------ |
+| `schema.invalid`                    | `schema.invalid` plus `metadata.keyword`                                 |
+| `data.missing`                      | `semantic.dataset_not_found`                                             |
+| `field.missing`                     | `semantic.field_not_found`                                               |
+| `diagram.edge.from` / `.to`         | `semantic.diagram_edge_from` / `_to`                                     |
+| `view.id.duplicate`                 | `semantic.duplicate_view_id`                                             |
+| `metric.source.required`            | `semantic.metric_source_required`                                        |
+| `catalog.*.unsupported`             | removed from validate; `capability.unsupported_*` at render/compile      |
+| `native.portability`                | `capability.native_escape` (warning; still not an SVG-specific sentence) |
+| `render.transforms.unimplemented`   | `renderer.svg.transforms_unimplemented`                                  |
+| `render.interactions.unimplemented` | `renderer.svg.interactions_unimplemented`                                |
 
 ## 9. Types aligned to schema
 
@@ -391,7 +391,7 @@ MUST use the combined structural+semantic pipeline.
 
 ---
 
-# Part II — Patch and CLI
+## Part II — Patch and CLI
 
 ## 13. Patch API
 
@@ -429,7 +429,7 @@ No visualization semantics in the CLI. `convert` is out of scope.
 
 ---
 
-# Part III — Benchmark v1
+## Part III — Benchmark v1
 
 ## 15. Questions
 
@@ -488,12 +488,12 @@ On in-scope, non-holdout generation tasks, after one repair cycle:
 
 **STOP:** if native-escape ≥ 25% or Vizulet loses on first-pass+repair
 validity versus the domain baseline, do not freeze v1 or polish the MCP App.
-Write RFC 0003. Mermaid and Vega-Lite may still proceed if needed to *measure*
+Write RFC 0003. Mermaid and Vega-Lite may still proceed if needed to _measure_
 portability.
 
 ---
 
-# Part IV — MCP
+## Part IV — MCP
 
 ## 20. Thin server (measurement surface)
 
@@ -540,7 +540,7 @@ Not a publishable workspace package in this RFC.
 
 ---
 
-# Part V — Renderers
+## Part V — Renderers
 
 ## 23. Common shape
 
@@ -548,10 +548,7 @@ Not a publishable workspace package in this RFC.
 export interface VisualRenderer<TOutput> {
   readonly id: string;
   capabilities(): RendererCapabilities;
-  compile(
-    document: VisualDocument,
-    options?: RendererCompileOptions,
-  ): RendererResult<TOutput>;
+  compile(document: VisualDocument, options?: RendererCompileOptions): RendererResult<TOutput>;
 }
 ```
 
@@ -578,17 +575,17 @@ runtime in core.
 Same canonical fixtures evaluated across validator, SVG, Vega-Lite, Mermaid.
 Expected unsupported with correct diagnostics is a passing test.
 
-| Fixture | SVG | Vega-Lite | Mermaid |
-| --- | --- | --- | --- |
-| bar-basic | pass | pass | unsupported |
-| line-basic | pass | pass | unsupported |
-| flowchart-basic | pass | unsupported | pass |
-| sequence-basic | pass | unsupported | pass |
+| Fixture         | SVG  | Vega-Lite     | Mermaid       |
+| --------------- | ---- | ------------- | ------------- |
+| bar-basic       | pass | pass          | unsupported   |
+| line-basic      | pass | pass          | unsupported   |
+| flowchart-basic | pass | unsupported   | pass          |
+| sequence-basic  | pass | unsupported   | pass          |
 | mixed-container | pass | partial/error | partial/error |
 
 ---
 
-# Part VI — Security, tests, CI, docs
+## Part VI — Security, tests, CI, docs
 
 ## 27. Security
 
@@ -626,21 +623,21 @@ compact `docs/agents/` quickstart, repair-loop, patching, backend-selection.
 
 ---
 
-# Part VII — Implementation sequence
+## Part VII — Implementation sequence
 
 ## 31. Phases
 
-| Phase | Deliverable | Kill rule |
-| --- | --- | --- |
-| 0 | This RFC + adversarial review | — |
-| 1 | Core hygiene | tests red → do not start CLI |
-| 2 | Patch + CLI | tests red → do not start benchmark runner |
-| 3 | Offline benchmark v1 | control fixtures red → do not claim measurement |
-| 4 | Thin MCP | stdio tools red → live MCP-repair profile skipped |
-| 5 | Live report + go/no-go | STOP v1/App if gates fail; RFC 0003 for IR breaks |
-| 6 | Mermaid + Vega-Lite | goldens red → no compile tools |
-| 7 | Full MCP + examples/mcp-app | App is optional |
-| 8 | v1 freeze | only if Phase 5 said go |
+| Phase | Deliverable                   | Kill rule                                         |
+| ----- | ----------------------------- | ------------------------------------------------- |
+| 0     | This RFC + adversarial review | —                                                 |
+| 1     | Core hygiene                  | tests red → do not start CLI                      |
+| 2     | Patch + CLI                   | tests red → do not start benchmark runner         |
+| 3     | Offline benchmark v1          | control fixtures red → do not claim measurement   |
+| 4     | Thin MCP                      | stdio tools red → live MCP-repair profile skipped |
+| 5     | Live report + go/no-go        | STOP v1/App if gates fail; RFC 0003 for IR breaks |
+| 6     | Mermaid + Vega-Lite           | goldens red → no compile tools                    |
+| 7     | Full MCP + examples/mcp-app   | App is optional                                   |
+| 8     | v1 freeze                     | only if Phase 5 said go                           |
 
 Suggested reviewable PR slices match the phase list. Do not combine them into
 one PR.
@@ -671,7 +668,7 @@ sequenceDiagram
 
 ---
 
-# Part VIII — Risks and definition of done
+## Part VIII — Risks and definition of done
 
 ## 33. Risks
 

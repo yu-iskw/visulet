@@ -34,7 +34,9 @@ const start = {
 
 describe('parse helpers', () => {
   it('accepts fixture-only candidate records and rejects incomplete rows', () => {
-    expect(parseCandidateRecord({ caseId: 'x', fixture: 'chart-bar.json', target: 'unknown' })).toMatchObject({
+    expect(
+      parseCandidateRecord({ caseId: 'x', fixture: 'chart-bar.json', target: 'unknown' }),
+    ).toMatchObject({
       caseId: 'x',
       target: 'visulet',
       fixture: 'chart-bar.json',
@@ -50,7 +52,10 @@ describe('scoreCandidate extras', () => {
     const vega = scoreCandidate(undefined, {
       caseId: 'gen-chart-bar',
       target: 'vega-lite',
-      text: JSON.stringify({ $schema: 'https://vega.github.io/schema/vega-lite/v5.json', mark: 'bar' }),
+      text: JSON.stringify({
+        $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
+        mark: 'bar',
+      }),
     });
     expect(vega.structuralValid).toBe(false);
     expect(vega.compileSuccess).toBe(true);
@@ -80,7 +85,15 @@ describe('scoreCandidate extras', () => {
         target: 'mermaid',
         text: JSON.stringify({
           version: '0',
-          views: [{ id: 'flow', kind: 'diagram', diagram: 'flowchart', nodes: [{ id: 'a', label: 'A' }], edges: [] }],
+          views: [
+            {
+              id: 'flow',
+              kind: 'diagram',
+              diagram: 'flowchart',
+              nodes: [{ id: 'a', label: 'A' }],
+              edges: [],
+            },
+          ],
         }),
       },
     );

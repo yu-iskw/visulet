@@ -82,14 +82,17 @@ function compileFlow(view: DiagramView, path: string, diagnostics: Diagnostic[])
       groups.set(node.group, existing);
     }
   }
-  for (const [group, statements] of [...groups.entries()].sort(([left], [right]) => left.localeCompare(right))) {
+  for (const [group, statements] of [...groups.entries()].sort(([left], [right]) =>
+    left.localeCompare(right),
+  )) {
     const groupLabel = escapeLabel(group, `${path}/nodes`, diagnostics);
     lines.push(`  subgraph ${groupLabel}`);
     lines.push(...statements);
     lines.push('  end');
   }
   for (const edge of edges) {
-    const label = edge.label === undefined ? '' : `|${escapeLabel(edge.label, `${path}/edges`, diagnostics)}|`;
+    const label =
+      edge.label === undefined ? '' : `|${escapeLabel(edge.label, `${path}/edges`, diagnostics)}|`;
     lines.push(`  ${edge.from} -->${label} ${edge.to}`);
   }
   return lines.join('\n');
@@ -108,7 +111,11 @@ function compileSequence(view: DiagramView, path: string, diagnostics: Diagnosti
   }
   const lines = ['sequenceDiagram'];
   for (const participant of view.model.participants) {
-    const label = escapeLabel(participant.label ?? participant.id, `${path}/model/participants`, diagnostics);
+    const label = escapeLabel(
+      participant.label ?? participant.id,
+      `${path}/model/participants`,
+      diagnostics,
+    );
     lines.push(`  participant ${participant.id} as ${label}`);
   }
   for (const message of view.model.messages ?? []) {
@@ -180,7 +187,10 @@ export function compileMermaidDocument(document: VisualDocument): RendererResult
   if (!validation.valid) {
     return { valid: false, diagnostics: validation.diagnostics };
   }
-  const diagnostics = [...validation.diagnostics, ...evaluateCapabilities(document, mermaidCapabilities())];
+  const diagnostics = [
+    ...validation.diagnostics,
+    ...evaluateCapabilities(document, mermaidCapabilities()),
+  ];
   const chunks: string[] = [];
   compileViews(document.views, jsonPointer(['views']), diagnostics, chunks);
   const hasError = diagnostics.some((diagnostic) => diagnostic.severity === 'error');

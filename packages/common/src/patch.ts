@@ -173,7 +173,11 @@ function applyReplace(hit: PointerHit, value: unknown): boolean {
   return true;
 }
 
-function parseOperation(value: unknown, index: number, diagnostics: Diagnostic[]): JsonPatchOperation | undefined {
+function parseOperation(
+  value: unknown,
+  index: number,
+  diagnostics: Diagnostic[],
+): JsonPatchOperation | undefined {
   if (!isRecord(value) || typeof value.op !== 'string' || typeof value.path !== 'string') {
     diagnostics.push(
       patchDiagnostic(
@@ -186,14 +190,22 @@ function parseOperation(value: unknown, index: number, diagnostics: Diagnostic[]
   }
   if (!OPERATIONS.has(value.op)) {
     diagnostics.push(
-      patchDiagnostic(PATCH_INVALID_OPERATION, jsonPointer([String(index), 'op']), `Unsupported op ${value.op}`),
+      patchDiagnostic(
+        PATCH_INVALID_OPERATION,
+        jsonPointer([String(index), 'op']),
+        `Unsupported op ${value.op}`,
+      ),
     );
     return undefined;
   }
   const from = typeof value.from === 'string' ? value.from : undefined;
   if ((value.op === 'move' || value.op === 'copy') && from === undefined) {
     diagnostics.push(
-      patchDiagnostic(PATCH_INVALID_OPERATION, jsonPointer([String(index), 'from']), `${value.op} requires from`),
+      patchDiagnostic(
+        PATCH_INVALID_OPERATION,
+        jsonPointer([String(index), 'from']),
+        `${value.op} requires from`,
+      ),
     );
     return undefined;
   }
@@ -248,7 +260,9 @@ function applyCopyMove(
   if (operation.op === 'move') {
     const fromTokens = splitPointer(sourcePath);
     if (fromTokens === undefined || fromTokens.length === 0) {
-      diagnostics.push(patchDiagnostic(PATCH_INVALID_PATH, sourcePath, 'Cannot move the document root'));
+      diagnostics.push(
+        patchDiagnostic(PATCH_INVALID_PATH, sourcePath, 'Cannot move the document root'),
+      );
       return document;
     }
     const fromHit = readParent(document, fromTokens);
@@ -260,7 +274,9 @@ function applyCopyMove(
   }
   const hit = readParent(document, tokens);
   if (hit === undefined || !applyAdd(hit, cloneDocument(source.value))) {
-    diagnostics.push(patchDiagnostic(PATCH_INVALID_PATH, operation.path, 'Cannot apply copy/move at path'));
+    diagnostics.push(
+      patchDiagnostic(PATCH_INVALID_PATH, operation.path, 'Cannot apply copy/move at path'),
+    );
   }
   return document;
 }
@@ -273,7 +289,9 @@ function applyMutation(
 ): unknown {
   const hit = readParent(document, tokens);
   if (hit === undefined) {
-    diagnostics.push(patchDiagnostic(PATCH_INVALID_PATH, operation.path, 'JSON Pointer does not exist'));
+    diagnostics.push(
+      patchDiagnostic(PATCH_INVALID_PATH, operation.path, 'JSON Pointer does not exist'),
+    );
     return document;
   }
   if (operation.op === 'remove') {
@@ -305,19 +323,33 @@ function applyOne(
   }
   if (operation.path === '' && operation.op === 'test') {
     if (!deepEqual(document, operation.value)) {
-      diagnostics.push(patchDiagnostic('patch.test_failed', jsonPointer([String(index)]), 'test failed at document root'));
+      diagnostics.push(
+        patchDiagnostic(
+          'patch.test_failed',
+          jsonPointer([String(index)]),
+          'test failed at document root',
+        ),
+      );
     }
     return document;
   }
   const tokens = splitPointer(operation.path);
   if (tokens === undefined) {
-    diagnostics.push(patchDiagnostic(PATCH_INVALID_PATH, jsonPointer([String(index), 'path']), 'Path must be a JSON Pointer'));
+    diagnostics.push(
+      patchDiagnostic(
+        PATCH_INVALID_PATH,
+        jsonPointer([String(index), 'path']),
+        'Path must be a JSON Pointer',
+      ),
+    );
     return document;
   }
   if (operation.op === 'test') {
     const current = readValue(document, operation.path);
     if (!current.found || !deepEqual(current.value, operation.value)) {
-      diagnostics.push(patchDiagnostic('patch.test_failed', operation.path, 'test operation failed'));
+      diagnostics.push(
+        patchDiagnostic('patch.test_failed', operation.path, 'test operation failed'),
+      );
     }
     return document;
   }
@@ -342,7 +374,11 @@ export function applyVisualDocumentPatch(
   }
   const parsed = parsePatchOperations(patch);
   if (parsed.diagnostics.length > 0) {
-    return { valid: false, diagnostics: parsed.diagnostics, operationCount: parsed.operations.length };
+    return {
+      valid: false,
+      diagnostics: parsed.diagnostics,
+      operationCount: parsed.operations.length,
+    };
   }
   if (parsed.operations.length > limits.maxPatchOperations) {
     return {
