@@ -10,7 +10,6 @@ import type { NativeRenderModules, RenderOptions, RenderResult } from './natives
 import type { BackendId, ChartAssemblyInput, McpRenderBackend } from '@visulet/sdk';
 
 export { loadNativeModules };
-export { NATIVE_RENDER_ERROR } from './natives.js';
 export type { RenderOptions, RenderResult };
 
 const CHARTJS_SVG_ERROR = 'chartjs supports png only';
