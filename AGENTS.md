@@ -111,3 +111,13 @@ When you want durable fixes (not one-off chat advice):
 - Do not install Trunk-managed linters globally; versions live in `.trunk/trunk.yaml`
 - Commit **`pnpm-lock.yaml`**
 - After `pnpm install`, Trunk is under `node_modules/.bin`; pin is in `.trunk/trunk.yaml` (`cli.version`). Run `pnpm exec trunk install` if formatters/linters are missing
+
+## Cursor Cloud specific instructions
+
+The startup update script runs `pnpm install --frozen-lockfile` for you; dependencies are already installed when a cloud session begins. Standard commands live in **Quick commands** above; the notes below are non-obvious caveats only.
+
+- **Node version:** `.node-version` pins `24.13.0`, but `package.json#engines` only requires `node >=22`. The cloud base image ships Node 22.x, which builds, tests, lints, and runs the entire workspace successfully — no Node switch is needed.
+- **No web app / dev server.** The runnable apps are library adapters that execute from `dist/`, so run `pnpm build` before invoking them:
+  - CLI (`@visulet/cli`): `node packages/cli/dist/index.js <validate|inspect|render|patch|compile|capabilities> [file] [--json] [--format svg] [--backend svg|mermaid|vega-lite]` (e.g. `node packages/cli/dist/index.js render examples/v0/quarterly-revenue.json --format svg`).
+  - MCP server (`@visulet/mcp-server`): `node packages/mcp-server/dist/index.js` — a **stdio JSON-RPC** server accepting NDJSON (one JSON request per line) or `Content-Length` framing. It writes structured tool logs to stderr and does **not** exit when stdin closes, so wrap it in `timeout` when scripting a batch of requests.
+- **Lint scope gotcha:** `pnpm lint` (Trunk) only checks files changed vs the base branch, so on a clean tree it prints `No modified files. Nothing to do`. For a full-repo sweep use `pnpm lint:eslint`, `pnpm knip`, and/or `trunk check --all`. Trunk downloads its pinned linters lazily on first run (needs network).
