@@ -115,7 +115,7 @@ export default [
     ],
   },
   {
-    files: ['packages/**/*.config.ts', 'vitest.config.ts', 'vitest.aliases.ts', 'examples/**/*.ts'],
+    files: ['packages/**/*.config.ts', 'vitest.config.ts', 'vitest.aliases.ts'],
     ignores: ['**/dist/**'],
     languageOptions: {
       parser: tsparser,
@@ -133,6 +133,34 @@ export default [
     rules: {
       ...importXRules,
       ...securityRecommended.rules,
+      'no-eval': 'error',
+      'no-implied-eval': 'error',
+      'no-new-func': 'error',
+      'no-unreachable': 'error',
+      'prefer-const': 'error',
+      'unicorn/filename-case': unicornFilenameCase,
+    },
+  },
+  {
+    files: ['examples/**/*.ts'],
+    ignores: ['**/dist/**'],
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'module',
+      },
+    },
+    plugins: {
+      ...importXPlugins,
+      ...securityRecommended.plugins,
+      unicorn,
+    },
+    settings: importXSettings,
+    rules: {
+      ...importXRules,
+      ...securityRecommended.rules,
+      'import-x/no-unresolved': 'off',
       'no-eval': 'error',
       'no-implied-eval': 'error',
       'no-new-func': 'error',
