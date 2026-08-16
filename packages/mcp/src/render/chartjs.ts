@@ -4,7 +4,7 @@ import { PNG_MIME, toRenderResult } from './natives.js';
 import { asRecord, clampDim } from './size.js';
 
 import type { NativeRenderModules, RenderResult } from './natives.js';
-import type { ChartConfiguration, ChartItem } from 'chart.js';
+import type { ChartConfiguration } from 'chart.js';
 
 export const renderChartjsPng = (
   spec: unknown,
@@ -28,7 +28,7 @@ export const renderChartjsPng = (
       devicePixelRatio: scale,
     },
   } as unknown as ChartConfiguration;
-  const chart = new Chart(ctx as unknown as ChartItem, config);
+  const chart = new Chart(ctx, config);
   try {
     return toRenderResult(PNG_MIME, canvas.toBuffer('image/png'), spec);
   } finally {
