@@ -110,6 +110,7 @@ export default [
       '.cursor/**',
       '.serena/**',
       '.trunk/**',
+      'tmp/**',
       '**/*.generated.ts',
     ],
   },
@@ -194,6 +195,7 @@ export default [
       // Tests often repeat string literals and use conditional expects; keep signal without noise.
       'vitest/no-conditional-expect': 'off',
       'sonarjs/no-duplicate-string': 'off',
+      'security/detect-non-literal-fs-filename': 'off',
       'max-lines-per-function': ['error', { max: 700 }],
       'unicorn/filename-case': unicornFilenameCase,
     },

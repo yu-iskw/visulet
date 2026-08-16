@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": false,
   "license": "Apache-2.0",
-  "description": "Command-line adapter for Vizulet validation, inspection, rendering, and patching.",
+  "description": "Visulet CLI: validate and compile ChartAssemblyInput documents.",
+  "type": "module",
   "publishConfig": {
     "access": "public"
   },
@@ -19,8 +20,6 @@
     "build": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@visulet/core": "workspace:*",
-    "@visulet/renderer-mermaid": "workspace:*",
-    "@visulet/renderer-vegalite": "workspace:*"
+    "@visulet/sdk": "workspace:*"
   }
 }

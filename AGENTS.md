@@ -98,7 +98,7 @@ When you want durable fixes (not one-off chat advice):
 
 ## Architecture
 
-- **Packages:** `packages/*` (and `src/` inside a package when used)
+- **Packages:** `packages/sdk` (`@visulet/sdk`), `packages/cli` (`@visulet/cli`), `packages/mcp` (`@visulet/mcp`). Internal compiler stages live as folders inside the SDK, not extra workspaces.
 - **Root:** shared scripts and config
 - **CI:** `.github/workflows/` — `sbom.yml` runs `pnpm lint:security` then generates/scans an SPDX SBOM on PRs/main; `publish.yml` re-runs `pnpm lint:security` before npm publish
 - **Agent/tooling config:** `.claude/` (Claude Code), `.cursor/` (Cursor rules), `.codex/` (Codex), `.gemini/` (Gemini CLI). Copilot can also read `.github/copilot-instructions.md` alongside `AGENTS.md`.
@@ -111,3 +111,5 @@ When you want durable fixes (not one-off chat advice):
 - Do not install Trunk-managed linters globally; versions live in `.trunk/trunk.yaml`
 - Commit **`pnpm-lock.yaml`**
 - After `pnpm install`, Trunk is under `node_modules/.bin`; pin is in `.trunk/trunk.yaml` (`cli.version`). Run `pnpm exec trunk install` if formatters/linters are missing
+- Ignore **`tmp/**`** in ESLint (already in `eslint.config.mjs`). A nested clone under `tmp/` (for example a Flint oracle) has its own `eslint.config.js`; `eslint .` will load it and fail if that tree is not ignored.
+- MCP TypeScript SDK **v2** `registerTool` expects Zod 4 Standard Schema (`~standard.jsonSchema`). Nested Zod objects passed as a `ZodRawShape` fail typecheck; wrap `registerTool` or pass a full `z.object(...)`. Pin **zod ≥ 4.2**. Native canvas/resvg builds belong in `@visulet/mcp` only (`allowBuilds` in `pnpm-workspace.yaml`).

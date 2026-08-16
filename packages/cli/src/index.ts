@@ -1,37 +1,105 @@
 #!/usr/bin/env node
-/* eslint-disable security/detect-non-literal-fs-filename -- reads user-selected CLI paths */
-import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
-import { DEFAULT_RESOURCE_LIMITS, parseJson } from '@visulet/core';
+import {
+  BACKENDS,
+  isValid,
+  listChartTypes,
+  listThemes,
+  loadLocalDataValues,
+  parseDelimited,
+  readBoundedFile,
+  validateChart,
+} from '@visulet/sdk';
 
-import { executeCli } from './execute';
-import { parseCliArgs } from './parse';
+import type { BackendId, ChartAssemblyInput } from '@visulet/sdk';
 
-function readJson(path: string): unknown {
-  const text = path === '-' ? readFileSync(0, 'utf8') : readFileSync(path, 'utf8');
-  if (Buffer.byteLength(text, 'utf8') > DEFAULT_RESOURCE_LIMITS.maxDocumentBytes) {
-    throw new Error(`Document exceeds ${String(DEFAULT_RESOURCE_LIMITS.maxDocumentBytes)} bytes`);
+const USAGE = `Usage:
+  visulet validate <file> [--backend <id>]
+  visulet compile <file> [--backend <id>]
+  visulet catalog [--backend <id>]
+  visulet themes [id]
+`;
+
+export const parseCsv = (text: string, delimiter = ','): Record<string, unknown>[] =>
+  parseDelimited(text, delimiter);
+
+export const loadInput = (filePath: string): ChartAssemblyInput => {
+  const parsed = JSON.parse(readBoundedFile(resolve(filePath))) as ChartAssemblyInput;
+  if ('values' in parsed.data && Array.isArray(parsed.data.values)) {
+    return parsed;
   }
-  return parseJson(text);
-}
+  if ('url' in parsed.data) {
+    parsed.data = { values: loadLocalDataValues(parsed.data.url) };
+  }
+  return parsed;
+};
 
-function main(): void {
+const asBackend = (value: string | undefined): BackendId => {
+  if (value && (BACKENDS as readonly string[]).includes(value)) {
+    return value as BackendId;
+  }
+  return 'vegalite';
+};
+
+const printJson = (value: unknown): string => `${JSON.stringify(value, null, 2)}\n`;
+
+export const runCli = (argv: string[]): { code: number; stdout: string; stderr: string } => {
+  const [, , command, ...rest] = argv;
+  if (!command || command === '--help' || command === '-h') {
+    return { code: 0, stdout: USAGE, stderr: '' };
+  }
+  const backendFlag = rest.includes('--backend') ? rest[rest.indexOf('--backend') + 1] : undefined;
+  const backend = asBackend(backendFlag);
+  const fileArg = rest.find((item) => !item.startsWith('--') && item !== backendFlag);
   try {
-    const result = executeCli(parseCliArgs(process.argv.slice(2), readJson));
-    if (result.stdout.length > 0) {
-      process.stdout.write(result.stdout);
+    if (command === 'catalog') {
+      return { code: 0, stdout: printJson(listChartTypes(backend)), stderr: '' };
     }
-    if (result.stderr.length > 0) {
-      process.stderr.write(result.stderr);
+    if (command === 'themes') {
+      const id = rest[0];
+      const themes = listThemes();
+      const body = id ? themes.find((item) => item.id === id) : themes;
+      return { code: 0, stdout: printJson(body), stderr: '' };
     }
-    process.exitCode = result.exitCode;
+    if (!fileArg) {
+      return { code: 1, stdout: '', stderr: USAGE };
+    }
+    const input = loadInput(fileArg);
+    const result = validateChart(input, backend);
+    if (command === 'validate') {
+      const payload = {
+        valid: isValid(result),
+        warnings: result.warnings,
+        computedSize: result.computedSize,
+      };
+      return {
+        code: payload.valid ? 0 : 1,
+        stdout: printJson(payload),
+        stderr: '',
+      };
+    }
+    if (command === 'compile') {
+      return { code: 0, stdout: printJson(result.spec), stderr: '' };
+    }
+    return { code: 1, stdout: '', stderr: `Unknown command ${command}\n${USAGE}` };
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'CLI failed';
-    process.stderr.write(`${message}\n`);
-    process.exitCode = 1;
+    return {
+      code: 1,
+      stdout: '',
+      stderr: `${error instanceof Error ? error.message : String(error)}\n`,
+    };
   }
-}
+};
 
-if (require.main === module) {
-  main();
+const isMain = process.argv[1]?.includes('cli') || process.argv[1]?.endsWith('index.js');
+if (isMain && !process.env.VITEST) {
+  const result = runCli(process.argv);
+  if (result.stdout) {
+    process.stdout.write(result.stdout);
+  }
+  if (result.stderr) {
+    process.stderr.write(result.stderr);
+  }
+  process.exitCode = result.code;
 }

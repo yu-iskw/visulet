@@ -1,0 +1,65 @@
+{
+  "name": "@visulet/sdk",
+  "version": "0.1.0",
+  "private": false,
+  "license": "Apache-2.0",
+  "description": "Visulet semantic chart compiler: assemble ChartAssemblyInput into Vega-Lite, ECharts, Chart.js, Plotly, or Excel specs.",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "src",
+    "schema"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./catalog": {
+      "types": "./dist/catalog/index.d.ts",
+      "import": "./dist/catalog/index.js",
+      "default": "./dist/catalog/index.js"
+    },
+    "./theme": {
+      "types": "./dist/theme/index.d.ts",
+      "import": "./dist/theme/index.js",
+      "default": "./dist/theme/index.js"
+    },
+    "./vegalite": {
+      "types": "./dist/backends/vegalite/index.d.ts",
+      "import": "./dist/backends/vegalite/index.js",
+      "default": "./dist/backends/vegalite/index.js"
+    },
+    "./echarts": {
+      "types": "./dist/backends/echarts/index.d.ts",
+      "import": "./dist/backends/echarts/index.js",
+      "default": "./dist/backends/echarts/index.js"
+    },
+    "./chartjs": {
+      "types": "./dist/backends/chartjs/index.d.ts",
+      "import": "./dist/backends/chartjs/index.js",
+      "default": "./dist/backends/chartjs/index.js"
+    },
+    "./plotly": {
+      "types": "./dist/backends/plotly/index.d.ts",
+      "import": "./dist/backends/plotly/index.js",
+      "default": "./dist/backends/plotly/index.js"
+    },
+    "./excel": {
+      "types": "./dist/backends/excel/index.d.ts",
+      "import": "./dist/backends/excel/index.js",
+      "default": "./dist/backends/excel/index.js"
+    },
+    "./schema": "./schema/chart-assembly.schema.json"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run"
+  }
+}

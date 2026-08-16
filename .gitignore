@@ -155,3 +155,5 @@ benchmarks/agent-authoring/v1/results/**
 # CodeQL local artifacts
 .codeql_db/
 codeql-results.sarif
+
+tmp/

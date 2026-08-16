@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://visulet.dev/schema/chart-assembly.json",
+  "title": "Visulet ChartAssemblyInput",
+  "type": "object",
+  "required": ["data", "chart_spec"],
+  "properties": {
+    "data": {
+      "type": "object",
+      "properties": {
+        "values": { "type": "array", "items": { "type": "object" } },
+        "url": { "type": "string" }
+      }
+    },
+    "semantic_types": { "type": "object" },
+    "chart_spec": {
+      "type": "object",
+      "required": ["chartType", "encodings"],
+      "properties": {
+        "chartType": { "type": "string" },
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "encodings": { "type": "object" },
+        "baseSize": {
+          "type": "object",
+          "properties": { "width": { "type": "number" }, "height": { "type": "number" } }
+        },
+        "canvasSize": {
+          "type": "object",
+          "properties": { "width": { "type": "number" }, "height": { "type": "number" } }
+        },
+        "chartProperties": { "type": "object" }
+      }
+    },
+    "theme_spec": {},
+    "options": { "type": "object" },
+    "field_display_names": { "type": "object" }
+  }
+}

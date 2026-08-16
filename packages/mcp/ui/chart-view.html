@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:"
+    />
+    <title>Visulet chart view</title>
+    <style>
+      body {
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        margin: 0;
+        padding: 16px;
+        color: #111;
+      }
+      pre {
+        overflow: auto;
+        background: #f6f6f6;
+        padding: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Visulet chart</h1>
+    <p>Host-rendered MCP App. Spec JSON is shown below; the host should render Vega-Lite.</p>
+    <pre id="spec"></pre>
+    <script>
+      const specEl = document.getElementById('spec');
+      window.addEventListener('message', (event) => {
+        if (event.source !== window.parent) {
+          return;
+        }
+        const data = event.data;
+        const payload = data && (data.result || data.params || data);
+        const structured = payload && (payload.structuredContent || payload);
+        const spec = structured && (structured.spec || payload.spec);
+        if (spec) {
+          specEl.textContent = JSON.stringify(spec, null, 2);
+        }
+      });
+    </script>
+  </body>
+</html>

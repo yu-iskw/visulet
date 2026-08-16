@@ -1,0 +1,45 @@
+{
+  "name": "@visulet/mcp",
+  "version": "0.1.0",
+  "private": false,
+  "license": "Apache-2.0",
+  "description": "Visulet MCP Apps server: stdio and Streamable HTTP chart tools.",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "src",
+    "ui"
+  ],
+  "bin": {
+    "visulet-mcp": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "^1.7.5",
+    "@modelcontextprotocol/node": "^2.0.0",
+    "@modelcontextprotocol/server": "^2.0.0",
+    "@napi-rs/canvas": "^1.0.5",
+    "@resvg/resvg-js": "^2.6.2",
+    "@visulet/sdk": "workspace:*",
+    "chart.js": "^4.5.1",
+    "echarts": "^6.1.0",
+    "vega": "^6.3.1",
+    "vega-lite": "^6.4.3",
+    "zod": "^4.4.3"
+  }
+}

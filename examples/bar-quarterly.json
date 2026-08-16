@@ -1,0 +1,16 @@
+{
+  "data": {
+    "values": [
+      { "quarter": "Q1", "revenue": 120 },
+      { "quarter": "Q2", "revenue": 145 }
+    ]
+  },
+  "semantic_types": { "quarter": "Category", "revenue": "Quantity" },
+  "chart_spec": {
+    "chartType": "Bar Chart",
+    "title": "Quarterly revenue",
+    "encodings": { "x": "quarter", "y": "revenue" }
+  },
+  "theme_spec": "economist",
+  "field_display_names": { "revenue": "Revenue (USD)" }
+}
