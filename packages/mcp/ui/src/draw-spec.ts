@@ -7,6 +7,12 @@ import type { TopLevelSpec } from 'vega-lite';
 let currentView: View | undefined;
 let drawGeneration = 0;
 
+export const clearChart = (): void => {
+  drawGeneration += 1;
+  currentView?.finalize();
+  currentView = undefined;
+};
+
 export const drawSpec = async (
   spec: Record<string, unknown>,
   container: HTMLElement,

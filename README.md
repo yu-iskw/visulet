@@ -60,10 +60,14 @@ pnpm dlx @visulet/mcp --transport http --port 3000
 | `list_chart_types`  | Catalog for a backend                                          |
 | `list_themes`       | Preset themes                                                  |
 
-**Resources:** `ui://visulet/chart-view.html`, `visulet://chart-types`,
-`visulet://agent-skill`, `visulet://theme-skill`.
+**Resources:** `ui://visulet/chart-view.html` (MCP App), `visulet://chart-types`,
+`visulet://chart-types/{backend}`, `visulet://chart-types/{backend}/{id}`,
+`visulet://themes/{id}`, `visulet://schema`, `visulet://agent-skill`,
+`visulet://theme-skill`. Prefer resource templates over `list_chart_types` /
+`list_themes` when the host can read resources.
 
-**Prompts:** `author_visulet_chart`, `author_visulet_theme`.
+**Prompts:** `author_visulet_chart` and `author_visulet_theme` (optional
+`backend`, `chartType`, `theme`, `intent`).
 
 Authoring skills also live in-repo at
 [`agent-skills/visulet-chart-author`](agent-skills/visulet-chart-author/SKILL.md)

@@ -14,13 +14,16 @@ These counts apply to **SDK assemble** for every backend. MCP `render_chart`
 covers Vega-Lite, ECharts, and Chart.js only (a subset). Plotly and Excel
 are SDK assemble (and `compile_chart`) only.
 
-List types at runtime: `visulet catalog [--backend <id>]` or MCP
-`list_chart_types`.
+List types at runtime: `visulet catalog [--backend <id>]`, MCP
+`list_chart_types`, or resources `visulet://chart-types/{backend}` and
+`visulet://chart-types/{backend}/{id}` (completions on the URI variables).
+The unfiltered dump `visulet://chart-types` remains for compatibility.
+JSON Schema: `visulet://schema` (`@visulet/sdk/schema`).
 
 ## Theme presets
 
-Ten job ids (`visulet themes` / MCP `list_themes` returns `id`, `label`, `job`,
-`surface`):
+Ten job ids (`visulet themes` / MCP `list_themes` / resource
+`visulet://themes/{id}` returns `id`, `label`, `job`, `surface`):
 
 `paper`, `slate`, `brief`, `stage`, `field`, `board`, `signal`, `safe`, `ink`,
 `play`.

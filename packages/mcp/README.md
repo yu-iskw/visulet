@@ -70,10 +70,14 @@ the view with `pnpm --filter @visulet/mcp build:ui` (also runs as part of
 **Tools:** `create_chart_view`, `render_chart`, `compile_chart`,
 `validate_chart`, `list_chart_types`, `list_themes`.
 
-**Resources:** `ui://visulet/chart-view.html`, `visulet://chart-types`,
-`visulet://agent-skill`, `visulet://theme-skill`.
+**Resources:** `ui://visulet/chart-view.html` (MCP App), `visulet://chart-types`,
+`visulet://chart-types/{backend}`, `visulet://chart-types/{backend}/{id}`,
+`visulet://themes/{id}`, `visulet://schema`, `visulet://agent-skill`,
+`visulet://theme-skill`. Prefer the URI templates over `list_chart_types` /
+`list_themes` when the host can read resources.
 
-**Prompts:** `author_visulet_chart`, `author_visulet_theme`.
+**Prompts:** `author_visulet_chart` and `author_visulet_theme` (optional
+`backend`, `chartType`, `theme`, `intent`; completions on catalog ids).
 
 `render_chart` rasterizes Vega-Lite, ECharts, and Chart.js. Plotly and Excel
 are assemble-only (`compile_chart` / SDK). The SDK compile path needs no

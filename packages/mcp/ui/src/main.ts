@@ -1,6 +1,6 @@
 import { App, PostMessageTransport } from '@modelcontextprotocol/ext-apps';
 
-import { drawSpec } from './draw-spec.js';
+import { clearChart, drawSpec } from './draw-spec.js';
 import { extractSpec } from './extract-spec.js';
 
 const chartEl = document.getElementById('chart');
@@ -11,6 +11,7 @@ if (!chartEl || !statusEl) {
 }
 
 const showStatus = (message: string): void => {
+  clearChart();
   statusEl.hidden = false;
   statusEl.textContent = message;
   chartEl.replaceChildren();

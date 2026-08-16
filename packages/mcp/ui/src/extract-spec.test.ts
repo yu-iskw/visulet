@@ -27,6 +27,18 @@ describe('extractSpec', () => {
     });
   });
 
+  it('surfaces isError text from content', () => {
+    expect(
+      extractSpec({
+        isError: true,
+        content: [{ type: 'text', text: 'data.url is disabled on this transport.' }],
+      }),
+    ).toEqual({
+      ok: false,
+      message: 'data.url is disabled on this transport.',
+    });
+  });
+
   it('reads a Vega-Lite spec from structuredContent.spec', () => {
     const result = extractSpec({
       content: [{ type: 'text', text: '{}' }],
@@ -36,6 +48,23 @@ describe('extractSpec', () => {
         spec: vegaLiteBar,
         computedSize: { width: 400, height: 320 },
       },
+    });
+    expect(result).toEqual({ ok: true, spec: vegaLiteBar });
+  });
+
+  it('reads a Vega-Lite spec from content JSON when structuredContent is missing', () => {
+    const result = extractSpec({
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            valid: true,
+            warnings: [],
+            spec: vegaLiteBar,
+            computedSize: { width: 400, height: 320 },
+          }),
+        },
+      ],
     });
     expect(result).toEqual({ ok: true, spec: vegaLiteBar });
   });

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { readUi } from './assets.js';
 import { PROMPT_NAMES } from './prompts.js';
-import { RESOURCE_URIS } from './resources.js';
+import { RESOURCE_TEMPLATES, RESOURCE_URIS } from './resources.js';
 import { createServer } from './server.js';
 import { TOOL_NAMES } from './tools.js';
 
@@ -21,6 +21,12 @@ describe('MCP primitive inventory', () => {
       chartTypes: 'visulet://chart-types',
       agentSkill: 'visulet://agent-skill',
       themeSkill: 'visulet://theme-skill',
+      schema: 'visulet://schema',
+    });
+    expect(RESOURCE_TEMPLATES).toEqual({
+      chartTypesByBackend: 'visulet://chart-types/{backend}',
+      chartType: 'visulet://chart-types/{backend}/{id}',
+      theme: 'visulet://themes/{id}',
     });
     expect(PROMPT_NAMES).toEqual(['author_visulet_chart', 'author_visulet_theme']);
   });

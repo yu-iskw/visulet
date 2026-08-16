@@ -42,17 +42,32 @@ const warningText = (warnings: unknown): string => {
     .join('\n');
 };
 
-export const extractSpec = (toolResult: unknown): ExtractSpecResult => {
-  if (!isRecord(toolResult)) {
-    return { ok: false, message: INVALID_RESULT };
+const firstTextBlock = (content: unknown): string | undefined => {
+  if (!Array.isArray(content)) {
+    return undefined;
   }
-  if (toolResult.isError === true) {
-    return { ok: false, message: COMPILE_FAILED };
+  for (const item of content) {
+    if (isRecord(item) && item.type === 'text' && typeof item.text === 'string' && item.text) {
+      return item.text;
+    }
   }
-  if (!isRecord(toolResult.structuredContent)) {
-    return { ok: false, message: MISSING_SPEC };
+  return undefined;
+};
+
+const structuredFromContent = (content: unknown): Record<string, unknown> | undefined => {
+  const text = firstTextBlock(content);
+  if (!text) {
+    return undefined;
   }
-  const structured = toolResult.structuredContent;
+  try {
+    const parsed: unknown = JSON.parse(text);
+    return isRecord(parsed) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const specFromStructured = (structured: Record<string, unknown>): ExtractSpecResult => {
   if (structured.valid === false) {
     return { ok: false, message: warningText(structured.warnings) };
   }
@@ -61,4 +76,21 @@ export const extractSpec = (toolResult: unknown): ExtractSpecResult => {
     return { ok: false, message: MISSING_SPEC };
   }
   return { ok: true, spec };
+};
+
+export const extractSpec = (toolResult: unknown): ExtractSpecResult => {
+  if (!isRecord(toolResult)) {
+    return { ok: false, message: INVALID_RESULT };
+  }
+  if (toolResult.isError === true) {
+    return { ok: false, message: firstTextBlock(toolResult.content) ?? COMPILE_FAILED };
+  }
+  if (isRecord(toolResult.structuredContent)) {
+    return specFromStructured(toolResult.structuredContent);
+  }
+  const fromContent = structuredFromContent(toolResult.content);
+  if (!fromContent) {
+    return { ok: false, message: MISSING_SPEC };
+  }
+  return specFromStructured(fromContent);
 };
