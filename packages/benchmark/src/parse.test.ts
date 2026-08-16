@@ -35,11 +35,24 @@ const start = {
 describe('parse helpers', () => {
   it('accepts fixture-only candidate records and rejects incomplete rows', () => {
     expect(
-      parseCandidateRecord({ caseId: 'x', fixture: 'chart-bar.json', target: 'unknown' }),
+      parseCandidateRecord({
+        caseId: 'x',
+        fixture: 'chart-bar.json',
+        target: 'unknown',
+        promptProfile: 'schema-assisted',
+        repetition: 2,
+      }),
     ).toMatchObject({
       caseId: 'x',
       target: 'visulet',
       fixture: 'chart-bar.json',
+      promptProfile: 'schema-assisted',
+      repetition: 2,
+    });
+    expect(
+      parseCandidateRecord({ caseId: 'x', text: '{}', promptProfile: 'not-a-profile' }),
+    ).toMatchObject({
+      promptProfile: undefined,
     });
     expect(parseCandidateRecord({ caseId: 'x' })).toBeUndefined();
     expect(parseBenchmarkCase({ id: 'x' })).toBeUndefined();
@@ -57,8 +70,10 @@ describe('scoreCandidate extras', () => {
         mark: 'bar',
       }),
     });
-    expect(vega.structuralValid).toBe(false);
-    expect(vega.compileSuccess).toBe(false);
+    expect(vega.structuralValid).toBe(true);
+    expect(vega.compileSuccess).toBe(true);
+    expect(vega.authoringScore).toBeUndefined();
+    expect(vega.nativeEscape).toBe(false);
     const next = { ...start, title: 'New' };
     const modified = scoreCandidate(
       barCase,

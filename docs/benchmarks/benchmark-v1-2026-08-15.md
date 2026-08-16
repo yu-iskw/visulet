@@ -3,9 +3,10 @@
 ## Environment
 
 - Date: 2026-08-15
-- Corpus version: v1 (offline control fixtures; live models not executed)
-- Runner version: `@visulet/benchmark` / control mode
-- Models: none (blocked on provider credentials in this worktree)
+- Corpus version: v1 (40 cases; live models not executed)
+- Runner version: `@visulet/benchmark` control mode; `@visulet/benchmark-live`
+  adapters exist but were not invoked
+- Models: none (**blocked-on-credentials** in this worktree)
 - Sampling configuration: not applicable
 
 ## Methodology
@@ -18,8 +19,10 @@ Domain-stratified comparison is required:
 
 Prompt profiles: minimal, schema-assisted, diagnostic-repair, mcp-tool-repair.
 
-This memo records a **control-mode** run of saved candidates. Live-model
-execution is `workflow_dispatch` only and was not performed.
+This memo records a **control-mode** run of saved candidates plus the RFC 0003
+closeout status of the live runner. Live-model execution is
+`workflow_dispatch` only and was not performed here because provider secrets
+are not available.
 
 ## Results
 
@@ -62,17 +65,15 @@ escape was not observed in control VisualDocument fixtures.
 
 ## IR implications
 
-No empirical IR break was observed in control mode. Known v0 defects listed in
-RFC 0002 §5.1 were addressed in hygiene (diagnostics, capabilities, typed
-sequence, Ajv on render/score) without waiting for live evidence.
+No empirical IR break was observed in control mode. RFC 0003 does not revise
+the IR. Open RFC 0004 only after a credentialed live run fails RFC 0002 §19.
 
 ## Decision
 
-**Do not freeze v1.** Proceed with measurement infrastructure, Mermaid/Vega-Lite
-compilers, CLI, and MCP. Open no RFC 0003 IR redesign yet. Re-run this memo
-after a credentialed live stratified experiment.
+**Blocked-on-credentials.** Do not claim GO. Do not freeze v1.
 
-Go/no-go for npm v1 compatibility: **no-go**.
+Go/no-go for npm v1 compatibility: **no-go** (unchanged). Experimental 0.x
+prep may proceed with pre-1.0 messaging.
 
 ## Caveats
 

@@ -28,6 +28,7 @@ permissions: {}
 jobs:
   check-token:
     name: Check if the NPM_TOKEN is set
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
       - name: Check if the NPM_TOKEN is set
@@ -41,6 +42,7 @@ jobs:
   publish:
     needs:
       - check-token
+    if: always() && (github.event_name == 'workflow_dispatch' || needs.check-token.result == 'success')
     name: Publish to npm
     runs-on: ubuntu-latest
     permissions:
@@ -69,8 +71,7 @@ jobs:
           node-version-file: .node-version
           registry-url: https://registry.npmjs.org
           package-manager-cache: false
-          # TODO: Replace with your scope
-          scope: ''
+          scope: '@visulet'
       - name: Install dependencies
         run: |
           pnpm install --frozen-lockfile
@@ -83,7 +84,13 @@ jobs:
       - name: Run security-scoped Trunk check
         run: |
           pnpm lint:security
+      - name: Publish dry run
+        env:
+          NODE_AUTH_TOKEN: '${{ secrets.NPM_TOKEN }}'
+        run: |
+          pnpm -r publish --dry-run --no-git-checks --access public
       - name: Publish to npm
+        if: github.event_name == 'release'
         env:
           NODE_AUTH_TOKEN: '${{ secrets.NPM_TOKEN }}'
         run: |

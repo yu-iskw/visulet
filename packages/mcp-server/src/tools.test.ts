@@ -135,5 +135,8 @@ describe('readMcpResource', () => {
     expect(readMcpResource('visulet://capabilities/vega-lite')?.text).toContain('vega-lite');
     expect(readMcpResource('visulet://types/missing')).toBeUndefined();
     expect(readMcpResource('visulet://nope')).toBeUndefined();
+    expect(readMcpResource('ui://visulet/preview')?.mimeType).toBe('text/html;profile=mcp-app');
+    expect(readMcpResource('visulet://examples')?.text).toContain('version');
+    expect(readMcpResource('visulet://diagnostics')?.text).toContain('schema.*');
   });
 });

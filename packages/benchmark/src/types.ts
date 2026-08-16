@@ -1,14 +1,25 @@
 import type { AuthoringScore } from '@visulet/core';
 
 export type BenchmarkTarget = 'visulet' | 'vega-lite' | 'mermaid';
+export const BENCHMARK_TARGETS = [
+  'visulet',
+  'vega-lite',
+  'mermaid',
+] as const satisfies readonly BenchmarkTarget[];
 export type BenchmarkCategory = 'chart' | 'diagram' | 'infographic' | 'composed';
 export type BenchmarkTaskType = 'generation' | 'modification';
+export type PromptProfileId =
+  'minimal' | 'schema-assisted' | 'diagnostic-repair' | 'mcp-tool-repair';
 export type ViewKind =
   'chart' | 'diagram' | 'infographic' | 'table' | 'text' | 'metric' | 'container' | 'native';
 
 export interface ModelRunRequest {
   readonly caseId: string;
   readonly prompt: string;
+  readonly system?: string;
+  readonly model?: string;
+  readonly temperature?: number;
+  readonly maxOutputTokens?: number;
   readonly startingArtifact?: unknown;
 }
 
@@ -51,6 +62,8 @@ export interface CandidateRecord {
   readonly outputTokens?: number;
   readonly latencyMs?: number;
   readonly correctionTurns?: number;
+  readonly promptProfile?: PromptProfileId;
+  readonly repetition?: number;
 }
 
 export interface ScoringProfileWeights {
@@ -91,6 +104,8 @@ export interface CandidateMetrics {
   readonly outputTokens?: number;
   readonly latencyMs?: number;
   readonly correctionTurns?: number;
+  readonly promptProfile?: PromptProfileId;
+  readonly repetition?: number;
   readonly nativeEscape: boolean;
   readonly capabilityWarningCount: number;
   readonly authoringScore?: AuthoringScore;
@@ -120,6 +135,7 @@ export interface AggregateResult {
   readonly hypotheses: ScoringProfileHypotheses;
   readonly byTarget: Readonly<Record<string, GroupStats>>;
   readonly byCategory: Readonly<Record<string, GroupStats>>;
+  readonly byPromptProfile: Readonly<Record<string, GroupStats>>;
   readonly metrics: readonly CandidateMetrics[];
 }
 
@@ -139,6 +155,22 @@ export interface OfflineRunResult {
 export interface ControlBenchmarkOptions {
   readonly rootDir?: string;
   readonly writeResults?: boolean;
+}
+
+export interface LiveRunInput {
+  readonly cases: readonly BenchmarkCase[];
+  readonly provider: ModelProvider;
+  readonly model: string;
+  readonly targets: readonly BenchmarkTarget[];
+  readonly promptProfiles: readonly PromptProfileId[];
+  readonly experimentId?: string;
+  readonly repetitions?: number;
+  readonly temperature?: number;
+  readonly maxOutputTokens?: number;
+  readonly fixtures?: Readonly<Record<string, unknown>>;
+  readonly schemaFragment?: string;
+  readonly includeHoldout?: boolean;
+  readonly scoringProfile?: ScoringProfile;
 }
 
 export const AGENT_AUTHORING_V1 = 'agent-authoring-v1';

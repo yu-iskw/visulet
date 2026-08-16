@@ -26,11 +26,28 @@ describe('mcp-app sandbox preview', () => {
     expect(html).not.toContain('innerHTML');
     expect(html).toContain('event.source !== window.parent');
     expect(html).toContain('Outline');
+    expect(html).toContain('result.viewIds');
     expect(html).toContain('Diagnostics');
-    expect(html).toContain('Backends');
+    expect(html).toContain('Compatibility');
     expect(html).toContain('Patch');
     expect(html).toContain('JSON');
+    expect(html).toContain('jsonrpc');
+    expect(html).toContain('tools/call');
+    expect(html).toContain('visual_apply_patch');
+    expect(html).toContain('data:image/svg+xml');
+    expect(html).toContain('encodeURIComponent');
+    expect(html).not.toContain('%%{init');
+    expect(html).not.toContain('mermaid');
     expect(readme).toContain('text/html;profile=mcp-app');
     expect(readme).toContain('sandbox');
+    const packaged = readFileSync(join(__dirname, '../ui/preview.html'), 'utf8');
+    expect(packaged).toBe(html);
+  });
+
+  it('keeps script-bearing SVG on a data image, not inline DOM', () => {
+    const html = readFileSync(previewPath, 'utf8');
+    expect(html).toContain("svg.indexOf('<svg')");
+    expect(html).toContain("createElement('img')");
+    expect(html).not.toContain('innerHTML');
   });
 });

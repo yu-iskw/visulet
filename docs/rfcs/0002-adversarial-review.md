@@ -6,6 +6,10 @@ Accepted as the post-v0 implementation contract after revision. The original
 download draft is not implementable as written. This review is the evidence
 record; the revised RFC is `0002-post-v0-roadmap.md`.
 
+Historical note: this review reserved “RFC 0003” for empirical IR breaks.
+RFC 0003 was later assigned to RFC 0002 closeout
+(`0003-rfc-0002-closeout.md`). IR breaks are RFC 0004.
+
 ## Central claim of the draft
 
 After VisualDocument v0, Vizulet should stabilize by measuring agent

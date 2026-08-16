@@ -77,6 +77,15 @@ importers:
         specifier: workspace:*
         version: link:../renderer-vegalite
 
+  packages/benchmark-live:
+    dependencies:
+      '@visulet/benchmark':
+        specifier: workspace:*
+        version: link:../benchmark
+      '@visulet/core':
+        specifier: workspace:*
+        version: link:../common
+
   packages/cli:
     dependencies:
       '@visulet/core':

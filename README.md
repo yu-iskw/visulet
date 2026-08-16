@@ -8,8 +8,9 @@ The project is intentionally renderer-independent at the document boundary. AI a
 produce or edit a `VisualDocument`; deterministic Vizulet code validates, diagnoses,
 compiles, and renders it.
 
-> Status: pre-v1 proof of concept. The v0 schema and implementation are intentionally
-> small and are expected to change based on agent-authoring benchmarks.
+> Status: experimental **0.1.0**, pre-v1. VisualDocument remains version `"0"`
+> and may change based on agent-authoring benchmarks. See
+> `docs/releases/pre-1.0.md`.
 
 ## v0 vertical slice
 
@@ -72,6 +73,8 @@ if (validation.valid) {
 - RFC 0001 review: `docs/rfcs/0001-adversarial-review.md`
 - RFC 0002: `docs/rfcs/0002-post-v0-roadmap.md`
 - RFC 0002 review: `docs/rfcs/0002-adversarial-review.md`
+- RFC 0003: `docs/rfcs/0003-rfc-0002-closeout.md`
+- RFC 0003 review: `docs/rfcs/0003-adversarial-review.md`
 - v1 status: `docs/v1-status.md` (not frozen)
 - JSON Schema: `schemas/v0/visual-document.schema.json`
 - Example document: `examples/v0/quarterly-revenue.json`
@@ -79,6 +82,8 @@ if (validation.valid) {
 - CLI: `@visulet/cli` (`visulet validate|inspect|render|patch|compile`)
 - MCP: `@visulet/mcp-server`
 - Renderers: SVG in core; `@visulet/renderer-mermaid`; `@visulet/renderer-vegalite`
+- Pre-1.0 policy: `docs/releases/pre-1.0.md`
+- MCP App security: `docs/security/mcp-app.md`
 
 The core remains free of MCP, CLI parsers, and renderer-framework dependencies.
 

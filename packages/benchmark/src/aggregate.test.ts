@@ -68,4 +68,21 @@ describe('aggregateMetrics', () => {
     expect(mixed.firstPassSemanticValidity).toBe(eligibleOnly.firstPassSemanticValidity);
     expect(mixed.nativeEscapeRate).toBe(eligibleOnly.nativeEscapeRate);
   });
+
+  it('groups metrics by prompt profile when present', () => {
+    const minimal = row({ promptProfile: 'minimal', structuralValid: true, semanticValid: true });
+    const repaired = row({
+      promptProfile: 'diagnostic-repair',
+      correctionTurns: 1,
+      structuralValid: true,
+      semanticValid: false,
+    });
+    const aggregate = aggregateMetrics([minimal, repaired], [{ id: 'gen-chart-bar' }]);
+    expect(aggregate.byPromptProfile.minimal).toEqual({
+      count: 1,
+      structuralValidity: 1,
+      semanticValidity: 1,
+    });
+    expect(aggregate.byPromptProfile['diagnostic-repair'].count).toBe(1);
+  });
 });

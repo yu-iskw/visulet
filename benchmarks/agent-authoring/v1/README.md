@@ -29,6 +29,9 @@ The control loader in `@visulet/benchmark` reads `cases/*.json` (skipping
 `cases.json` to avoid double-counting), `candidates/control.jsonl`, and
 `fixtures/*.json`. It never contacts a model provider.
 
+Live runs use `@visulet/benchmark-live` and
+`manifests/live.example.json`. See `docs/benchmarks/benchmark-v1.md`.
+
 ## Holdout
 
 These case ids are **holdout**. Do not use them to tune prompts, schemas, or

@@ -1,6 +1,17 @@
 import { isRecord, optionalFiniteNumber, parseJson } from '@visulet/core';
 
-import type { BenchmarkCase, BenchmarkTarget, CandidateRecord } from './types';
+import { PROMPT_PROFILE_IDS } from './prompt-profiles';
+
+import type { BenchmarkCase, BenchmarkTarget, CandidateRecord, PromptProfileId } from './types';
+
+function asPromptProfile(value: unknown): PromptProfileId | undefined {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  return (PROMPT_PROFILE_IDS as readonly string[]).includes(value)
+    ? (value as PromptProfileId)
+    : undefined;
+}
 
 function asTarget(value: unknown): BenchmarkTarget {
   if (value === 'visulet' || value === 'vega-lite' || value === 'mermaid') {
@@ -50,6 +61,8 @@ export function parseCandidateRecord(value: unknown): CandidateRecord | undefine
     outputTokens: optionalFiniteNumber(value.outputTokens),
     latencyMs: optionalFiniteNumber(value.latencyMs),
     correctionTurns: optionalFiniteNumber(value.correctionTurns),
+    promptProfile: asPromptProfile(value.promptProfile),
+    repetition: optionalFiniteNumber(value.repetition),
   };
 }
 

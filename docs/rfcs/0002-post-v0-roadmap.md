@@ -6,9 +6,12 @@
 - **Created:** 2026-08-15
 - **Revised:** 2026-08-15
 - **Supersedes:** RFC 0001 §§18–20 (CLI / MCP / MCP App surface) for post-v0 work
-- **Does not supersede:** VisualDocument v0 document model (RFC 0001) until RFC 0003
+- **Does not supersede:** VisualDocument v0 document model (RFC 0001)
 - **Builds on:** RFC 0001 / `VisualDocument v0` and `0001-adversarial-review.md`
 - **Companion:** `0002-adversarial-review.md`
+- **Closeout:** RFC 0003 (`0003-rfc-0002-closeout.md`) completes leftover
+  measurement, MCP App, and experimental 0.x work. Empirical IR breaks,
+  previously reserved as RFC 0003 in this document, are **RFC 0004**.
 - **Intended audience:** Maintainers, contributors, coding agents, integrators, renderer authors, MCP client authors
 
 ---
@@ -36,7 +39,8 @@ The sequence is kill-gated:
 3. Benchmark v1 offline harness, ~40 in-scope cases, control fixtures in CI.
 4. Thin stdio MCP server isomorphic to those CLI operations.
 5. Live stratified benchmark and a written go / no-go. **STOP** before v1 or
-   MCP App polish if gates fail; open RFC 0003 for IR breaks.
+   MCP App polish if gates fail; open RFC 0004 for IR breaks (RFC 0003 is
+   closeout, not an IR rewrite).
 6. `VisualRenderer` interface plus `@visulet/renderer-mermaid` and
    `@visulet/renderer-vegalite` (SVG stays in core).
 7. Full MCP resources, `visual_describe_type`, compile tools, experimental
@@ -85,7 +89,7 @@ Long-term properties, in priority order:
   ingestion, raw metrics, named scoring profiles, control-mode CI.
 - Domain-stratified comparison: charts vs Vega-Lite, diagrams vs Mermaid,
   infographics Vizulet-only.
-- IR revision workflow (RFC 0003) when live evidence demands it.
+- IR revision workflow (RFC 0004) when live evidence demands it.
 - Mermaid source compiler and Vega-Lite JSON compiler for the supported
   subset, with machine-readable capabilities.
 - CLI for validate / inspect / render / patch / compile.
@@ -328,7 +332,7 @@ For `diagram: "sequence"`, `model` is constrained:
 Semantic validation: unique participant ids; message `from` / `to` must
 reference participants. Duplicate node ids on node/edge diagrams remain errors.
 
-The open `model` object remains allowed for other diagram types until RFC 0003.
+The open `model` object remains allowed for other diagram types until RFC 0004.
 
 ## 11. Capabilities
 
@@ -488,7 +492,7 @@ On in-scope, non-holdout generation tasks, after one repair cycle:
 
 **STOP:** if native-escape ≥ 25% or Vizulet loses on first-pass+repair
 validity versus the domain baseline, do not freeze v1 or polish the MCP App.
-Write RFC 0003. Mermaid and Vega-Lite may still proceed if needed to _measure_
+Write RFC 0004. Mermaid and Vega-Lite may still proceed if needed to _measure_
 portability.
 
 ---
@@ -634,7 +638,7 @@ compact `docs/agents/` quickstart, repair-loop, patching, backend-selection.
 | 2     | Patch + CLI                   | tests red → do not start benchmark runner         |
 | 3     | Offline benchmark v1          | control fixtures red → do not claim measurement   |
 | 4     | Thin MCP                      | stdio tools red → live MCP-repair profile skipped |
-| 5     | Live report + go/no-go        | STOP v1/App if gates fail; RFC 0003 for IR breaks |
+| 5     | Live report + go/no-go        | STOP v1/App if gates fail; RFC 0004 for IR breaks |
 | 6     | Mermaid + Vega-Lite           | goldens red → no compile tools                    |
 | 7     | Full MCP + examples/mcp-app   | App is optional                                   |
 | 8     | v1 freeze                     | only if Phase 5 said go                           |
@@ -721,4 +725,4 @@ edit-locality. Weights live next to the profile id in
 See `docs/benchmarks/` after Phase 5. Required sections: environment,
 methodology, prompt hashes, first-pass validity, repair success, tokens,
 latency, edit locality, portability, native escape, failure clusters, IR
-implications, decision (proceed / minor RFC 0003 / major redesign), caveats.
+implications, decision (proceed / minor RFC 0004 / major redesign), caveats.
