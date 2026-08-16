@@ -9,6 +9,10 @@
     },
     "packages/*": {
       "project": ["src/**/*.ts"]
+    },
+    "packages/mcp-server": {
+      "entry": ["src/index.ts", "src/vega-runtime.ts", "scripts/bundle-preview.mjs"],
+      "project": ["src/**/*.ts", "scripts/**/*.mjs"]
     }
   }
 }

@@ -1,16 +1,24 @@
 /* eslint-disable security/detect-non-literal-fs-filename -- preview and example paths are package-relative constants */
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import {
   applyVisualDocumentPatch,
   inspectVisualDocument,
   renderSvgDocument,
+  renderVisualDocumentScene,
   svgRendererCapabilities,
   validateVisualDocument,
+  type VisualDocument,
 } from '@visulet/core';
 import { compileMermaidDocument, getMermaidCapabilities } from '@visulet/renderer-mermaid';
-import { compileVegaLiteDocument, getVegaLiteCapabilities } from '@visulet/renderer-vegalite';
+import {
+  compileVegaLiteDocument,
+  getVegaLiteCapabilities,
+  themeConfig,
+  VEGA_LITE_CHART_TYPES,
+  VEGA_LITE_THEMES,
+} from '@visulet/renderer-vegalite';
 import visualDocumentV0Schema from '@visulet/schema';
 
 export interface McpToolRequest {
@@ -33,11 +41,32 @@ export interface McpToolResponse {
   readonly diagnostics?: unknown;
 }
 
+function chartEncodingChannels(type: (typeof VEGA_LITE_CHART_TYPES)[number]): readonly string[] {
+  switch (type) {
+    case 'scatter':
+      return ['x', 'y', 'color', 'size'];
+    case 'bar':
+    case 'line':
+    case 'heatmap':
+    case 'area':
+    case 'stacked-bar':
+    case 'grouped-bar':
+      return ['x', 'y', 'color'];
+    default: {
+      const exhaustive: never = type;
+      return exhaustive;
+    }
+  }
+}
+
 const TYPE_CATALOG = new Map<string, unknown>([
-  ['chart/bar', { kind: 'chart', type: 'bar', encoding: ['x', 'y', 'color'] }],
-  ['chart/line', { kind: 'chart', type: 'line', encoding: ['x', 'y', 'color'] }],
-  ['chart/scatter', { kind: 'chart', type: 'scatter', encoding: ['x', 'y', 'color', 'size'] }],
-  ['chart/heatmap', { kind: 'chart', type: 'heatmap', encoding: ['x', 'y', 'color'] }],
+  ...VEGA_LITE_CHART_TYPES.map(
+    (type) =>
+      [`chart/${type}`, { kind: 'chart', type, encoding: chartEncodingChannels(type) }] as [
+        string,
+        unknown,
+      ],
+  ),
   ['diagram/flowchart', { kind: 'diagram', type: 'flowchart', model: 'nodes+edges' }],
   [
     'diagram/sequence',
@@ -68,6 +97,20 @@ function invalidFromValidation(result: ReturnType<typeof validateVisualDocument>
   return { ok: false, category, diagnostics: result.diagnostics, result: { valid: false } };
 }
 
+function requireValidDocument(args: Readonly<Record<string, unknown>>):
+  | {
+      readonly ok: true;
+      readonly document: VisualDocument;
+      readonly diagnostics: ReturnType<typeof validateVisualDocument>['diagnostics'];
+    }
+  | { readonly ok: false; readonly response: McpToolResponse } {
+  const result = validateVisualDocument(args.document);
+  if (!result.valid || result.document === undefined) {
+    return { ok: false, response: invalidFromValidation(result) };
+  }
+  return { ok: true, document: result.document, diagnostics: result.diagnostics };
+}
+
 function handleValidate(args: Readonly<Record<string, unknown>>): McpToolResponse {
   const result = validateVisualDocument(args.document);
   if (!result.valid) {
@@ -81,12 +124,62 @@ function handleValidate(args: Readonly<Record<string, unknown>>): McpToolRespons
   };
 }
 
-function handleInspect(args: Readonly<Record<string, unknown>>): McpToolResponse {
-  const result = validateVisualDocument(args.document);
-  if (!result.valid || result.document === undefined) {
-    return invalidFromValidation(result);
+function vegaLiteThemeLibrary(): Readonly<Record<string, unknown>> {
+  return Object.fromEntries(VEGA_LITE_THEMES.map((id) => [id, themeConfig(id)]));
+}
+
+function previewChartFields(document: VisualDocument): {
+  readonly scene: unknown;
+  readonly vegaLite: unknown;
+  readonly backends: readonly string[];
+  readonly themes: Readonly<Record<string, unknown>>;
+  readonly themeIds: typeof VEGA_LITE_THEMES;
+  readonly chartTypes: typeof VEGA_LITE_CHART_TYPES;
+  readonly diagnostics: ReturnType<typeof compileVegaLiteDocument>['diagnostics'];
+} {
+  const rendered = renderVisualDocumentScene(document);
+  const vegaLite = compileVegaLiteDocument(document, { skipValidate: true });
+  return {
+    scene: rendered.scene,
+    vegaLite: vegaLite.valid ? vegaLite.output : undefined,
+    backends: ['vega-lite', 'svg', 'mermaid'],
+    themes: vegaLiteThemeLibrary(),
+    themeIds: VEGA_LITE_THEMES,
+    chartTypes: VEGA_LITE_CHART_TYPES,
+    diagnostics: [...rendered.diagnostics, ...vegaLite.diagnostics],
+  };
+}
+
+function handlePreview(args: Readonly<Record<string, unknown>>): McpToolResponse {
+  const loaded = requireValidDocument(args);
+  if (!loaded.ok) {
+    return loaded.response;
   }
-  return { ok: true, category: 'success', result: inspectVisualDocument(result.document) };
+  const preview = previewChartFields(loaded.document);
+  return {
+    ok: true,
+    category: 'success',
+    result: {
+      document: loaded.document,
+      outline: inspectVisualDocument(loaded.document),
+      capabilities: capabilitiesFor(undefined),
+      scene: preview.scene,
+      vegaLite: preview.vegaLite,
+      backends: preview.backends,
+      themes: preview.themes,
+      themeIds: preview.themeIds,
+      chartTypes: preview.chartTypes,
+    },
+    diagnostics: [...loaded.diagnostics, ...preview.diagnostics],
+  };
+}
+
+function handleInspect(args: Readonly<Record<string, unknown>>): McpToolResponse {
+  const loaded = requireValidDocument(args);
+  if (!loaded.ok) {
+    return loaded.response;
+  }
+  return { ok: true, category: 'success', result: inspectVisualDocument(loaded.document) };
 }
 
 function handleRender(args: Readonly<Record<string, unknown>>): McpToolResponse {
@@ -112,14 +205,24 @@ function handleRender(args: Readonly<Record<string, unknown>>): McpToolResponse 
 
 function handlePatch(args: Readonly<Record<string, unknown>>): McpToolResponse {
   const patched = applyVisualDocumentPatch(args.document, args.patch);
-  if (!patched.valid) {
+  if (!patched.valid || patched.document === undefined) {
     return { ok: false, category: 'invalid_document', diagnostics: patched.diagnostics };
   }
+  const preview = previewChartFields(patched.document);
   return {
     ok: true,
     category: 'success',
-    result: { document: patched.document, operationCount: patched.operationCount },
-    diagnostics: patched.diagnostics,
+    result: {
+      document: patched.document,
+      operationCount: patched.operationCount,
+      patch: args.patch,
+      scene: preview.scene,
+      vegaLite: preview.vegaLite,
+      themes: preview.themes,
+      themeIds: preview.themeIds,
+      chartTypes: preview.chartTypes,
+    },
+    diagnostics: [...patched.diagnostics, ...preview.diagnostics],
   };
 }
 
@@ -146,7 +249,7 @@ function handleCompile(args: Readonly<Record<string, unknown>>): McpToolResponse
     };
   }
   if (backend === 'vega-lite') {
-    const compiled = compileVegaLiteDocument(document);
+    const compiled = compileVegaLiteDocument(document, { skipValidate: true });
     if (!compiled.valid) {
       return { ok: false, category: 'renderer_failure', diagnostics: compiled.diagnostics };
     }
@@ -208,10 +311,44 @@ function handleDescribeType(args: Readonly<Record<string, unknown>>): McpToolRes
 
 export const MCP_UI_PREVIEW_URI = 'ui://visulet/preview';
 export const MCP_UI_RESOURCE_MIME = 'text/html;profile=mcp-app';
-export const MCP_UI_TOOL_NAMES = ['visual_render', 'visual_inspect', 'visual_apply_patch'] as const;
+export const MCP_UI_RESOURCE_META = {
+  ui: {
+    csp: { connectDomains: [], resourceDomains: [] },
+    prefersBorder: true,
+  },
+} as const;
+export const MCP_UI_TOOL_NAMES = [
+  'visual_preview',
+  'visual_inspect',
+  'visual_apply_patch',
+] as const;
 
 const PREVIEW_HTML_PATH = join(__dirname, '../ui/preview.html');
-const PREVIEW_HTML = readFileSync(PREVIEW_HTML_PATH, 'utf8');
+const PREVIEW_VENDOR_PATH = join(__dirname, '../ui/vega-runtime.generated.js');
+export const VENDOR_PLACEHOLDER = '/* VISULET_VENDOR */';
+const VENDOR_MISSING = '/* visulet-vendor-missing */';
+
+export function injectPreviewVendor(author: string, vendor: string): string {
+  const safeVendor = vendor.replaceAll(/<\/script/gi, '<\\/script');
+  return author.replace(VENDOR_PLACEHOLDER, () => safeVendor);
+}
+
+let cachedPreviewHtml: string | undefined;
+
+function loadPreviewHtml(): string {
+  if (cachedPreviewHtml !== undefined && process.env.VISULET_PREVIEW_LIVE !== '1') {
+    return cachedPreviewHtml;
+  }
+  const author = readFileSync(PREVIEW_HTML_PATH, 'utf8');
+  const vendor = existsSync(PREVIEW_VENDOR_PATH)
+    ? readFileSync(PREVIEW_VENDOR_PATH, 'utf8')
+    : VENDOR_MISSING;
+  const html = injectPreviewVendor(author, vendor);
+  if (process.env.VISULET_PREVIEW_LIVE !== '1') {
+    cachedPreviewHtml = html;
+  }
+  return html;
+}
 
 const DIAGNOSTIC_DOCS = {
   namespaces: [
@@ -229,6 +366,7 @@ const DIAGNOSTIC_DOCS = {
 export const MCP_TYPE_IDS = [...TYPE_CATALOG.keys()];
 
 export const MCP_TOOL_NAMES = [
+  'visual_preview',
   'visual_validate',
   'visual_inspect',
   'visual_render',
@@ -247,23 +385,19 @@ interface McpToolSchema {
   readonly properties: Readonly<Record<string, unknown>>;
 }
 
+const DOCUMENT_INPUT_SCHEMA: McpToolSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['document'],
+  properties: {
+    document: { type: 'object' },
+  },
+};
+
 export const MCP_TOOL_SCHEMAS: Readonly<Record<McpToolName, McpToolSchema>> = {
-  visual_validate: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['document'],
-    properties: {
-      document: { type: 'object' },
-    },
-  },
-  visual_inspect: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['document'],
-    properties: {
-      document: { type: 'object' },
-    },
-  },
+  visual_preview: DOCUMENT_INPUT_SCHEMA,
+  visual_validate: DOCUMENT_INPUT_SCHEMA,
+  visual_inspect: DOCUMENT_INPUT_SCHEMA,
   visual_render: {
     type: 'object',
     additionalProperties: false,
@@ -311,6 +445,8 @@ export const MCP_TOOL_SCHEMAS: Readonly<Record<McpToolName, McpToolSchema>> = {
 
 export function executeMcpTool(request: McpToolRequest): McpToolResponse {
   switch (request.name) {
+    case 'visual_preview':
+      return handlePreview(request.arguments);
     case 'visual_validate':
       return handleValidate(request.arguments);
     case 'visual_inspect':
@@ -330,9 +466,13 @@ export function executeMcpTool(request: McpToolRequest): McpToolResponse {
   }
 }
 
-export function readMcpResource(
-  uri: string,
-): { readonly mimeType: string; readonly text: string } | undefined {
+export function readMcpResource(uri: string):
+  | {
+      readonly mimeType: string;
+      readonly text: string;
+      readonly _meta?: Readonly<Record<string, unknown>>;
+    }
+  | undefined {
   if (uri === 'visulet://schema/v0/visual-document') {
     return { mimeType: 'application/schema+json', text: JSON.stringify(visualDocumentV0Schema) };
   }
@@ -357,7 +497,11 @@ export function readMcpResource(
     return { mimeType: 'application/json', text: JSON.stringify(description) };
   }
   if (uri === MCP_UI_PREVIEW_URI) {
-    return { mimeType: MCP_UI_RESOURCE_MIME, text: PREVIEW_HTML };
+    return {
+      mimeType: MCP_UI_RESOURCE_MIME,
+      text: loadPreviewHtml(),
+      _meta: MCP_UI_RESOURCE_META,
+    };
   }
   if (uri === 'visulet://examples') {
     return {
