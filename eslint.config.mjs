@@ -115,7 +115,7 @@ export default [
     ],
   },
   {
-    files: ['packages/**/*.config.ts', 'vitest.config.ts', 'vitest.aliases.ts'],
+    files: ['packages/**/*.config.ts', 'vitest.config.ts', 'vitest.aliases.ts', 'examples/**/*.ts'],
     ignores: ['**/dist/**'],
     languageOptions: {
       parser: tsparser,
