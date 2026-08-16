@@ -1,7 +1,6 @@
 import { readMapValue } from '@visulet/core';
 
-export type VegaLiteEncodingType =
-  'quantitative' | 'nominal' | 'ordinal' | 'temporal' | 'geographic';
+type VegaLiteEncodingType = 'quantitative' | 'nominal' | 'ordinal' | 'temporal' | 'geographic';
 
 export interface SemanticChannel {
   readonly type: VegaLiteEncodingType;
@@ -67,7 +66,7 @@ export const FLINT_SEMANTIC_TYPES = [
   'Unknown',
 ] as const;
 
-export type FlintSemanticType = (typeof FLINT_SEMANTIC_TYPES)[number];
+type FlintSemanticType = (typeof FLINT_SEMANTIC_TYPES)[number];
 
 const CHANNELS: Readonly<Record<string, SemanticChannel>> = {
   datetime: { type: TEMPORAL, format: '%Y-%m-%d %H:%M' },

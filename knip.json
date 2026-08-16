@@ -11,7 +11,7 @@
       "project": ["src/**/*.ts"]
     },
     "packages/mcp-server": {
-      "entry": ["src/index.ts", "src/vega-runtime.ts", "scripts/bundle-preview.mjs"],
+      "entry": ["src/index.ts", "src/vega-runtime.ts"],
       "project": ["src/**/*.ts", "scripts/**/*.mjs"]
     }
   }

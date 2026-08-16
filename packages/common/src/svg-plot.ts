@@ -26,7 +26,7 @@ const BLUES = [
   '#08306b',
 ] as const;
 
-export interface PlotRect {
+interface PlotRect {
   readonly x0: number;
   readonly x1: number;
   readonly y0: number;

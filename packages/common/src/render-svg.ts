@@ -44,7 +44,7 @@ import type {
 const WIDTH = CANVAS_WIDTH;
 const PADDING = 32;
 
-export interface SvgDocumentScene extends RenderResult {
+interface SvgDocumentScene extends RenderResult {
   readonly scene: SvgSceneNode;
 }
 
