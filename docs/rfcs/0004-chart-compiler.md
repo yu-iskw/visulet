@@ -10,8 +10,9 @@ Visulet’s public compiler contract is `ChartAssemblyInput`, implemented in
 Agents author semantics and a chart type; deterministic code produces a
 backend-native spec. Diagrams, infographics, and composed documents are deferred.
 
-Flint is a **behavioral oracle** for chart types, semantic types, and theme
-presets. It is not source code to copy.
+Flint is a **behavioral oracle** for chart types and semantic types. It is not
+source code to copy, and Visulet theme preset IDs are **not** Flint publication
+names.
 
 ## Input
 
@@ -52,8 +53,8 @@ and Excel are assemble-only (Plotly spec JSON; Excel / Office.js from the SDK).
 ## Catalog
 
 See [catalog.md](../catalog.md). Counts: VL 36 / EC 38 / CJS 22 / Plotly 38 /
-Excel 18. Ten theme preset IDs: `nyt`, `economist`, `swiss`, `nature`,
-`mckinsey`, `datawrapper`, `powerbi`, `powerbi-light`, `pop`, `cartoon`.
+Excel 18. Ten theme preset IDs: `paper`, `slate`, `brief`, `stage`, `field`,
+`board`, `signal`, `safe`, `ink`, `play` (default `paper`).
 
 ## Historical note
 

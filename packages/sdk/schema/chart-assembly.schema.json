@@ -32,7 +32,9 @@
         "chartProperties": { "type": "object" }
       }
     },
-    "theme_spec": {},
+    "theme_spec": {
+      "oneOf": [{ "type": "string" }, { "type": "object" }]
+    },
     "options": { "type": "object" },
     "field_display_names": { "type": "object" }
   }

@@ -1,6 +1,7 @@
 import { recordGet, recordSet } from '../../record.js';
-import { getTheme, groundTheme } from '../../theme/index.js';
+import { toVegaLiteConfig } from '../../theme/adapters/vegalite.js';
 
+import type { GroundedTheme } from '../../theme/ground.js';
 import type {
   ChannelName,
   ChannelSemanticsMap,
@@ -42,6 +43,7 @@ export const instantiateVegaLite = (
   semantics: ChannelSemanticsMap,
   rows: Record<string, unknown>[],
   layout: LayoutResult,
+  theme: GroundedTheme,
 ): Record<string, unknown> => {
   const encoding: Record<string, unknown> = {};
   const titles = input.field_display_names ?? {};
@@ -64,7 +66,6 @@ export const instantiateVegaLite = (
     }
     recordSet(encoding, vlChannel, fieldDef);
   }
-  const theme = groundTheme(getTheme(input.theme_spec));
   const mark =
     template.id === 'donut'
       ? { type: 'arc', innerRadius: 50 }
@@ -78,7 +79,7 @@ export const instantiateVegaLite = (
     height: layout.height,
     mark,
     encoding,
-    config: theme,
+    config: toVegaLiteConfig(theme),
   };
   if (input.chart_spec.title) {
     spec.title = input.chart_spec.subtitle

@@ -36,8 +36,9 @@ visulet compile examples/bar-quarterly.json --backend vegalite
 ## MCP
 
 ```sh
-npx visulet-mcp
-npx visulet-mcp --transport http --port 3000
+npx -y @visulet/mcp
+npx -y @visulet/mcp --transport http --port 3000
+pnpm dlx @visulet/mcp --transport http --port 3000
 ```
 
 ### Transports
@@ -90,7 +91,7 @@ const { spec } = assembleVegaLite({
     chartType: 'Bar Chart',
     encodings: { x: 'quarter', y: 'revenue' },
   },
-  theme_spec: 'economist',
+  theme_spec: 'paper',
 });
 ```
 

@@ -219,15 +219,15 @@ describe('layout', () => {
 describe('themes', () => {
   it('lists 10 presets and merges extends', () => {
     expect(listThemes()).toHaveLength(10);
-    const merged = mergeTheme(getTheme('economist'), {
+    const merged = mergeTheme(getTheme('paper'), {
       id: 'brand',
       ink: { series: { single: '#6b3fa0' } },
     });
     expect(merged.id).toBe('brand');
-    const spec = assembleVegaLite({ ...barInput, theme_spec: 'economist' }).spec as {
+    const spec = assembleVegaLite({ ...barInput, theme_spec: 'paper' }).spec as {
       config: { range: { category: string[] } };
     };
-    expect(spec.config.range.category[0]).toBe('#e3120b');
+    expect(spec.config.range.category[0]).toBe('#0f766e');
   });
 });
 

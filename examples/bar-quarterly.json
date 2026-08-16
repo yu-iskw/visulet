@@ -11,6 +11,6 @@
     "title": "Quarterly revenue",
     "encodings": { "x": "quarter", "y": "revenue" }
   },
-  "theme_spec": "economist",
+  "theme_spec": "paper",
   "field_display_names": { "revenue": "Revenue (USD)" }
 }

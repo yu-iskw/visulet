@@ -18,10 +18,12 @@ List types at runtime: `visulet catalog [--backend <id>]` or MCP
 
 ## Theme presets
 
-Ten ids (`visulet themes` / MCP `list_themes`):
+Ten job ids (`visulet themes` / MCP `list_themes` returns `id`, `label`, `job`,
+`surface`):
 
-`nyt`, `economist`, `swiss`, `nature`, `mckinsey`, `datawrapper`, `powerbi`,
-`powerbi-light`, `pop`, `cartoon`.
+`paper`, `slate`, `brief`, `stage`, `field`, `board`, `signal`, `safe`, `ink`,
+`play`.
 
-`theme_spec` may be one of those strings or a `ThemeSpec` object with
-`extends` plus presentation overrides.
+Default is `paper`. `theme_spec` may be one of those strings or a `ThemeSpec`
+object with `extends` plus presentation overrides. Unknown strings are custom
+ids (info warning `theme.unknown-preset`).

@@ -34,9 +34,35 @@ describe('renderChart', () => {
     );
   });
 
+  it('uses slate surface as the default render background', async () => {
+    const rendered = await renderChart({ ...barInput, theme_spec: 'slate' }, 'vegalite', {
+      format: 'svg',
+    });
+    expect(rendered.bytes.toString('utf8').toLowerCase()).toContain('0c1220');
+  });
+
+  it('lets an explicit background override the theme surface', async () => {
+    const rendered = await renderChart({ ...barInput, theme_spec: 'slate' }, 'vegalite', {
+      format: 'svg',
+      background: '#ffffff',
+    });
+    expect(rendered.bytes.toString('utf8')).toContain('#ffffff');
+  });
+
   it('throws for assemble-only backends', async () => {
     await expect(renderChart(barInput, 'plotly', { format: 'svg' })).rejects.toThrow(
       'MCP render supports vegalite, echarts, and chartjs only',
     );
+  });
+
+  it('throws an actionable message when native rasterizers fail to load', async () => {
+    await expect(
+      renderChart(barInput, 'vegalite', {
+        format: 'png',
+        loadNatives: async () => {
+          throw new Error('native module missing');
+        },
+      }),
+    ).rejects.toThrow(/pnpm dlx --allow-build=@napi-rs\/canvas --allow-build=@resvg\/resvg-js/);
   });
 });

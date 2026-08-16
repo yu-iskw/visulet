@@ -7,10 +7,13 @@ export type {
   ChartEncoding,
   ChartSpec,
   ChartWarning,
+  DataLabelsShow,
+  LegendPlacement,
   McpRenderBackend,
   SemanticAnnotation,
   SemanticTypeName,
   Size,
+  SurfaceMode,
   TemplateDef,
   ThemeSpec,
   VisCategory,
@@ -24,6 +27,7 @@ export {
   MAX_DATA_FILE_BYTES,
   MAX_DATA_ROWS,
   MCP_RENDER_BACKENDS,
+  UNKNOWN_THEME_PRESET,
 } from './types.js';
 export { recordGet, recordSet } from './record.js';
 export { loadLocalDataValues, parseDelimited, readBoundedFile } from './data.js';
@@ -40,7 +44,16 @@ export {
   recommendChannels,
   recommendChartTypes,
 } from './catalog/index.js';
-export { getTheme, groundTheme, listThemes, mergeTheme, PRESET_IDS } from './theme/index.js';
+export {
+  getTheme,
+  groundTheme,
+  isPresetId,
+  listThemes,
+  mergeTheme,
+  PRESET_IDS,
+  unknownPresetWarning,
+} from './theme/index.js';
+export type { GroundedTheme, GroundThemeContext, ThemeListItem } from './theme/index.js';
 export { computeLayout, deriveStretchCaps, filterOverflow } from './layout/index.js';
 export { SEMANTIC_TYPE_NAMES, getRegistryEntry, listSemanticTypes } from './semantics/index.js';
 

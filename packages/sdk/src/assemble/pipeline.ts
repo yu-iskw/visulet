@@ -14,10 +14,12 @@ import {
 } from '../layout/index.js';
 import { recordGet } from '../record.js';
 import { foldStaticSeries, resolveChannelSemantics } from '../semantics/resolve.js';
+import { getTheme, groundTheme, unknownPresetWarning } from '../theme/index.js';
 import { DEFAULT_BASE_SIZE, DEFAULT_MIN_STEP, MAX_CANVAS_DIM, MAX_DATA_ROWS } from '../types.js';
 
 import { applyEncodingActions, applyPivot } from './transforms.js';
 
+import type { GroundedTheme } from '../theme/ground.js';
 import type {
   AssembleOptions,
   AssembleResult,
@@ -49,18 +51,19 @@ const instantiate = (
   semantics: ReturnType<typeof resolveChannelSemantics>,
   rows: Record<string, unknown>[],
   layout: ReturnType<typeof computeLayout>['layout'],
+  theme: GroundedTheme,
 ): unknown => {
   switch (backend) {
     case 'vegalite':
-      return instantiateVegaLite(input, template, semantics, rows, layout);
+      return instantiateVegaLite(input, template, semantics, rows, layout, theme);
     case 'echarts':
-      return instantiateECharts(input, template, semantics, rows, layout);
+      return instantiateECharts(input, template, semantics, rows, layout, theme);
     case 'chartjs':
-      return instantiateChartjs(input, template, semantics, rows, layout);
+      return instantiateChartjs(input, template, semantics, rows, layout, theme);
     case 'plotly':
-      return instantiatePlotly(input, template, semantics, rows, layout);
+      return instantiatePlotly(input, template, semantics, rows, layout, theme);
     case 'excel':
-      return instantiateExcel(input, template, semantics, rows, layout);
+      return instantiateExcel(input, template, semantics, rows, layout, theme);
     default:
       return neverBackend(backend);
   }
@@ -160,9 +163,15 @@ export const assemble = (input: ChartAssemblyInput, backend: BackendId): Assembl
   const pivoted = applyPivot(applyEncodingActions(input));
   warnings.push(...pivoted.warnings);
   const working = pivoted.input;
+  const resolvedTheme = getTheme(working.theme_spec);
+  const unknownTheme = unknownPresetWarning(working.theme_spec);
+  if (unknownTheme) {
+    warnings.push(unknownTheme);
+  }
   const template = getTemplate(working.chart_spec.chartType, backend);
   if (!template) {
-    return unknownChartResult(working.chart_spec.chartType, backend);
+    const unknown = unknownChartResult(working.chart_spec.chartType, backend);
+    return { ...unknown, warnings: [...warnings, ...unknown.warnings] };
   }
   warnings.push(...dataSourceWarnings(working));
   const rawRows = 'values' in working.data ? working.data.values : [];
@@ -178,8 +187,14 @@ export const assemble = (input: ChartAssemblyInput, backend: BackendId): Assembl
   const uniqueX = uniqueCount(folded.rows, encodings.x?.field);
   const uniqueY = uniqueCount(folded.rows, encodings.y?.field);
   const categoryCount = xField ? uniqueX : uniqueCount(folded.rows, encodings.color?.field);
-  const baseRaw = working.chart_spec.baseSize ?? DEFAULT_BASE_SIZE;
-  const canvas = working.chart_spec.canvasSize;
+  const {
+    baseSize: themeBase,
+    canvasSize: themeCanvas,
+    ...themeOpts
+  } = resolvedTheme.compileDefaults ?? {};
+  const options: AssembleOptions = { ...themeOpts, ...working.options };
+  const baseRaw = working.chart_spec.baseSize ?? themeBase ?? DEFAULT_BASE_SIZE;
+  const canvas = working.chart_spec.canvasSize ?? themeCanvas;
   warnings.push(...canvasWarnings(baseRaw));
   warnings.push(...canvasWarnings(canvas));
   if (warnings.some((item) => item.severity === 'error')) {
@@ -198,7 +213,7 @@ export const assemble = (input: ChartAssemblyInput, backend: BackendId): Assembl
     model: template.layoutModel,
     base,
     canvas,
-    options: working.options ?? {},
+    options,
     categoryCount,
     uniqueX,
     uniqueY,
@@ -207,10 +222,14 @@ export const assemble = (input: ChartAssemblyInput, backend: BackendId): Assembl
   const truncated = truncateForOverflow(
     folded.rows,
     xField,
-    overflowBudgetFor(layout.width, working.options),
+    overflowBudgetFor(layout.width, options),
     layoutWarnings,
   );
   warnings.push(...truncated.warnings);
-  const spec = instantiate(backend, working, template, semantics, truncated.rows, layout);
+  const tokens = groundTheme(resolvedTheme, {
+    colorEncoded: Boolean(semantics.color?.field),
+    colorSemanticType: semantics.color?.semanticType,
+  });
+  const spec = instantiate(backend, working, template, semantics, truncated.rows, layout, tokens);
   return { spec, warnings, computedSize: { width: layout.width, height: layout.height }, template };
 };

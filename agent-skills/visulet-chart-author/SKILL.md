@@ -46,8 +46,8 @@ Pick the most specific fit (`Quantity` over `Number`, `Percentage` over
 - `encodings`: channel → field name, or `{ field, aggregate?, sortOrder? }`.
 - Optional: `title`, `subtitle`, `baseSize`, `canvasSize`, `chartProperties`.
 - `theme_spec`: a preset id string, or a ThemeSpec with `extends` (see the
-  theme skill). Ten ids: `nyt`, `economist`, `swiss`, `nature`, `mckinsey`,
-  `datawrapper`, `powerbi`, `powerbi-light`, `pop`, `cartoon`.
+  theme skill). Ten job ids: `paper`, `slate`, `brief`, `stage`, `field`,
+  `board`, `signal`, `safe`, `ink`, `play` (default `paper`).
 
 MCP render backends are **vegalite**, **echarts**, and **chartjs**. Plotly and
 Excel assemble in the SDK / `compile_chart` only.

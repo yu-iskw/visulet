@@ -158,27 +158,104 @@ export interface ChartAssemblyInput {
   field_display_names?: Record<string, string>;
 }
 
+export type LegendPlacement = 'top' | 'right' | 'bottom' | 'left';
+
+export type DataLabelsShow = 'auto' | 'on' | 'off';
+
+export type LayoutDensity = 'compact' | 'standard' | 'spacious';
+
+export type SurfaceMode = 'light' | 'dark';
+
+export type LabelTruncation = 'end' | 'middle' | 'start';
+
+export interface ThemeInkSeries {
+  single?: string;
+  category?: string[];
+  diverging?: string[];
+  sequential?: string[];
+}
+
+export interface ThemeInk {
+  series?: ThemeInkSeries;
+  text?: string;
+  surface?: string;
+  grid?: string;
+}
+
+export interface ThemeTypeFace {
+  color?: string;
+  fontSize?: number;
+  fontWeight?: number;
+}
+
+export interface ThemeType {
+  axisLabel?: ThemeTypeFace;
+  headline?: ThemeTypeFace;
+}
+
+export interface ThemeGrid {
+  color?: string;
+  opacity?: number;
+  x?: boolean;
+  y?: boolean;
+}
+
+export interface ThemeStructure {
+  grid?: ThemeGrid;
+}
+
+export interface ThemeStroke {
+  width?: number;
+}
+
+export interface ThemeMarks {
+  cornerRadius?: number;
+  pointSize?: number;
+  stroke?: ThemeStroke;
+}
+
+export interface ThemeLabels {
+  truncation?: LabelTruncation;
+}
+
+export interface ThemeLegend {
+  placement?: LegendPlacement;
+}
+
+export interface ThemeDataLabels {
+  show?: DataLabelsShow;
+}
+
+export interface ThemeLayout {
+  density?: LayoutDensity;
+  padding?: number;
+}
+
 export interface ThemeSpec {
-  extends?: string;
-  id?: string;
-  label?: string;
-  ink?: Record<string, unknown>;
-  type?: Record<string, unknown>;
-  structure?: Record<string, unknown>;
-  marks?: Record<string, unknown>;
-  labels?: Record<string, unknown>;
-  legend?: Record<string, unknown>;
-  dataLabels?: Record<string, unknown>;
   annotation?: Record<string, unknown>;
-  furniture?: Record<string, unknown>;
-  facets?: Record<string, unknown>;
-  layout?: Record<string, unknown>;
-  geometry?: Record<string, unknown>;
   chartDefaults?: Record<string, Record<string, unknown>>;
   compileDefaults?: Partial<AssembleOptions> & { baseSize?: Size; canvasSize?: Size };
+  dataLabels?: ThemeDataLabels;
+  extends?: string;
+  facets?: Record<string, unknown>;
+  furniture?: Record<string, unknown>;
+  geometry?: Record<string, unknown>;
+  id?: string;
+  ink?: ThemeInk;
   interaction?: Record<string, unknown>;
+  job?: string;
+  label?: string;
+  labels?: ThemeLabels;
+  layout?: ThemeLayout;
+  legend?: ThemeLegend;
+  marks?: ThemeMarks;
+  structure?: ThemeStructure;
+  surface?: SurfaceMode;
+  type?: ThemeType;
   variants?: unknown[];
 }
+
+export const UNKNOWN_THEME_PRESET = 'theme.unknown-preset';
 
 export type MarkCognitiveChannel = 'position' | 'length' | 'area' | 'color';
 

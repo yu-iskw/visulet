@@ -42,6 +42,6 @@ Density Contour (x,y).
 Counts: Vega-Lite 36, ECharts 38, Chart.js 22, Plotly 38, Excel 18. MCP render
 is Vega-Lite / ECharts / Chart.js only.
 
-`theme_spec`: preset id (`nyt`, `economist`, `swiss`, `nature`, `mckinsey`,
-`datawrapper`, `powerbi`, `powerbi-light`, `pop`, `cartoon`) or a ThemeSpec
-with `extends`.
+`theme_spec`: preset id (`paper`, `slate`, `brief`, `stage`, `field`, `board`,
+`signal`, `safe`, `ink`, `play`; default `paper`) or a ThemeSpec with
+`extends`.
