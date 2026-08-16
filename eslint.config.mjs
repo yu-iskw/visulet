@@ -31,7 +31,7 @@ const importXSettings = {
   'import-x/resolver': {
     typescript: {
       alwaysTryTypes: true,
-      project: ['packages/*/tsconfig.json'],
+      project: ['packages/*/tsconfig.json', 'packages/mcp/ui/tsconfig.json'],
     },
     node: true,
   },
@@ -171,7 +171,13 @@ export default [
   },
   {
     files: ['packages/**/*.ts', 'packages/**/*.tsx'],
-    ignores: ['**/dist/**', '**/*.config.ts', '**/*.test.ts', '**/*.test.tsx'],
+    ignores: [
+      '**/dist/**',
+      '**/*.config.ts',
+      '**/*.test.ts',
+      '**/*.test.tsx',
+      'packages/mcp/ui/**',
+    ],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
@@ -197,7 +203,7 @@ export default [
   },
   {
     files: ['packages/**/*.test.ts', 'packages/**/*.test.tsx'],
-    ignores: ['**/dist/**'],
+    ignores: ['**/dist/**', 'packages/mcp/ui/**'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
@@ -225,6 +231,38 @@ export default [
       'sonarjs/no-duplicate-string': 'off',
       'security/detect-non-literal-fs-filename': 'off',
       'max-lines-per-function': ['error', { max: 700 }],
+      'unicorn/filename-case': unicornFilenameCase,
+    },
+  },
+  {
+    files: ['packages/mcp/ui/**/*.ts'],
+    ignores: ['**/dist/**'],
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'module',
+      },
+      globals: vitestPlugin.environments.env.globals,
+    },
+    plugins: {
+      ...importXPlugins,
+      ...securityRecommended.plugins,
+      unicorn,
+      ...vitestPlugin.configs.recommended.plugins,
+    },
+    settings: importXSettings,
+    rules: {
+      ...importXRules,
+      ...securityRecommended.rules,
+      ...vitestPlugin.configs.recommended.rules,
+      'import-x/no-unresolved': 'off',
+      'vitest/no-conditional-expect': 'off',
+      'no-eval': 'error',
+      'no-implied-eval': 'error',
+      'no-new-func': 'error',
+      'no-unreachable': 'error',
+      'prefer-const': 'error',
       'unicorn/filename-case': unicornFilenameCase,
     },
   },

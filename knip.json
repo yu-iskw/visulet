@@ -15,6 +15,9 @@
     },
     "packages/*": {
       "project": ["src/**/*.ts"]
+    },
+    "packages/mcp": {
+      "project": ["src/**/*.ts", "ui/src/**/*.ts"]
     }
   }
 }

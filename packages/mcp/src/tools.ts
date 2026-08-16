@@ -2,9 +2,10 @@ import { assemble, isValid, listChartTypes, listThemes, validateChart } from '@v
 import { z } from 'zod';
 
 import { resolveData } from './data-source.js';
+import { registerVisuletAppTool } from './ext-apps-server.js';
 import { renderChart } from './render/index.js';
 import { RESOURCE_URIS } from './resources.js';
-import { asInput, backendShape, inputSchema, themeShape } from './schema.js';
+import { asInput, backendShape, chartViewInputSchema, inputSchema, themeShape } from './schema.js';
 
 import type { ChartToolInput } from './schema.js';
 import type { McpServer } from '@modelcontextprotocol/server';
@@ -169,16 +170,17 @@ export const registerTools = (server: McpServer, context: ToolContext): void => 
     (args: unknown) => Promise.resolve(handleListThemes(args)),
   );
 
-  registerChartTool(
+  registerVisuletAppTool(
     server,
     createChartViewName,
-    'Open an interactive Visulet chart view (MCP App).',
     {
+      description: 'Open an interactive Visulet chart view (MCP App).',
+      inputSchema: chartViewInputSchema,
       _meta: {
         ui: { resourceUri: RESOURCE_URIS.chartView },
-        'ui/resourceUri': RESOURCE_URIS.chartView,
       },
     },
-    (parsed) => handleCreateChartView(parsed, context),
+    (args: unknown) =>
+      Promise.resolve(handleCreateChartView(chartViewInputSchema.parse(args), context)),
   );
 };

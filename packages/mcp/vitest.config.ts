@@ -8,7 +8,7 @@ export default defineProject({
   },
   test: {
     name: '@visulet/mcp',
-    include: ['src/**/*.{test,spec}.ts'],
+    include: ['src/**/*.{test,spec}.ts', 'ui/src/**/*.{test,spec}.ts'],
     exclude: ['dist/**'],
   },
 });

@@ -29,7 +29,8 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "pnpm run build:ui && tsc -p ui/tsconfig.json && tsc -p tsconfig.build.json",
+    "build:ui": "vite build --config ui/vite.config.ts",
     "dev": "tsc -p tsconfig.build.json --watch",
     "prepublishOnly": "pnpm run build",
     "test": "vitest run"
@@ -44,7 +45,12 @@
     "chart.js": "^4.5.1",
     "echarts": "^6.1.0",
     "vega": "^6.3.1",
+    "vega-interpreter": "^2.3.1",
     "vega-lite": "^6.4.3",
     "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "vite": "^8.2.1",
+    "vite-plugin-singlefile": "^2.3.3"
   }
 }

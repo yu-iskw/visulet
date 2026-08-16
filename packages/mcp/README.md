@@ -62,6 +62,11 @@ pnpm dlx --allow-build=@napi-rs/canvas --allow-build=@resvg/resvg-js @visulet/mc
 `create_chart_view`, `compile_chart`, `validate_chart`, and the list tools
 start without those native addons.
 
+The MCP App iframe draws the compiled Vega-Lite spec as SVG (bundled Vega +
+interpreter, no CDN). After changing files under `packages/mcp/ui/`, rebuild
+the view with `pnpm --filter @visulet/mcp build:ui` (also runs as part of
+`pnpm --filter @visulet/mcp build`). Do not hand-edit `ui/chart-view.html`.
+
 **Tools:** `create_chart_view`, `render_chart`, `compile_chart`,
 `validate_chart`, `list_chart_types`, `list_themes`.
 

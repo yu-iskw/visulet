@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { readUi } from './assets.js';
 import { PROMPT_NAMES } from './prompts.js';
 import { RESOURCE_URIS } from './resources.js';
 import { createServer } from './server.js';
@@ -27,5 +28,12 @@ describe('MCP primitive inventory', () => {
   it('composes a server from the three primitive registrars', () => {
     expect(createServer()).toBeTruthy();
     expect(createServer({ disableFileReference: true })).toBeTruthy();
+  });
+
+  it('serves Visulet App HTML without Flint chrome', () => {
+    const html = readUi();
+    expect(html).toContain('Visulet');
+    expect(html.toLowerCase()).not.toContain('economist');
+    expect(html.toLowerCase()).not.toContain('flint');
   });
 });

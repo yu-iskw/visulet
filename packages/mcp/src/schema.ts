@@ -30,6 +30,12 @@ const inputShape = {
   background: z.string().optional(),
 };
 export const inputSchema = z.object(inputShape);
+export const chartViewInputSchema = inputSchema.omit({
+  backend: true,
+  format: true,
+  scale: true,
+  background: true,
+});
 export const backendShape = {
   backend: z.enum(BACKENDS).optional(),
 };

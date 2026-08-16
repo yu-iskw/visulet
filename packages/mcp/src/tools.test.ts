@@ -51,5 +51,13 @@ describe('chart tool handlers', () => {
     const result = handleCreateChartView(barInput, fileDisabled);
     expect(result.structuredContent).toMatchObject({ valid: true });
     expect(result.structuredContent).toHaveProperty('spec');
+    const spec = result.structuredContent?.spec as { config?: { background?: string } };
+    expect(spec.config?.background).toBe('#fafaf9');
+  });
+
+  it('compiles chart views with Vega-Lite even when another backend is requested', () => {
+    const result = handleCreateChartView({ ...barInput, backend: 'echarts' }, fileDisabled);
+    expect(result.structuredContent).toMatchObject({ valid: true });
+    expect(result.structuredContent).toHaveProperty('spec');
   });
 });

@@ -2,6 +2,7 @@ import { RESOURCE_MIME_TYPE } from '@modelcontextprotocol/ext-apps/server';
 import { listChartTypes } from '@visulet/sdk';
 
 import { readSkill, readUi } from './assets.js';
+import { registerVisuletAppResource } from './ext-apps-server.js';
 
 import type { McpServer } from '@modelcontextprotocol/server';
 
@@ -17,10 +18,11 @@ const MARKDOWN_MIME = 'text/markdown';
 const JSON_MIME = 'application/json';
 
 export const registerResources = (server: McpServer): void => {
-  server.registerResource(
-    'chart-view',
+  registerVisuletAppResource(
+    server,
+    'Visulet chart view',
     RESOURCE_URIS.chartView,
-    { mimeType: APP_MIME, description: 'Visulet MCP App chart view' },
+    { description: 'Visulet MCP App chart view' },
     () =>
       Promise.resolve({
         contents: [{ uri: RESOURCE_URIS.chartView, mimeType: APP_MIME, text: readUi() }],

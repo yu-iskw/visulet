@@ -30,19 +30,6 @@ const JOB_IDS = [
   'play',
 ] as const;
 
-const FLINT_IDS = [
-  'nyt',
-  'economist',
-  'swiss',
-  'nature',
-  'mckinsey',
-  'datawrapper',
-  'powerbi',
-  'powerbi-light',
-  'pop',
-  'cartoon',
-];
-
 const barInput: ChartAssemblyInput = {
   data: {
     values: [
@@ -91,7 +78,7 @@ const contrastRatio = (foreground: string, background: string): number => {
 };
 
 describe('theme catalog', () => {
-  it('lists ten job presets and not Flint ids', () => {
+  it('lists ten job presets', () => {
     const listed = listThemes();
     expect(listed).toHaveLength(10);
     expect(listed.map((item) => item.id)).toEqual([...JOB_IDS]);
@@ -101,9 +88,6 @@ describe('theme catalog', () => {
       expect(['light', 'dark']).toContain(item.surface);
     }
     expect(listed.find((item) => item.id === 'slate')?.surface).toBe('dark');
-    for (const id of FLINT_IDS) {
-      expect(listed.map((item) => item.id)).not.toContain(id);
-    }
   });
 
   it('defaults getTheme to paper', () => {
