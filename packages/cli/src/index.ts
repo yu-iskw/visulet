@@ -1,16 +1,8 @@
 #!/usr/bin/env node
 import { resolve } from 'node:path';
 
-import {
-  BACKENDS,
-  isValid,
-  listChartTypes,
-  listThemes,
-  loadLocalDataValues,
-  parseDelimited,
-  readBoundedFile,
-  validateChart,
-} from '@visulet/sdk';
+import { BACKENDS, isValid, listChartTypes, listThemes, validateChart } from '@visulet/sdk';
+import { loadLocalDataValues, parseDelimited, readBoundedFile } from '@visulet/sdk/node';
 
 import type { BackendId, ChartAssemblyInput } from '@visulet/sdk';
 

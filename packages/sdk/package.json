@@ -5,6 +5,7 @@
   "license": "Apache-2.0",
   "description": "Visulet semantic chart compiler: assemble ChartAssemblyInput into Vega-Lite, ECharts, Chart.js, Plotly, or Excel specs.",
   "type": "module",
+  "sideEffects": false,
   "publishConfig": {
     "access": "public"
   },
@@ -55,6 +56,11 @@
       "types": "./dist/backends/excel/index.d.ts",
       "import": "./dist/backends/excel/index.js",
       "default": "./dist/backends/excel/index.js"
+    },
+    "./node": {
+      "types": "./dist/node.d.ts",
+      "import": "./dist/node.js",
+      "default": "./dist/node.js"
     },
     "./schema": "./schema/chart-assembly.schema.json"
   },

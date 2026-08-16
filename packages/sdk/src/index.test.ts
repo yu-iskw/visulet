@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { applyPivot } from './assemble/transforms.js';
+import { readBoundedFile } from './data.js';
 
 import {
   assembleChartJs,
@@ -19,7 +20,6 @@ import {
   listSemanticTypes,
   listThemes,
   mergeTheme,
-  readBoundedFile,
   recommendChannels,
   recommendChartTypes,
   SEMANTIC_TYPE_NAMES,

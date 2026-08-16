@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { renderChart } from './render.js';
+import { loadNativeModules, renderChart } from './render/index.js';
 
 import type { ChartAssemblyInput } from '@visulet/sdk';
 
@@ -57,12 +57,7 @@ describe('renderChart', () => {
 
   it('throws an actionable message when native rasterizers fail to load', async () => {
     await expect(
-      renderChart(barInput, 'vegalite', {
-        format: 'png',
-        loadNatives: async () => {
-          throw new Error('native module missing');
-        },
-      }),
+      loadNativeModules(() => Promise.reject(new Error('native module missing'))),
     ).rejects.toThrow(/pnpm dlx --allow-build=@napi-rs\/canvas --allow-build=@resvg\/resvg-js/);
   });
 });

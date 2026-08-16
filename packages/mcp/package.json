@@ -10,11 +10,14 @@
   },
   "files": [
     "dist",
-    "src",
-    "ui"
+    "ui",
+    "src/skills"
   ],
+  "engines": {
+    "node": ">=22"
+  },
   "bin": {
-    "visulet-mcp": "dist/index.js"
+    "visulet-mcp": "dist/cli.js"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -27,6 +30,8 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "prepublishOnly": "pnpm run build",
     "test": "vitest run"
   },
   "dependencies": {

@@ -1,6 +1,6 @@
 # RFC 0004: Visulet chart compiler
 
-- **Status:** Accepted for implementation
+- **Status:** Accepted for implementation (amended 2026-08-16: SDK runtime contract)
 - **Supersedes:** VisualDocument v0 as the compiler IR (RFC 0001 remains historical)
 
 ## Decision
@@ -49,6 +49,28 @@ Default backend is `vegalite`. Supported assemble backends: `vegalite`,
 
 MCP `render_chart` rasterizes **Vega-Lite, ECharts, and Chart.js** only. Plotly
 and Excel are assemble-only (Plotly spec JSON; Excel / Office.js from the SDK).
+Rasterization is not part of the SDK.
+
+## SDK runtime contract
+
+`@visulet/sdk` is a **headless, browser-safe compiler**:
+
+- `assemble(input, backend)` is the public compile surface (plus per-backend
+  helpers such as `assembleVegaLite`).
+- The root export and backend/catalog/theme subpaths have no `node:fs` and no
+  native rasterization dependencies.
+- Node filesystem helpers (`loadLocalDataValues`, `readBoundedFile`,
+  `parseDelimited`) are exported only from `@visulet/sdk/node`.
+- `assemble()` does not resolve `data.url`; adapters must pass `data.values`.
+  Web apps always supply inline rows.
+
+## Package boundaries
+
+| Package        | Responsibility                                        |
+| -------------- | ----------------------------------------------------- |
+| `@visulet/sdk` | Validate, layout, instantiate → backend spec JSON     |
+| `@visulet/cli` | Stdout JSON; local `data.url` via `@visulet/sdk/node` |
+| `@visulet/mcp` | MCP tools/resources/prompts; App UI; optional PNG/SVG |
 
 ## Catalog
 

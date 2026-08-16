@@ -2,9 +2,10 @@
 
 Visulet’s compiler IR is **`ChartAssemblyInput`**: inline (or local-file) `data`,
 per-field `semantic_types`, a `chart_spec` (chart type + encodings), and an
-optional `theme_spec`. `@visulet/sdk` validates, lays out, and assembles that
-document into Vega-Lite, ECharts, Chart.js, Plotly, or Excel specs. CLI and MCP
-are thin adapters over the same contract.
+optional `theme_spec`. `@visulet/sdk` is a portable, headless compiler: it
+validates, lays out, and assembles that document into Vega-Lite, ECharts,
+Chart.js, Plotly, or Excel specs (no pixels). CLI and MCP are thin adapters;
+visualization is out of SDK scope. See RFC 0004’s SDK runtime contract.
 
 - [RFC 0004 — chart compiler](rfcs/0004-chart-compiler.md)
 - [Catalog](catalog.md) — backend chart-type counts and theme preset IDs

@@ -29,6 +29,7 @@
     "lint:trunk-all": "trunk check --all -y",
     "security:grype": "grype .",
     "knip": "knip",
+    "example:web": "vite --config examples/web/vite.config.ts",
     "codeql:local": "bash dev/codeql.sh",
     "test": "vitest run",
     "coverage": "vitest run --coverage",

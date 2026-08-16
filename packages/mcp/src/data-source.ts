@@ -1,4 +1,4 @@
-import { loadLocalDataValues } from '@visulet/sdk';
+import { loadLocalDataValues } from '@visulet/sdk/node';
 
 import type { ChartAssemblyInput } from '@visulet/sdk';
 

@@ -30,7 +30,6 @@ export {
   UNKNOWN_THEME_PRESET,
 } from './types.js';
 export { recordGet, recordSet } from './record.js';
-export { loadLocalDataValues, parseDelimited, readBoundedFile } from './data.js';
 export { assemble, isValid, validateChart } from './assemble/index.js';
 export { assembleVegaLite } from './backends/vegalite/index.js';
 export { assembleECharts } from './backends/echarts/index.js';

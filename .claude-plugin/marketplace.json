@@ -1,0 +1,13 @@
+{
+  "name": "visulet",
+  "owner": {
+    "name": "visulet"
+  },
+  "plugins": [
+    {
+      "name": "visulet",
+      "source": "./plugins/visulet",
+      "description": "Author Visulet ChartAssemblyInput and ThemeSpec, then compile via MCP."
+    }
+  ]
+}

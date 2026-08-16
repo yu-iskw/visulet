@@ -1,7 +1,8 @@
 # Visulet chart authoring
 
 Output `semantic_types` plus `chart_spec`. Do not emit Vega-Lite, ECharts,
-Chart.js, Plotly, or Excel JSON unless the user asks to compile.
+Chart.js, Plotly, or Excel JSON unless the user asks to compile. App embedders
+use `@visulet/sdk` directly; agents keep using these MCP tools.
 
 Default MCP flow: `create_chart_view` (interactive App). Fall back to
 `render_chart` for PNG/SVG. `compile_chart` returns backend spec JSON.

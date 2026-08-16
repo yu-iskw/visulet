@@ -10,7 +10,8 @@ Chart-type counts by assemble backend (from `packages/sdk/src/catalog/templates.
 | Plotly    | `plotly`   |          38 |
 | Excel     | `excel`    |          18 |
 
-MCP `render_chart` covers Vega-Lite, ECharts, and Chart.js. Plotly and Excel
+These counts apply to **SDK assemble** for every backend. MCP `render_chart`
+covers Vega-Lite, ECharts, and Chart.js only (a subset). Plotly and Excel
 are SDK assemble (and `compile_chart`) only.
 
 List types at runtime: `visulet catalog [--backend <id>]` or MCP
