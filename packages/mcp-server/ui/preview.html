@@ -4,33 +4,147 @@
     <meta charset="utf-8" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'"
+      content="default-src 'none'; img-src data: blob:; style-src 'unsafe-inline'; script-src 'unsafe-inline'"
     />
     <title>Vizulet preview</title>
     <style>
+      :root {
+        --ink: #111827;
+        --muted: #6b7280;
+        --line: #e5e7eb;
+        --mark: #1d4ed8;
+        --paper: #ffffff;
+        --aside: #f8fafc;
+      }
+      * {
+        box-sizing: border-box;
+      }
       body {
-        font-family: system-ui, sans-serif;
+        font-family: ui-sans-serif, system-ui, sans-serif;
         margin: 0;
+        color: var(--ink);
+        background: var(--paper);
         display: grid;
-        grid-template-columns: 1fr 20rem;
+        grid-template-columns: minmax(0, 1fr) 16rem;
         min-height: 100vh;
       }
       main,
       aside {
-        padding: 1rem;
+        padding: 1rem 1.25rem;
       }
       aside {
-        border-left: 1px solid #cbd5e1;
+        background: var(--aside);
+        border-left: 1px solid var(--line);
         overflow: auto;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        font-size: 12px;
+      }
+      h1 {
+        font-size: 1.35rem;
+        font-weight: 650;
+        margin: 0 0 0.25rem;
+        letter-spacing: -0.02em;
+      }
+      .deck {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin: 0 0 0.75rem;
+      }
+      h2 {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        margin: 1rem 0 0.35rem;
       }
       pre {
         white-space: pre-wrap;
+        margin: 0;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 11px;
+      }
+      button,
+      select {
+        font: inherit;
+        border: 1px solid var(--ink);
+        background: var(--ink);
+        color: #fff;
+        padding: 0.35rem 0.55rem;
+        cursor: pointer;
+      }
+      select {
+        background: var(--paper);
+        color: var(--ink);
+      }
+      button:disabled,
+      select:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      #toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        align-items: center;
+        margin: 0 0 0.75rem;
+        font-size: 12px;
+      }
+      #toolbar label {
+        display: inline-flex;
+        gap: 0.3rem;
+        align-items: center;
+        color: var(--muted);
+      }
+      #preview {
+        min-height: 220px;
+        color: var(--mark);
+      }
+      #preview svg,
+      #preview canvas {
+        width: 100%;
+        height: auto;
+        display: block;
+        overflow: visible;
+      }
+      #tooltip {
+        position: fixed;
+        display: none;
+        pointer-events: none;
+        background: var(--ink);
+        color: #fff;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        font-size: 12px;
+        padding: 0.35rem 0.5rem;
+        z-index: 4;
       }
     </style>
   </head>
   <body>
     <main>
-      <h1>Preview</h1>
+      <h1 id="headline">Preview</h1>
+      <p id="deck" class="deck">Waiting for VisualDocument from the host.</p>
+      <div id="toolbar">
+        <label
+          >Theme
+          <select id="theme-select"></select
+        ></label>
+        <label
+          >Type
+          <select id="chart-type"></select
+        ></label>
+        <label
+          >Sort
+          <select id="sort-select">
+            <option value="">Default</option>
+            <option value="y-desc">Value ↓</option>
+            <option value="y-asc">Value ↑</option>
+          </select></label
+        >
+        <label><input id="log-y" type="checkbox" /> Log Y</label>
+        <button id="reset-chart" type="button">Reset</button>
+        <button id="export-png" type="button">PNG</button>
+        <button id="copy-spec" type="button">Copy spec</button>
+      </div>
       <div id="preview"></div>
     </main>
     <aside>
@@ -42,123 +156,529 @@
       <pre id="capabilities"></pre>
       <h2>Patch</h2>
       <pre id="patch"></pre>
-      <button id="apply-patch" type="button">Apply patch</button>
+      <button id="apply-patch" type="button" disabled>Apply patch</button>
       <h2>JSON</h2>
       <pre id="json"></pre>
     </aside>
+    <div id="tooltip"></div>
     <script>
+      /* VISULET_VENDOR */
+    </script>
+    <script>
+      var NS = 'http://www.w3.org/2000/svg';
+      var ALLOWED_TAGS = {
+        svg: true,
+        g: true,
+        rect: true,
+        circle: true,
+        line: true,
+        polyline: true,
+        path: true,
+        text: true,
+        style: true,
+      };
+      var ALLOWED_ATTRS = {
+        x: true,
+        y: true,
+        width: true,
+        height: true,
+        rx: true,
+        cx: true,
+        cy: true,
+        r: true,
+        x1: true,
+        y1: true,
+        x2: true,
+        y2: true,
+        d: true,
+        points: true,
+        fill: true,
+        stroke: true,
+        opacity: true,
+        transform: true,
+        viewBox: true,
+        role: true,
+        xmlns: true,
+        'text-anchor': true,
+        'font-size': true,
+        'font-weight': true,
+        'font-family': true,
+        'stroke-width': true,
+        'stroke-dasharray': true,
+        'stroke-linecap': true,
+        'stroke-linejoin': true,
+        preserveAspectRatio: true,
+        color: true,
+      };
+      var DEFAULT_THEMES = [
+        'economist',
+        'swiss',
+        'nyt',
+        'mckinsey',
+        'nature',
+        'datawrapper',
+        'powerbi',
+        'pop',
+        'cartoon',
+      ];
+      var DEFAULT_CHART_TYPES = [
+        'bar',
+        'line',
+        'area',
+        'scatter',
+        'heatmap',
+        'stacked-bar',
+        'grouped-bar',
+      ];
+      var MARK_FOR = {
+        bar: { type: 'bar', tooltip: true },
+        line: { type: 'line', tooltip: true, point: true },
+        area: { type: 'area', tooltip: true },
+        scatter: { type: 'point', tooltip: true, filled: true },
+        heatmap: { type: 'rect', tooltip: true },
+        'stacked-bar': { type: 'bar', tooltip: true },
+        'grouped-bar': { type: 'bar', tooltip: true },
+      };
       var currentDocument;
       var currentPatch;
+      var originalSpec;
+      var workingSpec;
+      var themeLibrary = {};
+      var embedHandle;
+      var embedGen = 0;
+      var renderTimer = 0;
       var rpcId = 1;
+      var pending = {};
+      var initialized = false;
+      var lastSize = { width: 0, height: 0 };
+      var sizeFrame = 0;
+
+      function $(id) {
+        return document.getElementById(id);
+      }
       function setText(id, value) {
-        document.getElementById(id).textContent = typeof value === 'string' ? value : '';
+        $(id).textContent =
+          typeof value === 'string'
+            ? value
+            : value === undefined
+              ? ''
+              : JSON.stringify(value, null, 2);
       }
-      function asString(value) {
-        if (typeof value === 'string') {
-          return value;
-        }
-        if (value === undefined) {
-          return '';
-        }
-        return JSON.stringify(value, null, 2);
+      function clone(value) {
+        return structuredClone(value);
       }
-      function setSvgPreview(svg) {
-        var preview = document.getElementById('preview');
+      function post(message) {
+        window.parent.postMessage(message, '*');
+      }
+      function sendRequest(method, params, onResult) {
+        var id = rpcId;
+        rpcId += 1;
+        if (onResult) {
+          pending[id] = onResult;
+        }
+        post({ jsonrpc: '2.0', id: id, method: method, params: params || {} });
+        return id;
+      }
+      function sendNotification(method, params) {
+        post({ jsonrpc: '2.0', method: method, params: params || {} });
+      }
+      function notifySize() {
+        if (sizeFrame) {
+          return;
+        }
+        sizeFrame = requestAnimationFrame(function () {
+          sizeFrame = 0;
+          var width = document.body.scrollWidth;
+          var height = document.body.scrollHeight;
+          if (width === lastSize.width && height === lastSize.height) {
+            return;
+          }
+          lastSize = { width: width, height: height };
+          sendNotification('ui/notifications/size-changed', { width: width, height: height });
+        });
+      }
+      function finishInitialized() {
+        sendNotification('ui/notifications/initialized', {});
+        if (initialized) {
+          return;
+        }
+        initialized = true;
+        if (window.ResizeObserver) {
+          new ResizeObserver(notifySize).observe(document.body);
+        }
+        notifySize();
+      }
+      function showTip(event, text) {
+        var tip = $('tooltip');
+        tip.textContent = text;
+        tip.style.display = 'block';
+        tip.style.left = event.clientX + 12 + 'px';
+        tip.style.top = event.clientY + 12 + 'px';
+      }
+      function hideTip() {
+        $('tooltip').style.display = 'none';
+      }
+      function mountSceneNode(node) {
+        if (!node || !ALLOWED_TAGS[node.tag]) {
+          return undefined;
+        }
+        var el = document.createElementNS(NS, node.tag);
+        var attrs = node.attrs || {};
+        Object.keys(attrs).forEach(function (key) {
+          if (ALLOWED_ATTRS[key] && typeof attrs[key] === 'string') {
+            el.setAttribute(key, attrs[key]);
+          }
+        });
+        if (typeof node.text === 'string') {
+          el.textContent = node.text;
+        }
+        (node.children || []).forEach(function (child) {
+          var mounted = mountSceneNode(child);
+          if (mounted) {
+            el.appendChild(mounted);
+          }
+        });
+        if (typeof node.hover === 'string' && node.hover) {
+          el.addEventListener('pointerenter', function (event) {
+            showTip(event, node.hover);
+          });
+          el.addEventListener('pointermove', function (event) {
+            showTip(event, node.hover);
+          });
+          el.addEventListener('pointerleave', hideTip);
+        }
+        return el;
+      }
+      function documentSummary(doc) {
+        var views = doc && Array.isArray(doc.views) ? doc.views : [];
+        return {
+          title: doc && doc.title,
+          viewCount: views.length,
+          viewIds: views.map(function (view) {
+            return view.id;
+          }),
+        };
+      }
+      function syncPatch(patch) {
+        currentPatch = patch;
+        setText('patch', patch);
+        $('apply-patch').disabled = !(currentDocument && currentPatch);
+      }
+      function fillSelect(select, values, selected) {
+        select.replaceChildren();
+        values.forEach(function (value) {
+          var option = document.createElement('option');
+          option.value = value;
+          option.textContent = value;
+          if (value === selected) {
+            option.selected = true;
+          }
+          select.appendChild(option);
+        });
+      }
+      function hasNonChartView(views) {
+        if (!Array.isArray(views)) {
+          return false;
+        }
+        for (var i = 0; i < views.length; i += 1) {
+          var view = views[i];
+          if (!view || typeof view.kind !== 'string') {
+            continue;
+          }
+          if (view.kind === 'container' && hasNonChartView(view.views)) {
+            return true;
+          }
+          if (view.kind !== 'chart' && view.kind !== 'container') {
+            return true;
+          }
+        }
+        return false;
+      }
+      function specHasChart(spec) {
+        return Boolean(spec && (spec.mark || spec.vconcat || spec.layer || spec.hconcat));
+      }
+      function eachUnit(spec, visit) {
+        if (!spec || typeof spec !== 'object') {
+          return;
+        }
+        if (Array.isArray(spec.vconcat)) {
+          spec.vconcat.forEach(function (child) {
+            eachUnit(child, visit);
+          });
+          return;
+        }
+        if (Array.isArray(spec.hconcat)) {
+          spec.hconcat.forEach(function (child) {
+            eachUnit(child, visit);
+          });
+          return;
+        }
+        visit(spec);
+      }
+      function firstChartType(views) {
+        if (!Array.isArray(views)) {
+          return undefined;
+        }
+        for (var i = 0; i < views.length; i += 1) {
+          var view = views[i];
+          if (view && view.kind === 'chart' && typeof view.chart === 'string') {
+            return view.chart;
+          }
+          if (view && view.kind === 'container') {
+            var nested = firstChartType(view.views);
+            if (nested) {
+              return nested;
+            }
+          }
+        }
+        return undefined;
+      }
+      function applyToolbarToSpec(spec) {
+        var next = clone(spec);
+        var themeId = $('theme-select').value;
+        var chartType = $('chart-type').value;
+        var sort = $('sort-select').value;
+        var logY = $('log-y').checked;
+        var themeConfig = themeLibrary[themeId];
+        if (themeConfig) {
+          next.config = clone(themeConfig);
+        }
+        eachUnit(next, function (unit) {
+          var mark = MARK_FOR[chartType];
+          if (mark) {
+            unit.mark = mark;
+          }
+          if (!unit.encoding) {
+            return;
+          }
+          delete unit.encoding.xOffset;
+          if (unit.encoding.y) {
+            delete unit.encoding.y.stack;
+          }
+          if (chartType === 'grouped-bar' && unit.encoding.color && unit.encoding.color.field) {
+            unit.encoding.xOffset = { field: unit.encoding.color.field };
+          }
+          if (chartType === 'stacked-bar' && unit.encoding.y) {
+            unit.encoding.y.stack = true;
+          }
+          if (unit.encoding.y) {
+            if (sort === 'y-desc') {
+              unit.encoding.x = unit.encoding.x || {};
+              unit.encoding.x.sort = '-y';
+            } else if (sort === 'y-asc') {
+              unit.encoding.x = unit.encoding.x || {};
+              unit.encoding.x.sort = 'y';
+            }
+            if (logY) {
+              unit.encoding.y.scale = { type: 'log' };
+            } else if (unit.encoding.y.scale && unit.encoding.y.scale.type === 'log') {
+              delete unit.encoding.y.scale;
+            }
+          }
+        });
+        return next;
+      }
+      function renderScene(scene, doc) {
+        var preview = $('preview');
         preview.replaceChildren();
-        if (typeof svg !== 'string' || svg.indexOf('<svg') === -1) {
+        if (doc) {
+          $('headline').textContent =
+            typeof doc.title === 'string' && doc.title ? doc.title : 'Preview';
+          $('deck').textContent = Array.isArray(doc.views)
+            ? doc.views.length + ' views · interactive SVG (hover marks)'
+            : 'Interactive SVG';
+          setText('json', documentSummary(doc));
+        }
+        var mounted = mountSceneNode(scene);
+        if (mounted) {
+          mounted.setAttribute('width', '100%');
+          mounted.style.height = 'auto';
+          preview.appendChild(mounted);
+        }
+        notifySize();
+      }
+      function renderVega(spec) {
+        var preview = $('preview');
+        var gen = embedGen + 1;
+        embedGen = gen;
+        if (embedHandle && typeof embedHandle.finalize === 'function') {
+          embedHandle.finalize();
+          embedHandle = undefined;
+        }
+        preview.replaceChildren();
+        if (!window.VizuletVega || typeof window.VizuletVega.embedChart !== 'function') {
           return;
         }
-        var image = document.createElement('img');
-        image.alt = 'Rendered visual';
-        image.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-        preview.appendChild(image);
+        $('deck').textContent = 'Interactive Vega-Lite · canvas · live theme / type / sort';
+        window.VizuletVega.embedChart(preview, spec, 'canvas').then(function (result) {
+          if (gen !== embedGen) {
+            if (result && typeof result.finalize === 'function') {
+              result.finalize();
+            }
+            return;
+          }
+          embedHandle = result;
+          notifySize();
+        });
       }
-      function applyUi(ui) {
-        if (!ui) {
+      function scheduleVega() {
+        if (!workingSpec) {
           return;
         }
-        if (ui.svg) {
-          setSvgPreview(ui.svg);
+        if (renderTimer) {
+          clearTimeout(renderTimer);
         }
-        if (ui.outline) setText('outline', asString(ui.outline));
-        if (ui.diagnostics) setText('diagnostics', asString(ui.diagnostics));
-        if (ui.capabilities) setText('capabilities', asString(ui.capabilities));
-        if (ui.patch) {
-          setText('patch', asString(ui.patch));
-          currentPatch = ui.patch;
-        }
-        if (ui.json) {
-          setText('json', asString(ui.json));
-          currentDocument = ui.json;
-        }
-        if (ui.document) {
-          currentDocument = ui.document;
-        }
+        renderTimer = setTimeout(function () {
+          renderTimer = 0;
+          renderVega(applyToolbarToSpec(workingSpec));
+        }, 100);
       }
-      function uiFromMcpContent(data) {
-        var content = data.content;
-        if (!content && data.result && data.result.content) {
-          content = data.result.content;
+      function setHeadline(doc) {
+        if (!doc) {
+          return;
         }
-        if (!Array.isArray(content) || !content[0] || typeof content[0].text !== 'string') {
-          return undefined;
-        }
-        try {
-          var parsed = JSON.parse(content[0].text);
-          var result = parsed.result || {};
-          return {
-            svg: result.svg,
-            diagnostics: parsed.diagnostics,
-            json: result.document,
-            document: result.document,
-            outline: result.outline ?? (Array.isArray(result.viewIds) ? result : undefined),
-            capabilities: result.capabilities,
-            patch: result.patch,
-          };
-        } catch {
-          return undefined;
-        }
+        $('headline').textContent =
+          typeof doc.title === 'string' && doc.title ? doc.title : 'Preview';
+        setText('json', documentSummary(doc));
       }
-      function uiFromRpc(data) {
+      function applyStructured(structured, argumentsDoc) {
+        var doc = structured && structured.document ? structured.document : argumentsDoc;
+        if (doc) {
+          currentDocument = doc;
+          setHeadline(doc);
+        }
+        if (structured && structured.themes) {
+          themeLibrary = structured.themes;
+        }
+        if (structured) {
+          fillSelect(
+            $('theme-select'),
+            structured.themeIds || DEFAULT_THEMES,
+            $('theme-select').value || 'economist',
+          );
+          fillSelect(
+            $('chart-type'),
+            structured.chartTypes || DEFAULT_CHART_TYPES,
+            $('chart-type').value || 'bar',
+          );
+        }
+        if (
+          structured &&
+          specHasChart(structured.vegaLite) &&
+          window.VizuletVega &&
+          !hasNonChartView(currentDocument && currentDocument.views)
+        ) {
+          originalSpec = structured.vegaLite;
+          workingSpec = clone(structured.vegaLite);
+          var inferred = firstChartType(currentDocument && currentDocument.views);
+          if (inferred && MARK_FOR[inferred]) {
+            $('chart-type').value = inferred;
+          }
+          scheduleVega();
+        } else if (structured && structured.scene) {
+          originalSpec = undefined;
+          workingSpec = undefined;
+          renderScene(structured.scene, currentDocument);
+        }
+        if (!structured) {
+          return;
+        }
+        if (structured.outline) {
+          setText('outline', structured.outline);
+        }
+        if (structured.diagnostics) {
+          setText('diagnostics', structured.diagnostics);
+        }
+        if (structured.capabilities) {
+          setText('capabilities', structured.capabilities);
+        }
+        syncPatch(structured.patch);
+      }
+      function applyFromHost(data) {
         if (!data) {
-          return data;
+          return;
         }
-        var fromTool = uiFromMcpContent(data);
-        if (fromTool) {
-          return fromTool;
+        if (data.method === 'ui/notifications/tool-input') {
+          var args = data.params && data.params.arguments;
+          if (args && args.document) {
+            currentDocument = args.document;
+            setHeadline(args.document);
+          }
+          syncPatch(args && args.patch);
+          return;
         }
-        if (data.jsonrpc !== '2.0') {
-          return data;
+        if (data.method === 'ui/notifications/tool-result') {
+          applyStructured((data.params || {}).structuredContent, currentDocument);
+          return;
         }
-        if (data.method === 'ui/update') {
-          return data.params;
+        if (data.result && data.result.structuredContent) {
+          applyStructured(data.result.structuredContent, currentDocument);
         }
-        if (data.result && data.result.ui) {
-          return data.result.ui;
-        }
-        return data.params || {};
       }
       window.addEventListener('message', function (event) {
         if (event.source !== window.parent) {
           return;
         }
-        applyUi(uiFromRpc(event.data || {}));
+        var data = event.data || {};
+        if (data.id && pending[data.id]) {
+          pending[data.id](data);
+          delete pending[data.id];
+        }
+        applyFromHost(data);
       });
-      document.getElementById('apply-patch').addEventListener('click', function () {
-        window.parent.postMessage(
-          {
-            jsonrpc: '2.0',
-            id: rpcId,
-            method: 'tools/call',
-            params: {
-              name: 'visual_apply_patch',
-              arguments: { document: currentDocument, patch: currentPatch },
-            },
-          },
-          '*',
-        );
-        rpcId += 1;
+      $('theme-select').addEventListener('change', scheduleVega);
+      $('chart-type').addEventListener('change', scheduleVega);
+      $('sort-select').addEventListener('change', scheduleVega);
+      $('log-y').addEventListener('change', scheduleVega);
+      $('reset-chart').addEventListener('click', function () {
+        if (!originalSpec) {
+          return;
+        }
+        workingSpec = clone(originalSpec);
+        $('sort-select').value = '';
+        $('log-y').checked = false;
+        scheduleVega();
       });
+      $('export-png').addEventListener('click', function () {
+        if (!embedHandle || !embedHandle.view || typeof embedHandle.view.toCanvas !== 'function') {
+          return;
+        }
+        embedHandle.view.toCanvas(2).then(function (canvas) {
+          canvas.toBlob(function (blob) {
+            if (!blob) {
+              return;
+            }
+            var link = document.createElement('a');
+            var url = URL.createObjectURL(blob);
+            link.href = url;
+            link.download = 'visulet-chart.png';
+            link.click();
+            URL.revokeObjectURL(url);
+          });
+        });
+      });
+      $('copy-spec').addEventListener('click', function () {
+        var spec = workingSpec ? applyToolbarToSpec(workingSpec) : undefined;
+        setText('json', spec || documentSummary(currentDocument));
+      });
+      $('apply-patch').addEventListener('click', function () {
+        sendRequest('tools/call', {
+          name: 'visual_apply_patch',
+          arguments: { document: currentDocument, patch: currentPatch },
+        });
+      });
+      fillSelect($('theme-select'), DEFAULT_THEMES, 'economist');
+      fillSelect($('chart-type'), DEFAULT_CHART_TYPES, 'bar');
+      sendRequest(
+        'ui/initialize',
+        {
+          protocolVersion: '2026-01-26',
+          appInfo: { name: 'visulet-preview', version: '0.2.0' },
+          appCapabilities: { availableDisplayModes: ['inline'] },
+        },
+        finishInitialized,
+      );
+      setTimeout(finishInitialized, 2000);
     </script>
   </body>
 </html>

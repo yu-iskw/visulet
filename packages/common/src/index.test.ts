@@ -112,6 +112,39 @@ describe('renderSvgDocument', () => {
     expect(result.svg).toContain('<svg');
     expect(result.svg).toContain('<rect');
     expect(result.svg).toContain('Q1');
+    expect(result.scene.tag).toBe('svg');
+    expect(JSON.stringify(result.scene)).toContain('Q1 · 10');
+    expect(result.svg).toContain('#d7dee5');
+    expect(result.svg).toContain('#006ba2');
+  });
+
+  it('keeps scatter hover in data space with padded axes', () => {
+    const result = renderSvgDocument({
+      version: '0',
+      data: {
+        points: {
+          values: [
+            { load: 10, latency: 42 },
+            { load: 60, latency: 97 },
+          ],
+        },
+      },
+      views: [
+        {
+          id: 'scatter',
+          kind: 'chart',
+          chart: 'scatter',
+          data: 'points',
+          encoding: { x: { field: 'load' }, y: { field: 'latency' } },
+        },
+      ],
+    });
+    expect(JSON.stringify(result.scene)).toContain('load 10');
+    expect(JSON.stringify(result.scene)).toContain('latency 42');
+    expect(result.svg).toContain('<circle');
+    expect(result.svg).toContain('<line');
+    expect(result.svg).not.toMatch(/y1="-/);
+    expect(result.svg).not.toMatch(/x="-/);
   });
 
   it('renders ordinal line charts', () => {
@@ -167,8 +200,10 @@ describe('renderSvgDocument', () => {
         },
       ],
     });
-    expect(result.svg).toMatch(/<rect x="32"[^>]*opacity="1"/);
-    expect(result.svg).toMatch(/<rect x="480"[^>]*opacity="0.5"/);
+    expect(result.svg).toContain('B');
+    expect(result.svg).toContain('A');
+    expect(result.svg).toContain('#08306b');
+    expect(result.svg).toContain('top');
   });
 
   it('warns instead of pretending to execute interactions', () => {

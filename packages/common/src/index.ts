@@ -5,6 +5,7 @@ export {
   SUPPORTED_CHARTS,
   SUPPORTED_DIAGRAMS,
   SUPPORTED_INFOGRAPHICS,
+  isCatalogMember,
   isSupportedChart,
   isSupportedDiagram,
   isSupportedInfographic,
@@ -16,7 +17,8 @@ export { jsonPointer } from './json-pointer';
 export { enforceResourceLimits } from './limits';
 export { applyVisualDocumentPatch, validateVisualDocumentPatch } from './patch';
 export type { JsonPatchOperation, PatchResult } from './patch';
-export { renderSvgDocument } from './render-svg';
+export { renderSvgDocument, renderVisualDocumentScene } from './render-svg';
+export type { SvgSceneNode } from './svg-scene';
 export { validateVisualDocumentStructure } from './schema-validation';
 export type {
   Accessibility,

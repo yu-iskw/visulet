@@ -76,13 +76,31 @@ describe('handle', () => {
     expect(result).toEqual({
       protocolVersion: '2024-11-05',
       capabilities: {
-        tools: {},
-        resources: {},
-        prompts: {},
-        extensions: { 'io.modelcontextprotocol/ui': {} },
+        tools: { listChanged: false },
+        resources: { listChanged: false },
+        prompts: { listChanged: false },
+        extensions: {
+          'io.modelcontextprotocol/ui': {
+            mimeTypes: ['text/html;profile=mcp-app'],
+          },
+        },
       },
+      instructions:
+        'Prefer visual_preview when the host supports MCP Apps. Charts render live as Vega-Lite (canvas) with theme/type/sort controls; visual_render is the static SVG fallback.',
       serverInfo: { name: 'visulet', version: '0.1.0' },
     });
+  });
+
+  it('echoes a supported client protocol version', () => {
+    const result = asRecord(
+      handle({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'initialize',
+        params: { protocolVersion: '2025-11-25' },
+      }),
+    );
+    expect(result?.protocolVersion).toBe('2025-11-25');
   });
 
   it('lists the visual MCP tools', () => {
@@ -145,19 +163,43 @@ describe('handle', () => {
   it('binds MCP App preview metadata and serves the ui resource', () => {
     const listed = asRecord(handle({ method: 'tools/list' }))?.tools;
     const tools: readonly unknown[] = Array.isArray(listed) ? listed : [];
-    const renderTool = tools.find((item) => asRecord(item)?.name === 'visual_render');
-    expect(JSON.stringify(renderTool)).toContain('ui://visulet/preview');
+    const previewTool = tools.find((item) => asRecord(item)?.name === 'visual_preview');
+    expect(JSON.stringify(previewTool)).toContain('ui://visulet/preview');
+    expect(JSON.stringify(previewTool)).toContain('ui/resourceUri');
     expect(resourceUris(handle({ method: 'resources/list' }))).toContain('ui://visulet/preview');
     const preview = handle({
       method: 'resources/read',
       params: { uri: 'ui://visulet/preview' },
     });
     expect(JSON.stringify(preview)).toContain('text/html;profile=mcp-app');
-    expect(JSON.stringify(preview)).toContain('data:image/svg+xml');
+    expect(JSON.stringify(preview)).toContain('prefersBorder');
+    expect(JSON.stringify(preview)).toContain('connectDomains');
+    expect(JSON.stringify(preview)).toContain('ui/initialize');
+  });
+
+  it('returns structuredContent for visual_preview without embedding SVG', () => {
+    const result = asRecord(
+      handle({
+        method: 'tools/call',
+        params: { name: 'visual_preview', arguments: { document } },
+      }),
+    );
+    expect(result?.isError).toBe(false);
+    expect(JSON.stringify(result?._meta)).toContain('ui://visulet/preview');
+    expect(JSON.stringify(result?.structuredContent)).toContain('revenue');
+    expect(JSON.stringify(result?.structuredContent)).toContain('"tag":"svg"');
+    expect(JSON.stringify(result?.structuredContent)).toContain('"id":"svg"');
+    expect(JSON.stringify(result?.structuredContent)).toContain('vegaLite');
+    expect(JSON.stringify(result?.structuredContent)).toContain('themeIds');
+    expect(JSON.stringify(result?.content)).not.toContain('<svg');
   });
 
   it('rejects unknown methods', () => {
     expect(() => handle({ method: 'no/such/method' })).toThrow(/Method not found/);
+  });
+
+  it('returns an empty object for ping', () => {
+    expect(handle({ jsonrpc: '2.0', id: 1, method: 'ping' })).toEqual({});
   });
 });
 
@@ -197,18 +239,79 @@ describe('consume', () => {
     expect(JSON.stringify(messages)).toContain('protocolVersion');
   });
 
+  it('parses LF-only Content-Length framing', () => {
+    const body = JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'ping' });
+    const framed = `Content-Length: ${String(Buffer.byteLength(body, 'utf8'))}\n\n${body}`;
+    const messages: unknown[] = [];
+    expect(consume(framed, (message) => messages.push(message))).toBe('');
+    expect(messages).toEqual([{ jsonrpc: '2.0', id: 1, result: {} }]);
+  });
+
+  it('does not treat NDJSON followed by a blank line as Content-Length', () => {
+    const messages: unknown[] = [];
+    const body = JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'ping' });
+    expect(consume(`${body}\n\n`, (message) => messages.push(message))).toBe('');
+    expect(messages).toEqual([{ jsonrpc: '2.0', id: 1, result: {} }]);
+  });
+
   it('parses a newline-delimited initialize request', () => {
     const messages: unknown[] = [];
+    const framings: unknown[] = [];
     const leftover = consume(
       `${JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize' })}\n`,
-      (message) => messages.push(message),
+      (message, framing) => {
+        messages.push(message);
+        framings.push(framing);
+      },
     );
     expect(leftover).toBe('');
     expect(JSON.stringify(messages)).toContain('protocolVersion');
+    expect(framings).toEqual(['ndjson']);
   });
 
   it('retains an incomplete NDJSON line without a trailing newline', () => {
     const incomplete = JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize' });
     expect(consume(incomplete)).toBe(incomplete);
+  });
+
+  it('does not write a reply for initialized notifications', () => {
+    const messages: unknown[] = [];
+    consume(frame({ jsonrpc: '2.0', method: 'notifications/initialized' }), (message) => {
+      messages.push(message);
+    });
+    expect(messages).toEqual([]);
+  });
+
+  it('does not reply to notifications even when an id is present', () => {
+    const messages: unknown[] = [];
+    consume(frame({ jsonrpc: '2.0', id: 9, method: 'notifications/initialized' }), (message) => {
+      messages.push(message);
+    });
+    expect(messages).toEqual([]);
+  });
+
+  it('replies to ping and ignores a following initialized notification', () => {
+    const messages: unknown[] = [];
+    const payload = `${frame({ jsonrpc: '2.0', id: 1, method: 'initialize' })}${frame({
+      jsonrpc: '2.0',
+      method: 'notifications/initialized',
+    })}${frame({ jsonrpc: '2.0', id: 2, method: 'ping' })}`;
+    consume(payload, (message) => {
+      messages.push(message);
+    });
+    expect(messages).toHaveLength(2);
+    expect(JSON.stringify(messages[0])).toContain('protocolVersion');
+    expect(messages[1]).toEqual({ jsonrpc: '2.0', id: 2, result: {} });
+  });
+
+  it('does not write a reply for NDJSON notifications', () => {
+    const messages: unknown[] = [];
+    consume(
+      `${JSON.stringify({ jsonrpc: '2.0', method: 'notifications/cancelled' })}\n`,
+      (message) => {
+        messages.push(message);
+      },
+    );
+    expect(messages).toEqual([]);
   });
 });

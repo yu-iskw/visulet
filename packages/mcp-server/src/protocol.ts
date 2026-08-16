@@ -1,4 +1,4 @@
-import { isRecord } from '@visulet/core';
+import { isRecord, readMapValue } from '@visulet/core';
 
 import {
   executeMcpTool,
@@ -7,13 +7,15 @@ import {
   MCP_TOOL_SCHEMAS,
   MCP_TYPE_IDS,
   MCP_UI_PREVIEW_URI,
+  MCP_UI_RESOURCE_META,
   MCP_UI_RESOURCE_MIME,
-  MCP_UI_TOOL_NAMES,
   readMcpResource,
 } from './tools';
+import { isUiAppTool, shapeCallToolResult, uiToolMeta } from './ui-tool-result';
 
 const MCP_METHODS = [
   'initialize',
+  'ping',
   'prompts/get',
   'prompts/list',
   'resources/list',
@@ -29,7 +31,7 @@ interface JsonRpcRequest {
   readonly params?: Readonly<Record<string, unknown>>;
 }
 
-type JsonRpcWriter = (message: unknown) => void;
+type JsonRpcWriter = (message: unknown, framing?: 'ndjson' | 'content-length') => void;
 
 type McpMethod = (typeof MCP_METHODS)[number];
 
@@ -46,22 +48,44 @@ function logTool(name: string, started: number, category: string, diagnosticCoun
   );
 }
 
-function initializeResult(): unknown {
+const SUPPORTED_PROTOCOL_VERSIONS = [
+  '2024-11-05',
+  '2025-03-26',
+  '2025-06-18',
+  '2025-11-05',
+  '2025-11-25',
+  '2026-01-26',
+  '2026-07-28',
+] as const;
+
+function initializeResult(params: Readonly<Record<string, unknown>> | undefined): unknown {
+  const requested = params?.protocolVersion;
+  const protocolVersion =
+    typeof requested === 'string' &&
+    (SUPPORTED_PROTOCOL_VERSIONS as readonly string[]).includes(requested)
+      ? requested
+      : '2024-11-05';
   return {
-    protocolVersion: '2024-11-05',
+    protocolVersion,
     capabilities: {
-      tools: {},
-      resources: {},
-      prompts: {},
-      extensions: { 'io.modelcontextprotocol/ui': {} },
+      tools: { listChanged: false },
+      resources: { listChanged: false },
+      prompts: { listChanged: false },
+      extensions: {
+        'io.modelcontextprotocol/ui': {
+          mimeTypes: [MCP_UI_RESOURCE_MIME],
+        },
+      },
     },
+    instructions:
+      'Prefer visual_preview when the host supports MCP Apps. Charts render live as Vega-Lite (canvas) with theme/type/sort controls; visual_render is the static SVG fallback.',
     serverInfo: { name: 'visulet', version: '0.1.0' },
   };
 }
 
 function uiMeta(name: (typeof MCP_TOOL_NAMES)[number]): unknown {
-  if (MCP_UI_TOOL_NAMES.some((tool) => tool === name)) {
-    return { ui: { resourceUri: MCP_UI_PREVIEW_URI } };
+  if (isUiAppTool(name)) {
+    return uiToolMeta();
   }
   return undefined;
 }
@@ -70,34 +94,14 @@ function listTools(): unknown {
   return {
     tools: MCP_TOOL_NAMES.map((name) => ({
       name,
-      description: `Vizulet ${name.replaceAll('_', ' ')}`,
-      inputSchema: schemaForTool(name),
+      description:
+        name === 'visual_preview'
+          ? 'Open an interactive MCP App: Vega-Lite canvas charts with live theme, type, and sort controls, plus SVG fallback for diagrams.'
+          : `Vizulet ${name.replaceAll('_', ' ')}`,
+      inputSchema: readMapValue(MCP_TOOL_SCHEMAS, name),
       _meta: uiMeta(name),
     })),
   };
-}
-
-function schemaForTool(name: (typeof MCP_TOOL_NAMES)[number]) {
-  switch (name) {
-    case 'visual_validate':
-      return MCP_TOOL_SCHEMAS.visual_validate;
-    case 'visual_inspect':
-      return MCP_TOOL_SCHEMAS.visual_inspect;
-    case 'visual_render':
-      return MCP_TOOL_SCHEMAS.visual_render;
-    case 'visual_apply_patch':
-      return MCP_TOOL_SCHEMAS.visual_apply_patch;
-    case 'visual_capabilities':
-      return MCP_TOOL_SCHEMAS.visual_capabilities;
-    case 'visual_describe_type':
-      return MCP_TOOL_SCHEMAS.visual_describe_type;
-    case 'visual_compile':
-      return MCP_TOOL_SCHEMAS.visual_compile;
-    default: {
-      const exhaustive: never = name;
-      return exhaustive;
-    }
-  }
 }
 
 function callTool(params: Readonly<Record<string, unknown>> | undefined): unknown {
@@ -113,7 +117,7 @@ function callTool(params: Readonly<Record<string, unknown>> | undefined): unknow
   });
   const diagnosticCount = Array.isArray(result.diagnostics) ? result.diagnostics.length : 0;
   logTool(name, started, result.category, diagnosticCount);
-  return { content: [{ type: 'text', text: JSON.stringify(result) }], isError: !result.ok };
+  return shapeCallToolResult(name, result);
 }
 
 function listResources(): unknown {
@@ -128,7 +132,7 @@ function listResources(): unknown {
         uri: MCP_UI_PREVIEW_URI,
         name: 'Vizulet preview',
         mimeType: MCP_UI_RESOURCE_MIME,
-        _meta: { ui: { csp: { connectDomains: [], resourceDomains: [] } } },
+        _meta: MCP_UI_RESOURCE_META,
       },
       {
         uri: 'visulet://schema/v0/visual-document',
@@ -167,7 +171,9 @@ function readResource(params: Readonly<Record<string, unknown>> | undefined): un
   if (resource === undefined) {
     throw new Error(`Unknown resource ${uri}`);
   }
-  return { contents: [{ uri, mimeType: resource.mimeType, text: resource.text }] };
+  return {
+    contents: [{ uri, mimeType: resource.mimeType, text: resource.text, _meta: resource._meta }],
+  };
 }
 
 function listPrompts(): unknown {
@@ -214,6 +220,14 @@ class RpcFailure extends Error {
   }
 }
 
+function isSilentNotification(request: JsonRpcRequest): boolean {
+  const method = request.method;
+  if (typeof method === 'string' && method.startsWith('notifications/')) {
+    return true;
+  }
+  return request.id === undefined && typeof method === 'string';
+}
+
 function jsonRpcEnvelope(request: JsonRpcRequest): unknown {
   try {
     return { jsonrpc: '2.0', id: request.id ?? null, result: handle(request) };
@@ -221,6 +235,12 @@ function jsonRpcEnvelope(request: JsonRpcRequest): unknown {
     const rpcCode = error instanceof RpcFailure ? error.rpcCode : -32000;
     const errorMessage = error instanceof Error ? error.message : 'internal_failure';
     return rpcError(request.id ?? null, rpcCode, errorMessage);
+  }
+}
+
+function writeMessage(write: JsonRpcWriter, message: unknown): void {
+  if (message !== undefined) {
+    write(message);
   }
 }
 
@@ -233,7 +253,9 @@ export function handle(request: JsonRpcRequest): unknown {
   }
   switch (method) {
     case 'initialize':
-      return initializeResult();
+      return initializeResult(request.params);
+    case 'ping':
+      return {};
     case 'tools/list':
       return listTools();
     case 'tools/call':
@@ -254,8 +276,26 @@ export function handle(request: JsonRpcRequest): unknown {
 }
 
 const MAX_FRAME_BYTES = 2_000_000;
-const HEADER_SEPARATOR = '\r\n\r\n';
+const HEADER_SEPARATOR_CRLF = '\r\n\r\n';
+const HEADER_SEPARATOR_LF = '\n\n';
 const CONTENT_LENGTH_PREFIX = /^[\uFEFF\s]*Content-Length:/i;
+
+function headerBreak(
+  bytes: Buffer,
+): { readonly index: number; readonly length: number } | undefined {
+  const crlf = bytes.indexOf(HEADER_SEPARATOR_CRLF);
+  const lf = bytes.indexOf(HEADER_SEPARATOR_LF);
+  if (crlf === -1 && lf === -1) {
+    return undefined;
+  }
+  if (crlf === -1) {
+    return { index: lf, length: HEADER_SEPARATOR_LF.length };
+  }
+  if (lf === -1 || crlf <= lf) {
+    return { index: crlf, length: HEADER_SEPARATOR_CRLF.length };
+  }
+  return { index: lf, length: HEADER_SEPARATOR_LF.length };
+}
 
 function parseFrame(body: string): unknown {
   let parsed: unknown;
@@ -268,18 +308,25 @@ function parseFrame(body: string): unknown {
     return rpcError(null, -32600, 'Invalid Request');
   }
   const rawId = parsed.id;
-  const id =
-    typeof rawId === 'number' || typeof rawId === 'string' || rawId === null ? rawId : null;
-  return jsonRpcEnvelope({
+  const id = Object.hasOwn(parsed, 'id')
+    ? typeof rawId === 'number' || typeof rawId === 'string' || rawId === null
+      ? rawId
+      : null
+    : undefined;
+  const request: JsonRpcRequest = {
     jsonrpc: typeof parsed.jsonrpc === 'string' ? parsed.jsonrpc : undefined,
     id,
     method: typeof parsed.method === 'string' ? parsed.method : undefined,
     params: isRecord(parsed.params) ? parsed.params : undefined,
-  });
+  };
+  if (isSilentNotification(request)) {
+    return undefined;
+  }
+  return jsonRpcEnvelope(request);
 }
 
 function looksLikeContentLengthFraming(buffer: string): boolean {
-  return CONTENT_LENGTH_PREFIX.test(buffer) || buffer.includes(HEADER_SEPARATOR);
+  return CONTENT_LENGTH_PREFIX.test(buffer);
 }
 
 function rejectIfTooLarge(bytes: number, write: JsonRpcWriter): boolean {
@@ -291,31 +338,37 @@ function rejectIfTooLarge(bytes: number, write: JsonRpcWriter): boolean {
 }
 
 function consumeContentLength(buffer: string, write: JsonRpcWriter): string {
+  const framedWrite: JsonRpcWriter = (message) => {
+    write(message, 'content-length');
+  };
   const bytes = Buffer.from(buffer, 'utf8');
-  const headerEnd = bytes.indexOf(HEADER_SEPARATOR);
-  if (headerEnd === -1) {
-    return rejectIfTooLarge(bytes.length, write) ? '' : buffer;
+  const headerEnd = headerBreak(bytes);
+  if (headerEnd === undefined) {
+    return rejectIfTooLarge(bytes.length, framedWrite) ? '' : buffer;
   }
-  const header = bytes.subarray(0, headerEnd).toString('utf8');
+  const header = bytes.subarray(0, headerEnd.index).toString('utf8');
   const match = /Content-Length:\s*(\d+)/i.exec(header);
   if (match === null) {
-    return consume(bytes.subarray(headerEnd + HEADER_SEPARATOR.length).toString('utf8'), write);
+    return consume(bytes.subarray(headerEnd.index + headerEnd.length).toString('utf8'), write);
   }
   const length = Number(match[1]);
   if (!Number.isSafeInteger(length) || length < 0 || length > MAX_FRAME_BYTES) {
-    write(rpcError(null, -32600, 'Frame too large'));
+    framedWrite(rpcError(null, -32600, 'Frame too large'));
     return '';
   }
-  const start = headerEnd + HEADER_SEPARATOR.length;
+  const start = headerEnd.index + headerEnd.length;
   if (bytes.length < start + length) {
     return buffer;
   }
   const body = bytes.subarray(start, start + length).toString('utf8');
-  write(parseFrame(body));
+  writeMessage(framedWrite, parseFrame(body));
   return consume(bytes.subarray(start + length).toString('utf8'), write);
 }
 
 function consumeNdjson(buffer: string, write: JsonRpcWriter): string {
+  const framedWrite: JsonRpcWriter = (message) => {
+    write(message, 'ndjson');
+  };
   const newline = buffer.indexOf('\n');
   if (newline === -1) {
     return rejectIfTooLarge(Buffer.byteLength(buffer, 'utf8'), write) ? '' : buffer;
@@ -323,7 +376,7 @@ function consumeNdjson(buffer: string, write: JsonRpcWriter): string {
   const rawLine = buffer.slice(0, newline);
   const line = rawLine.endsWith('\r') ? rawLine.slice(0, -1) : rawLine;
   if (line !== '') {
-    write(parseFrame(line));
+    writeMessage(framedWrite, parseFrame(line));
   }
   return consume(buffer.slice(newline + 1), write);
 }

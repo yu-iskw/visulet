@@ -16,6 +16,14 @@ function toolResult(name: string, args: Readonly<Record<string, unknown>>): unkn
       params: { name, arguments: args },
     }),
   );
+  const structured = asRecord(envelope?.structuredContent);
+  if (structured) {
+    return {
+      ok: envelope?.isError !== true,
+      result: structured,
+      diagnostics: structured.diagnostics,
+    };
+  }
   const content = envelope?.content;
   if (!Array.isArray(content)) {
     return undefined;
@@ -137,7 +145,7 @@ describe('MCP dogfood scenarios', () => {
   });
 
   it('inspects a composed report', () => {
-    const inspected = asRecord(toolResult('visual_inspect', { document: composedDocument }));
+    const inspected = asRecord(toolResult('visual_preview', { document: composedDocument }));
     expect(inspected?.ok).toBe(true);
     expect(JSON.stringify(inspected)).toContain('headline');
   });

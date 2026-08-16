@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   executeMcpTool,
+  injectPreviewVendor,
   MCP_TOOL_SCHEMAS,
   readMcpResource,
+  VENDOR_PLACEHOLDER,
   type McpToolRequest,
   type McpToolResponse,
 } from './tools';
@@ -26,8 +28,21 @@ const document = {
   ],
 };
 
+describe('injectPreviewVendor', () => {
+  it('does not interpolate $ sequences from the vendor bundle', () => {
+    const vendor = 'var x="$&"; var y="$`"; var z="$$"; </script>';
+    const html = injectPreviewVendor(VENDOR_PLACEHOLDER, vendor);
+    expect(html).toContain('var x="$&"');
+    expect(html).toContain('var y="$`"');
+    expect(html).toContain('var z="$$"');
+    expect(html).toContain('<\\/script>');
+    expect(html).not.toContain(VENDOR_PLACEHOLDER);
+  });
+});
+
 describe('MCP_TOOL_SCHEMAS', () => {
   it('declares required fields per tool', () => {
+    expect(MCP_TOOL_SCHEMAS.visual_preview.required).toEqual(['document']);
     expect(MCP_TOOL_SCHEMAS.visual_validate.required).toEqual(['document']);
     expect(MCP_TOOL_SCHEMAS.visual_inspect.required).toEqual(['document']);
     expect(MCP_TOOL_SCHEMAS.visual_render.required).toEqual(['document']);
@@ -66,6 +81,10 @@ describe('executeMcpTool', () => {
       arguments: { document, backend: 'vega-lite' },
     });
     expect(compiled.ok).toBe(true);
+    const preview = executeMcpTool({ name: 'visual_preview', arguments: { document } });
+    expect(preview.ok).toBe(true);
+    expect(JSON.stringify(preview.result)).toContain('"type":"bar"');
+    expect(JSON.stringify(preview.result)).toContain('economist');
     expect(
       executeMcpTool({ name: 'visual_compile', arguments: { document, backend: 'svg' } }).ok,
     ).toBe(true);
@@ -136,6 +155,7 @@ describe('readMcpResource', () => {
     expect(readMcpResource('visulet://types/missing')).toBeUndefined();
     expect(readMcpResource('visulet://nope')).toBeUndefined();
     expect(readMcpResource('ui://visulet/preview')?.mimeType).toBe('text/html;profile=mcp-app');
+    expect(readMcpResource('ui://visulet/preview')?.text).toContain('theme-select');
     expect(readMcpResource('visulet://examples')?.text).toContain('version');
     expect(readMcpResource('visulet://diagnostics')?.text).toContain('schema.*');
   });

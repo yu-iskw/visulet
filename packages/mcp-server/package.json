@@ -26,12 +26,19 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json && node ./scripts/bundle-preview.mjs"
   },
   "dependencies": {
     "@visulet/core": "workspace:*",
     "@visulet/renderer-mermaid": "workspace:*",
     "@visulet/renderer-vegalite": "workspace:*",
-    "@visulet/schema": "workspace:*"
+    "@visulet/schema": "workspace:*",
+    "vega": "6.3.1",
+    "vega-embed": "7.1.0",
+    "vega-interpreter": "2.3.1",
+    "vega-lite": "6.4.3"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
   }
 }
