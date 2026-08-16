@@ -66,8 +66,6 @@ export const FLINT_SEMANTIC_TYPES = [
   'Unknown',
 ] as const;
 
-type FlintSemanticType = (typeof FLINT_SEMANTIC_TYPES)[number];
-
 const CHANNELS: Readonly<Record<string, SemanticChannel>> = {
   datetime: { type: TEMPORAL, format: '%Y-%m-%d %H:%M' },
   date: { type: TEMPORAL, format: '%Y-%m-%d' },
