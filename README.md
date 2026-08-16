@@ -1,91 +1,139 @@
-# Vizulet
+# Visulet
 
-Vizulet is an AI-native visual compiler project for authoring charts, diagrams,
-infographics, tables, text, and composed visual documents from a compact semantic
-representation.
+Visulet is an AI-native semantic chart compiler. Agents and apps author a
+compact `ChartAssemblyInput` (`data`, `semantic_types`, `chart_spec`,
+`theme_spec`); `@visulet/sdk` validates, lays out, and compiles it to a
+backend-native spec. The SDK is headless: it does not draw pixels or rasterize.
 
-The project is intentionally renderer-independent at the document boundary. AI agents
-produce or edit a `VisualDocument`; deterministic Vizulet code validates, diagnoses,
-compiles, and renders it.
+> Status: experimental **0.1.0**. Clean-room reimplementation of Flint-class
+> chart behavior. Flint is a **behavioral oracle**, not source: do not copy
+> Flint internals. `tmp/flint-chart` is reference-only when present.
 
-> Status: experimental **0.1.0**, pre-v1. VisualDocument remains version `"0"`
-> and may change based on agent-authoring benchmarks. See
-> `docs/releases/pre-1.0.md`.
+## Packages
 
-## v0 vertical slice
+| Package                        | Role                                                                 |
+| ------------------------------ | -------------------------------------------------------------------- |
+| [`@visulet/sdk`](packages/sdk) | Headless compiler (browser-safe root; Node file helpers on `./node`) |
+| [`@visulet/cli`](packages/cli) | Command-line validate / compile / catalog / themes (stdout JSON)     |
+| [`@visulet/mcp`](packages/mcp) | MCP Apps server (tools, resources, prompts, optional rasterization)  |
 
-The first implementation in `@visulet/core` provides:
+## CLI
 
-- semantic validation of cross-document references and IDs;
-- runtime catalog discovery for the currently supported visual types;
-- static, self-contained SVG rendering;
-- deterministic authoring benchmark scoring;
-- warnings for valid-but-unsupported visual types rather than closing the schema over
-  the first renderer's catalog.
+```sh
+visulet validate <file> [--backend <id>]
+visulet compile <file> [--backend <id>]
+visulet catalog [--backend <id>]
+visulet themes [id]
+```
 
-Currently rendered chart types are `bar`, `line`, `scatter`, and `heatmap`.
-Currently rendered diagram types are `flowchart`, `sequence`, and `architecture`.
-Currently rendered infographic structures are `list`, `steps`, and `process`.
+Backends: `vegalite` (default), `echarts`, `chartjs`, `plotly`, `excel`.
+The CLI reads JSON `ChartAssemblyInput`. Local `data.url` may point at CSV,
+TSV, or JSON; remote URLs are not fetched.
 
-The canonical schema remains more general than this renderer support matrix. That is
-intentional: a type may be schema-valid while producing a capability diagnostic for a
-particular renderer.
+```sh
+visulet compile examples/bar-quarterly.json --backend vegalite
+```
+
+## MCP
+
+```sh
+npx -y @visulet/mcp
+npx -y @visulet/mcp --transport http --port 3000
+pnpm dlx @visulet/mcp --transport http --port 3000
+```
+
+### Transports
+
+- **stdio** (default) — local file `data.url` is allowed.
+- **Streamable HTTP** — `POST /mcp` on `--transport http` (also
+  `VISULET_MCP_TRANSPORT=http`). HTTP disables file references; pass
+  `data.values`. `GET /health` is available.
+
+### Tools
+
+| Tool                | Purpose                                                        |
+| ------------------- | -------------------------------------------------------------- |
+| `create_chart_view` | Interactive MCP App (preferred when the host supports App UIs) |
+| `render_chart`      | Static PNG/SVG when the host has no App UI                     |
+| `compile_chart`     | Backend-native spec JSON (SDK `assemble`)                      |
+| `validate_chart`    | Warnings and computed size, no render                          |
+| `list_chart_types`  | Catalog for a backend                                          |
+| `list_themes`       | Preset themes                                                  |
+
+**Resources:** `ui://visulet/chart-view.html` (MCP App), `visulet://chart-types`,
+`visulet://chart-types/{backend}`, `visulet://chart-types/{backend}/{id}`,
+`visulet://themes/{id}`, `visulet://schema`, `visulet://agent-skill`,
+`visulet://theme-skill`. Prefer resource templates over `list_chart_types` /
+`list_themes` when the host can read resources.
+
+**Prompts:** `author_visulet_chart` and `author_visulet_theme` (optional
+`backend`, `chartType`, `theme`, `intent`).
+
+Authoring skills also live in-repo at
+[`agent-skills/visulet-chart-author`](agent-skills/visulet-chart-author/SKILL.md)
+and [`agent-skills/visulet-theme-author`](agent-skills/visulet-theme-author/SKILL.md).
+
+## Backends
+
+The SDK **assembles** five backends: Vega-Lite, ECharts, Chart.js, Plotly, Excel.
+It never rasterizes. MCP **`render_chart`** produces pixels for **Vega-Lite,
+ECharts, and Chart.js only**. Plotly and Excel remain assemble-only (spec /
+Office.js) through the SDK and `compile_chart`.
+
+Catalog sizes (chart types per backend): Vega-Lite **36**, ECharts **38**,
+Chart.js **22**, Plotly **38**, Excel **18**. See [docs/catalog.md](docs/catalog.md).
 
 ## Example
 
+`@visulet/sdk` compiles; it does not draw. In a web app pass inline
+`data.values` (never `data.url`). Prefer `@visulet/sdk` or
+`@visulet/sdk/vegalite` in the browser; `@visulet/sdk/node` is Node-only
+(CLI/MCP file reads).
+
+Runnable demo: `pnpm example:web` ([examples/web](examples/web)).
+
+Vega-Lite ([embed](https://vega.github.io/vega-lite/usage/embed.html)):
+
 ```ts
-import { renderSvgDocument, validateVisualDocument } from '@visulet/core';
+import { assembleVegaLite } from '@visulet/sdk';
+import embed from 'vega-embed';
 
-const document = {
-  version: '0',
-  data: {
-    sales: {
-      values: [
-        { quarter: 'Q1', revenue: 120 },
-        { quarter: 'Q2', revenue: 145 },
-      ],
-    },
+const { spec } = assembleVegaLite({
+  data: { values: [{ quarter: 'Q1', revenue: 120 }] },
+  semantic_types: { quarter: 'Category', revenue: 'Quantity' },
+  chart_spec: {
+    chartType: 'Bar Chart',
+    encodings: { x: 'quarter', y: 'revenue' },
   },
-  views: [
-    {
-      id: 'revenue',
-      kind: 'chart',
-      chart: 'bar',
-      data: 'sales',
-      encoding: {
-        x: { field: 'quarter', type: 'ordinal' },
-        y: { field: 'revenue', type: 'quantitative' },
-      },
-    },
-  ],
-};
+  theme_spec: 'paper',
+});
 
-const validation = validateVisualDocument(document);
-if (validation.valid) {
-  const { svg } = renderSvgDocument(document);
-  console.log(svg);
-}
+await embed('#vis', spec);
 ```
 
-## Contracts
+ECharts ([init + size](https://apache.github.io/echarts-handbook/en/concepts/chart-size/)):
 
-- RFC 0001: `docs/rfcs/0001-visual-document-v0.md`
-- RFC 0001 review: `docs/rfcs/0001-adversarial-review.md`
-- RFC 0002: `docs/rfcs/0002-post-v0-roadmap.md`
-- RFC 0002 review: `docs/rfcs/0002-adversarial-review.md`
-- RFC 0003: `docs/rfcs/0003-rfc-0002-closeout.md`
-- RFC 0003 review: `docs/rfcs/0003-adversarial-review.md`
-- v1 status: `docs/v1-status.md` (not frozen)
-- JSON Schema: `schemas/v0/visual-document.schema.json`
-- Example document: `examples/v0/quarterly-revenue.json`
-- Agent benchmark: `benchmarks/agent-authoring/`
-- CLI: `@visulet/cli` (`visulet validate|inspect|render|patch|compile`)
-- MCP: `@visulet/mcp-server`
-- Renderers: SVG in core; `@visulet/renderer-mermaid`; `@visulet/renderer-vegalite`
-- Pre-1.0 policy: `docs/releases/pre-1.0.md`
-- MCP App security: `docs/security/mcp-app.md`
+```ts
+import { assembleECharts } from '@visulet/sdk';
+import * as echarts from 'echarts';
 
-The core remains free of MCP, CLI parsers, and renderer-framework dependencies.
+const { spec, computedSize } = assembleECharts(input);
+el.style.width = `${String(computedSize.width)}px`;
+el.style.height = `${String(computedSize.height)}px`;
+const chart = echarts.init(el);
+chart.setOption(spec);
+// later: chart.dispose();
+```
+
+Chart.js ([usage](https://www.chartjs.org/docs/latest/getting-started/usage.html)):
+
+```ts
+import { assembleChartjs } from '@visulet/sdk';
+import { Chart } from 'chart.js/auto';
+
+const { spec } = assembleChartjs(input);
+new Chart(canvas, spec);
+```
 
 ## Development
 
@@ -94,9 +142,4 @@ pnpm install
 pnpm build
 pnpm test
 pnpm lint
-pnpm lint:security
 ```
-
-The POC deliberately keeps the core free of UI, MCP, browser, and renderer-framework
-dependencies. Those integration packages should depend on the core rather than the core
-depending on them.

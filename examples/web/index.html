@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Visulet SDK web example</title>
+    <script
+      src="https://cdn.jsdelivr.net/npm/vega@6.3.1"
+      integrity="sha384-S5g0Dle3Vlw7vPpQ0k2FbRgPiaiaTg/ZXlpWHbiiOXklxQO8r9NNjjR02sXWdD4w"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/vega-lite@6.4.3"
+      integrity="sha384-9/70gNCfOu6G7xXvkdreMfuqAEsoaGJVXV2BN/JLRXkSmcGvnMqtsRx8HZtUWAvI"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/vega-embed@7.1.0"
+      integrity="sha384-giTAWqsEDsWuWzWKi6NCvjgwi160SClnTYYXWPLuy/DnaQTqmk4soinrpxcCS4dx"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <h1>Visulet SDK web example</h1>
+    <p>Assembles <code>ChartAssemblyInput</code> in the browser, then mounts with Vega-Embed.</p>
+    <div id="vis"></div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

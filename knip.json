@@ -1,14 +1,23 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "ignoreBinaries": ["grype"],
-  "ignore": [".trunk/**"],
+  "ignoreExportsUsedInFile": true,
   "workspaces": {
     ".": {
       "entry": ["stylelint.config.mjs"],
-      "project": ["**/*.{js,cjs,mjs,ts,cts,mts}", "!packages/**", "!.trunk/**", "!node_modules/**"]
+      "project": [
+        "**/*.{js,cjs,mjs,ts,cts,mts}",
+        "!packages/**",
+        "!examples/**",
+        "!.trunk/**",
+        "!node_modules/**"
+      ]
     },
     "packages/*": {
       "project": ["src/**/*.ts"]
+    },
+    "packages/mcp": {
+      "project": ["src/**/*.ts", "ui/src/**/*.ts"]
     }
   }
 }

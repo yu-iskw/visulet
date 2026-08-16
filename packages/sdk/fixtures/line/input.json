@@ -1,0 +1,15 @@
+{
+  "data": {
+    "values": [
+      { "quarter": "Q1", "revenue": 120 },
+      { "quarter": "Q2", "revenue": 145 }
+    ]
+  },
+  "semantic_types": { "quarter": "Category", "revenue": "Quantity" },
+  "chart_spec": {
+    "chartType": "Line Chart",
+    "encodings": { "x": "quarter", "y": "revenue" },
+    "title": "Revenue by quarter",
+    "baseSize": { "width": 400, "height": 320 }
+  }
+}

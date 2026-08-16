@@ -1,0 +1,57 @@
+{
+  "name": "@visulet/mcp",
+  "version": "0.1.0",
+  "private": false,
+  "license": "Apache-2.0",
+  "description": "Visulet MCP Apps server: stdio and Streamable HTTP chart tools.",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "ui",
+    "src/skills"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "visulet-mcp": "dist/cli.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "pnpm run build:ui && tsc -p ui/tsconfig.json && tsc -p tsconfig.build.json",
+    "build:ui": "vite build --config ui/vite.config.ts",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "prepublishOnly": "pnpm run build",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "^1.7.5",
+    "@modelcontextprotocol/node": "^2.0.0",
+    "@modelcontextprotocol/server": "^2.0.0",
+    "@napi-rs/canvas": "^1.0.5",
+    "@resvg/resvg-js": "^2.6.2",
+    "@visulet/sdk": "workspace:*",
+    "chart.js": "^4.5.1",
+    "echarts": "^6.1.0",
+    "vega": "^6.3.1",
+    "vega-interpreter": "^2.3.1",
+    "vega-lite": "^6.4.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "^2.0.0",
+    "vite": "^8.2.1",
+    "vite-plugin-singlefile": "^2.3.3"
+  }
+}

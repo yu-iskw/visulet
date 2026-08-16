@@ -1,0 +1,8 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "visulet",
+  "version": "0.1.0",
+  "description": "Author Visulet ChartAssemblyInput and ThemeSpec, then compile via MCP.",
+  "license": "Apache-2.0",
+  "keywords": ["charts", "mcp", "vega-lite", "echarts"]
+}

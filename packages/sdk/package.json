@@ -1,0 +1,71 @@
+{
+  "name": "@visulet/sdk",
+  "version": "0.1.0",
+  "private": false,
+  "license": "Apache-2.0",
+  "description": "Visulet semantic chart compiler: assemble ChartAssemblyInput into Vega-Lite, ECharts, Chart.js, Plotly, or Excel specs.",
+  "type": "module",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "src",
+    "schema"
+  ],
+  "main": "dist/index.js",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./catalog": {
+      "types": "./src/catalog/index.ts",
+      "import": "./dist/catalog/index.js",
+      "default": "./dist/catalog/index.js"
+    },
+    "./theme": {
+      "types": "./src/theme/index.ts",
+      "import": "./dist/theme/index.js",
+      "default": "./dist/theme/index.js"
+    },
+    "./vegalite": {
+      "types": "./src/backends/vegalite/index.ts",
+      "import": "./dist/backends/vegalite/index.js",
+      "default": "./dist/backends/vegalite/index.js"
+    },
+    "./echarts": {
+      "types": "./src/backends/echarts/index.ts",
+      "import": "./dist/backends/echarts/index.js",
+      "default": "./dist/backends/echarts/index.js"
+    },
+    "./chartjs": {
+      "types": "./src/backends/chartjs/index.ts",
+      "import": "./dist/backends/chartjs/index.js",
+      "default": "./dist/backends/chartjs/index.js"
+    },
+    "./plotly": {
+      "types": "./src/backends/plotly/index.ts",
+      "import": "./dist/backends/plotly/index.js",
+      "default": "./dist/backends/plotly/index.js"
+    },
+    "./excel": {
+      "types": "./src/backends/excel/index.ts",
+      "import": "./dist/backends/excel/index.js",
+      "default": "./dist/backends/excel/index.js"
+    },
+    "./node": {
+      "types": "./src/node.ts",
+      "import": "./dist/node.js",
+      "default": "./dist/node.js"
+    },
+    "./schema": "./schema/chart-assembly.schema.json"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run"
+  }
+}

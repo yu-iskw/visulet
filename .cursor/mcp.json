@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "visulet": {
+      "type": "stdio",
+      "command": "pnpm",
+      "args": ["--dir", "${workspaceFolder}", "exec", "visulet-mcp"]
+    }
+  }
+}

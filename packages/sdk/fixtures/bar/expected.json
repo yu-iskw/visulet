@@ -1,0 +1,7 @@
+{
+  "mark": { "type": "bar" },
+  "encoding": {
+    "x": { "field": "quarter" },
+    "y": { "field": "revenue" }
+  }
+}

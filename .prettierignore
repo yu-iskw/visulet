@@ -3,3 +3,5 @@ dist
 coverage
 .trunk
 pnpm-lock.yaml
+packages/mcp/ui/chart-view.html
+packages/mcp/ui/.vite-out

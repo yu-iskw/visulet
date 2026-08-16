@@ -81,6 +81,7 @@ out
 # Nuxt.js build / generate output
 .nuxt
 dist
+.pnpm-store/
 
 # Gatsby files
 .cache/
@@ -138,6 +139,8 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
+packages/mcp/ui/.vite-out/
+
 TODO.md
 .todo_list/
 
@@ -155,3 +158,5 @@ benchmarks/agent-authoring/v1/results/**
 # CodeQL local artifacts
 .codeql_db/
 codeql-results.sarif
+
+tmp/

@@ -3,10 +3,21 @@ import { fileURLToPath } from 'node:url';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)));
 
-export const visuletSrcAliases = {
-  '@visulet/core': resolve(repoRoot, 'packages/common/src/index.ts'),
-  '@visulet/renderer-mermaid': resolve(repoRoot, 'packages/renderer-mermaid/src/index.ts'),
-  '@visulet/renderer-vegalite': resolve(repoRoot, 'packages/renderer-vegalite/src/index.ts'),
-  '@visulet/mcp-server': resolve(repoRoot, 'packages/mcp-server/src/index.ts'),
-  '@visulet/benchmark': resolve(repoRoot, 'packages/benchmark/src/index.ts'),
-};
+export const visuletSrcAliases = [
+  {
+    find: /^@visulet\/sdk\/node$/,
+    replacement: resolve(repoRoot, 'packages/sdk/src/node.ts'),
+  },
+  {
+    find: /^@visulet\/sdk$/,
+    replacement: resolve(repoRoot, 'packages/sdk/src/index.ts'),
+  },
+  {
+    find: /^@visulet\/cli$/,
+    replacement: resolve(repoRoot, 'packages/cli/src/index.ts'),
+  },
+  {
+    find: /^@visulet\/mcp$/,
+    replacement: resolve(repoRoot, 'packages/mcp/src/index.ts'),
+  },
+];

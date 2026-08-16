@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "visulet": {
+      "command": "npx",
+      "args": ["-y", "@visulet/mcp"]
+    }
+  }
+}
